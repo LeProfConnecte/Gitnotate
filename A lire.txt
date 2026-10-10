@@ -1,0 +1,2 @@
+pip install python-dotenv
+python gitnotate_v6.6.py

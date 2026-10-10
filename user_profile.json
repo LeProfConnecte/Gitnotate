@@ -1,0 +1,51 @@
+{
+  "languages": [
+    "Python",
+    "JavaScript",
+    "TypeScript",
+    "Node.js"
+  ],
+  "frameworks": [
+    "Next.js",
+    "React",
+    "Vue.js",
+    "FastAPI",
+    "Django",
+    "Express",
+    "Supabase"
+  ],
+  "domains": [
+    "education",
+    "web-dev",
+    "automation",
+    "ai",
+    "llm",
+    "ocr",
+    "devops",
+    "data-analysis",
+    "finance",
+    "trading"
+  ],
+  "interests": [
+    "teaching-tools",
+    "document-processing",
+    "translation",
+    "workflow-automation",
+    "n8n",
+    "make",
+    "no-code",
+    "video-generation",
+    "prompt-engineering",
+    "api-integration"
+  ],
+  "infra": [
+    "Docker",
+    "Nginx",
+    "PostgreSQL",
+    "Redis",
+    "VPS",
+    "CloudPanel",
+    "Supabase",
+    "MongoDB"
+  ]
+}
