@@ -19,6 +19,8 @@ sauvegardes/
 exports/
 *.bak
 *.tmp
+# Index local de redécouverte (redecouverte.py) : régénérable, jamais suivi
+.gitnotate_index/
 
 # Environnements virtuels et outils
 .venv/

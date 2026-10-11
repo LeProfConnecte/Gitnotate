@@ -1,0 +1,999 @@
+{
+ "A": {
+  "object": "database",
+  "id": "5da35c51-c82e-55f4-b0d6-b4794ce2bd04",
+  "title": [
+   {
+    "type": "text",
+    "text": {
+     "content": "Ressources GitHub",
+     "link": null
+    },
+    "annotations": {
+     "bold": false,
+     "italic": false,
+     "strikethrough": false,
+     "underline": false,
+     "code": false,
+     "color": "default"
+    },
+    "plain_text": "Ressources GitHub",
+    "href": null
+   }
+  ],
+  "description": [],
+  "is_inline": false,
+  "archived": false,
+  "in_trash": false,
+  "properties": {
+   "Nom": {
+    "id": "title",
+    "name": "Nom",
+    "type": "title",
+    "title": {}
+   },
+   "URL": {
+    "id": "3645",
+    "name": "URL",
+    "type": "url",
+    "url": {}
+   },
+   "Description": {
+    "id": "04b1",
+    "name": "Description",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Cas d'usage": {
+    "id": "f001",
+    "name": "Cas d'usage",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Installation": {
+    "id": "483d",
+    "name": "Installation",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Exemple": {
+    "id": "61d9",
+    "name": "Exemple",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Prérequis": {
+    "id": "b899",
+    "name": "Prérequis",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Stars": {
+    "id": "7ca3",
+    "name": "Stars",
+    "type": "number",
+    "number": {}
+   },
+   "Pertinence": {
+    "id": "0b54",
+    "name": "Pertinence",
+    "type": "number",
+    "number": {}
+   },
+   "Langage": {
+    "id": "8706",
+    "name": "Langage",
+    "type": "select",
+    "select": {
+     "options": [
+      {
+       "id": "3b97",
+       "name": "Python",
+       "color": "gray"
+      },
+      {
+       "id": "8060",
+       "name": "JavaScript",
+       "color": "brown"
+      },
+      {
+       "id": "d4f6",
+       "name": "TypeScript",
+       "color": "orange"
+      },
+      {
+       "id": "ac27",
+       "name": "Go",
+       "color": "yellow"
+      },
+      {
+       "id": "4412",
+       "name": "Autres langages",
+       "color": "green"
+      }
+     ]
+    }
+   },
+   "Statut": {
+    "id": "29d7",
+    "name": "Statut",
+    "type": "select",
+    "select": {
+     "options": [
+      {
+       "id": "c5c5",
+       "name": "À explorer",
+       "color": "gray"
+      },
+      {
+       "id": "6d37",
+       "name": "En test",
+       "color": "brown"
+      },
+      {
+       "id": "175a",
+       "name": "Utilisé",
+       "color": "orange"
+      },
+      {
+       "id": "5067",
+       "name": "Abandonné",
+       "color": "yellow"
+      }
+     ]
+    }
+   },
+   "Type": {
+    "id": "c718",
+    "name": "Type",
+    "type": "multi_select",
+    "multi_select": {
+     "options": [
+      {
+       "id": "fb80",
+       "name": "Agent IA",
+       "color": "gray"
+      },
+      {
+       "id": "f4ea",
+       "name": "ML/AI",
+       "color": "brown"
+      },
+      {
+       "id": "c11f",
+       "name": "Web",
+       "color": "orange"
+      },
+      {
+       "id": "2a3e",
+       "name": "Outils",
+       "color": "yellow"
+      }
+     ]
+    }
+   },
+   "Dernière MAJ": {
+    "id": "d030",
+    "name": "Dernière MAJ",
+    "type": "date",
+    "date": {}
+   },
+   "Analysé le": {
+    "id": "c4ac",
+    "name": "Analysé le",
+    "type": "date",
+    "date": {}
+   },
+   "Justification": {
+    "id": "d531",
+    "name": "Justification",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Licence": {
+    "id": "f4c5",
+    "name": "Licence",
+    "type": "select",
+    "select": {
+     "options": [
+      {
+       "id": "c340",
+       "name": "MIT",
+       "color": "gray"
+      },
+      {
+       "id": "378f",
+       "name": "Apache-2.0",
+       "color": "brown"
+      },
+      {
+       "id": "53c3",
+       "name": "GPL-3.0",
+       "color": "orange"
+      },
+      {
+       "id": "1118",
+       "name": "AGPL-3.0",
+       "color": "yellow"
+      },
+      {
+       "id": "6b31",
+       "name": "Non renseignée",
+       "color": "green"
+      },
+      {
+       "id": "4aec",
+       "name": "Non vérifiée",
+       "color": "blue"
+      }
+     ]
+    }
+   },
+   "Catégorie": {
+    "id": "5427",
+    "name": "Catégorie",
+    "type": "select",
+    "select": {
+     "options": [
+      {
+       "id": "fb80",
+       "name": "Agent IA",
+       "color": "gray"
+      },
+      {
+       "id": "4f89",
+       "name": "Assistant de code",
+       "color": "brown"
+      },
+      {
+       "id": "641d",
+       "name": "MCP/Intégrations",
+       "color": "orange"
+      },
+      {
+       "id": "31c6",
+       "name": "LLM/Inférence",
+       "color": "yellow"
+      },
+      {
+       "id": "2c1f",
+       "name": "RAG/Recherche",
+       "color": "green"
+      },
+      {
+       "id": "327a",
+       "name": "OCR/Documents",
+       "color": "blue"
+      },
+      {
+       "id": "a0f2",
+       "name": "Génération média",
+       "color": "purple"
+      },
+      {
+       "id": "4215",
+       "name": "Audio/Vidéo",
+       "color": "pink"
+      },
+      {
+       "id": "670a",
+       "name": "Automatisation/No-code",
+       "color": "red"
+      },
+      {
+       "id": "c912",
+       "name": "Web/Frontend",
+       "color": "gray"
+      },
+      {
+       "id": "b6dd",
+       "name": "Backend/API",
+       "color": "brown"
+      },
+      {
+       "id": "1119",
+       "name": "Données/Analyse",
+       "color": "orange"
+      },
+      {
+       "id": "df08",
+       "name": "Finance/Trading",
+       "color": "yellow"
+      },
+      {
+       "id": "8c6e",
+       "name": "Crypto/Web3",
+       "color": "green"
+      },
+      {
+       "id": "360d",
+       "name": "DevOps/Self-hosting",
+       "color": "blue"
+      },
+      {
+       "id": "2d43",
+       "name": "BTP/Ingénierie",
+       "color": "purple"
+      },
+      {
+       "id": "ed2f",
+       "name": "Éducation/Cours",
+       "color": "pink"
+      },
+      {
+       "id": "278f",
+       "name": "Liste/Ressources",
+       "color": "red"
+      },
+      {
+       "id": "2c13",
+       "name": "Autre",
+       "color": "gray"
+      }
+     ]
+    }
+   },
+   "Brique pour": {
+    "id": "75ad",
+    "name": "Brique pour",
+    "type": "multi_select",
+    "multi_select": {
+     "options": [
+      {
+       "id": "46cf",
+       "name": "Gitnotate",
+       "color": "gray"
+      },
+      {
+       "id": "0d86",
+       "name": "Automatisations n8n",
+       "color": "brown"
+      },
+      {
+       "id": "04b6",
+       "name": "Outils pédagogiques BTS MEC",
+       "color": "orange"
+      },
+      {
+       "id": "0ab0",
+       "name": "Suivi finance et crypto",
+       "color": "yellow"
+      },
+      {
+       "id": "5962",
+       "name": "Applications web",
+       "color": "green"
+      },
+      {
+       "id": "c3c1",
+       "name": "IA et agents",
+       "color": "blue"
+      },
+      {
+       "id": "a27c",
+       "name": "Automatisation",
+       "color": "purple"
+      },
+      {
+       "id": "6c79",
+       "name": "Documents et OCR",
+       "color": "pink"
+      },
+      {
+       "id": "2d93",
+       "name": "BTP et génie civil",
+       "color": "red"
+      },
+      {
+       "id": "e94c",
+       "name": "Enseignement",
+       "color": "gray"
+      },
+      {
+       "id": "1339",
+       "name": "Création audiovisuelle",
+       "color": "brown"
+      },
+      {
+       "id": "9d5d",
+       "name": "Données",
+       "color": "orange"
+      },
+      {
+       "id": "eb01",
+       "name": "Finance",
+       "color": "yellow"
+      },
+      {
+       "id": "0682",
+       "name": "Cryptomonnaies",
+       "color": "green"
+      },
+      {
+       "id": "806f",
+       "name": "DevOps et auto-hébergement",
+       "color": "blue"
+      }
+     ]
+    }
+   },
+   "Notes": {
+    "id": "d326",
+    "name": "Notes",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Favori": {
+    "id": "f644",
+    "name": "Favori",
+    "type": "checkbox",
+    "checkbox": {}
+   },
+   "Projet lié": {
+    "id": "834a",
+    "name": "Projet lié",
+    "type": "relation",
+    "relation": {
+     "database_id": "27dc379b-db18-58e4-8a8f-ed02ba1286d7",
+     "type": "single_property",
+     "single_property": {}
+    }
+   }
+  },
+  "_role_test": "base principale (DATABASE_ID) depuis le run 2 du 14/01/2026 ; colonnes facultatives v7.3 ajoutées à la main le 11/10/2026 ; option « Autre » renommée « Autres langages » ; colonnes personnelles Notes, Favori, Projet lié"
+ },
+ "B": {
+  "object": "database",
+  "id": "b9d314c1-377f-53c3-91bc-957c1d6b35a0",
+  "title": [
+   {
+    "type": "text",
+    "text": {
+     "content": "Ressources GitHub (janvier)",
+     "link": null
+    },
+    "annotations": {
+     "bold": false,
+     "italic": false,
+     "strikethrough": false,
+     "underline": false,
+     "code": false,
+     "color": "default"
+    },
+    "plain_text": "Ressources GitHub (janvier)",
+    "href": null
+   }
+  ],
+  "description": [],
+  "is_inline": false,
+  "archived": false,
+  "in_trash": false,
+  "properties": {
+   "Nom": {
+    "id": "title",
+    "name": "Nom",
+    "type": "title",
+    "title": {}
+   },
+   "URL": {
+    "id": "54d1",
+    "name": "URL",
+    "type": "url",
+    "url": {}
+   },
+   "Description": {
+    "id": "76f8",
+    "name": "Description",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Cas d'usage": {
+    "id": "b464",
+    "name": "Cas d'usage",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Installation": {
+    "id": "10d1",
+    "name": "Installation",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Exemple": {
+    "id": "3e85",
+    "name": "Exemple",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Prérequis": {
+    "id": "0460",
+    "name": "Prérequis",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Stars": {
+    "id": "7572",
+    "name": "Stars",
+    "type": "number",
+    "number": {}
+   },
+   "Pertinence": {
+    "id": "4370",
+    "name": "Pertinence",
+    "type": "number",
+    "number": {}
+   },
+   "Langage": {
+    "id": "9c7a",
+    "name": "Langage",
+    "type": "multi_select",
+    "multi_select": {
+     "options": [
+      {
+       "id": "3b97",
+       "name": "Python",
+       "color": "gray"
+      },
+      {
+       "id": "8060",
+       "name": "JavaScript",
+       "color": "brown"
+      },
+      {
+       "id": "d4f6",
+       "name": "TypeScript",
+       "color": "orange"
+      },
+      {
+       "id": "ac27",
+       "name": "Go",
+       "color": "yellow"
+      },
+      {
+       "id": "2c13",
+       "name": "Autre",
+       "color": "green"
+      },
+      {
+       "id": "4f41",
+       "name": "Ruby",
+       "color": "blue"
+      }
+     ]
+    }
+   },
+   "Statut": {
+    "id": "9abe",
+    "name": "Statut",
+    "type": "status",
+    "status": {
+     "options": [
+      {
+       "id": "c5c5",
+       "name": "À explorer",
+       "color": "gray"
+      },
+      {
+       "id": "6d37",
+       "name": "En test",
+       "color": "brown"
+      },
+      {
+       "id": "175a",
+       "name": "Utilisé",
+       "color": "orange"
+      }
+     ],
+     "groups": [
+      {
+       "id": "9c2b",
+       "name": "To-do",
+       "color": "gray",
+       "option_ids": [
+        "c5c5"
+       ]
+      },
+      {
+       "id": "80a6",
+       "name": "In progress",
+       "color": "blue",
+       "option_ids": [
+        "6d37"
+       ]
+      },
+      {
+       "id": "1579",
+       "name": "Complete",
+       "color": "green",
+       "option_ids": [
+        "175a"
+       ]
+      }
+     ]
+    }
+   },
+   "Type": {
+    "id": "93ff",
+    "name": "Type",
+    "type": "multi_select",
+    "multi_select": {
+     "options": [
+      {
+       "id": "fb80",
+       "name": "Agent IA",
+       "color": "gray"
+      },
+      {
+       "id": "f4ea",
+       "name": "ML/AI",
+       "color": "brown"
+      },
+      {
+       "id": "c11f",
+       "name": "Web",
+       "color": "orange"
+      },
+      {
+       "id": "2a3e",
+       "name": "Outils",
+       "color": "yellow"
+      }
+     ]
+    }
+   },
+   "Dernière MAJ": {
+    "id": "af6d",
+    "name": "Dernière MAJ",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Analysé le": {
+    "id": "1b60",
+    "name": "Analysé le",
+    "type": "date",
+    "date": {}
+   },
+   "Tags": {
+    "id": "e543",
+    "name": "Tags",
+    "type": "multi_select",
+    "multi_select": {
+     "options": [
+      {
+       "id": "1ff9",
+       "name": "OCR",
+       "color": "gray"
+      },
+      {
+       "id": "692e",
+       "name": "PDF",
+       "color": "brown"
+      },
+      {
+       "id": "10d1",
+       "name": "Veille",
+       "color": "orange"
+      },
+      {
+       "id": "02ff",
+       "name": "Scraping",
+       "color": "yellow"
+      }
+     ]
+    }
+   },
+   "Créé le": {
+    "id": "f96c",
+    "name": "Créé le",
+    "type": "created_time",
+    "created_time": {}
+   }
+  },
+  "_role_test": "ancienne base du run 1 du 14/01/2026 (v6.7), modifiée à la main : Statut converti en État (status), Langage en sélection multiple, Dernière MAJ en texte ; ni Justification ni colonnes facultatives ; colonnes Tags et Créé le ajoutées. gitnotate.py refuserait d'y écrire (mauvais types) : base de test de tolérance du lecteur"
+ },
+ "C": {
+  "object": "database",
+  "id": "edf95340-ed58-59d4-bd54-32fc5d5f4885",
+  "title": [
+   {
+    "type": "text",
+    "text": {
+     "content": "Ressources GitHub",
+     "link": null
+    },
+    "annotations": {
+     "bold": false,
+     "italic": false,
+     "strikethrough": false,
+     "underline": false,
+     "code": false,
+     "color": "default"
+    },
+    "plain_text": "Ressources GitHub",
+    "href": null
+   }
+  ],
+  "description": [],
+  "is_inline": false,
+  "archived": false,
+  "in_trash": false,
+  "properties": {
+   "Nom": {
+    "id": "title",
+    "name": "Nom",
+    "type": "title",
+    "title": {}
+   },
+   "URL": {
+    "id": "ee83",
+    "name": "URL",
+    "type": "url",
+    "url": {}
+   },
+   "Description": {
+    "id": "d2a0",
+    "name": "Description",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Cas d'usage": {
+    "id": "d01a",
+    "name": "Cas d'usage",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Installation": {
+    "id": "88f8",
+    "name": "Installation",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Exemple": {
+    "id": "9b70",
+    "name": "Exemple",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Prérequis": {
+    "id": "fab4",
+    "name": "Prérequis",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Justification": {
+    "id": "3078",
+    "name": "Justification",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Stars": {
+    "id": "a690",
+    "name": "Stars",
+    "type": "number",
+    "number": {}
+   },
+   "Pertinence": {
+    "id": "0d41",
+    "name": "Pertinence",
+    "type": "number",
+    "number": {}
+   },
+   "Langage": {
+    "id": "2c01",
+    "name": "Langage",
+    "type": "select",
+    "select": {
+     "options": [
+      {
+       "id": "3b97",
+       "name": "Python",
+       "color": "gray"
+      },
+      {
+       "id": "8060",
+       "name": "JavaScript",
+       "color": "brown"
+      },
+      {
+       "id": "d4f6",
+       "name": "TypeScript",
+       "color": "orange"
+      },
+      {
+       "id": "ac27",
+       "name": "Go",
+       "color": "yellow"
+      },
+      {
+       "id": "2c13",
+       "name": "Autre",
+       "color": "green"
+      }
+     ]
+    }
+   },
+   "Statut": {
+    "id": "f570",
+    "name": "Statut",
+    "type": "select",
+    "select": {
+     "options": [
+      {
+       "id": "c5c5",
+       "name": "À explorer",
+       "color": "gray"
+      },
+      {
+       "id": "6d37",
+       "name": "En test",
+       "color": "brown"
+      },
+      {
+       "id": "175a",
+       "name": "Utilisé",
+       "color": "orange"
+      }
+     ]
+    }
+   },
+   "Type": {
+    "id": "e806",
+    "name": "Type",
+    "type": "multi_select",
+    "multi_select": {
+     "options": [
+      {
+       "id": "fb80",
+       "name": "Agent IA",
+       "color": "gray"
+      },
+      {
+       "id": "f4ea",
+       "name": "ML/AI",
+       "color": "brown"
+      },
+      {
+       "id": "c11f",
+       "name": "Web",
+       "color": "orange"
+      },
+      {
+       "id": "2a3e",
+       "name": "Outils",
+       "color": "yellow"
+      }
+     ]
+    }
+   },
+   "Dernière MAJ": {
+    "id": "a600",
+    "name": "Dernière MAJ",
+    "type": "date",
+    "date": {}
+   },
+   "Analysé le": {
+    "id": "847c",
+    "name": "Analysé le",
+    "type": "date",
+    "date": {}
+   },
+   "Licence": {
+    "id": "933f",
+    "name": "Licence",
+    "type": "rich_text",
+    "rich_text": {}
+   },
+   "Catégorie": {
+    "id": "cea5",
+    "name": "Catégorie",
+    "type": "select",
+    "select": {
+     "options": [
+      {
+       "id": "fb80",
+       "name": "Agent IA",
+       "color": "gray"
+      },
+      {
+       "id": "4f89",
+       "name": "Assistant de code",
+       "color": "brown"
+      },
+      {
+       "id": "641d",
+       "name": "MCP/Intégrations",
+       "color": "orange"
+      },
+      {
+       "id": "31c6",
+       "name": "LLM/Inférence",
+       "color": "yellow"
+      },
+      {
+       "id": "2c1f",
+       "name": "RAG/Recherche",
+       "color": "green"
+      },
+      {
+       "id": "327a",
+       "name": "OCR/Documents",
+       "color": "blue"
+      },
+      {
+       "id": "a0f2",
+       "name": "Génération média",
+       "color": "purple"
+      },
+      {
+       "id": "4215",
+       "name": "Audio/Vidéo",
+       "color": "pink"
+      },
+      {
+       "id": "670a",
+       "name": "Automatisation/No-code",
+       "color": "red"
+      },
+      {
+       "id": "c912",
+       "name": "Web/Frontend",
+       "color": "gray"
+      },
+      {
+       "id": "b6dd",
+       "name": "Backend/API",
+       "color": "brown"
+      },
+      {
+       "id": "1119",
+       "name": "Données/Analyse",
+       "color": "orange"
+      },
+      {
+       "id": "df08",
+       "name": "Finance/Trading",
+       "color": "yellow"
+      },
+      {
+       "id": "8c6e",
+       "name": "Crypto/Web3",
+       "color": "green"
+      },
+      {
+       "id": "360d",
+       "name": "DevOps/Self-hosting",
+       "color": "blue"
+      },
+      {
+       "id": "2d43",
+       "name": "BTP/Ingénierie",
+       "color": "purple"
+      },
+      {
+       "id": "ed2f",
+       "name": "Éducation/Cours",
+       "color": "pink"
+      },
+      {
+       "id": "278f",
+       "name": "Liste/Ressources",
+       "color": "red"
+      },
+      {
+       "id": "2c13",
+       "name": "Autre",
+       "color": "gray"
+      }
+     ]
+    }
+   },
+   "Brique pour": {
+    "id": "53d0",
+    "name": "Brique pour",
+    "type": "rich_text",
+    "rich_text": {}
+   }
+  },
+  "_role_test": "base de test créée par la v7.3 (docs/VALIDATION.md, option B2, CREATE_DATABASE=true) : Licence et Brique pour en Texte, Catégorie en Sélection avec les catégories par défaut"
+ }
+}
