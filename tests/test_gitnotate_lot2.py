@@ -445,7 +445,9 @@ def test_translate_and_score_reports_provider_model_and_status(llm2):
 def test_profile_hash_definition(load_gn):
     gn = load_gn()
     canonical = json.dumps(gn.USER_PROFILE, sort_keys=True, ensure_ascii=False, separators=(',', ':'))
-    expected = hashlib.sha1((canonical + gn.build_system_prompt_combined()).encode('utf-8')).hexdigest()[:6]
+    # v7.4 : les règles de calcul du code (SCORING_RULES) font partie de l'empreinte
+    expected = hashlib.sha1((canonical + gn.build_system_prompt_combined() + gn.SCORING_RULES)
+                            .encode('utf-8')).hexdigest()[:6]
     assert gn.compute_profile_hash() == expected
     gn.USER_PROFILE = {'languages': ['Go']}
     assert gn.compute_profile_hash() != expected

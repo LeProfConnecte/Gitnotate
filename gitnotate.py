@@ -1,7 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-GitNotate v7.3 - LLM FULL-CONTEXT SCORING EDITION
+GitNotate v7.4 - LLM FULL-CONTEXT SCORING EDITION
+
+Nouveautés v7.4 (règles de notation — schéma Notion inchangé, aucune fiche existante modifiée ni
+recalculée ; empreinte du profil distincte de la v7.3) :
+  ✅ Pertinence ≥ 9 seulement avec un rattachement validé : sans « brique pour » (nom exact d'un projet
+     ou d'un domaine du profil), la note est plafonnée à 8 sur toutes les voies (LLM, repli lexical,
+     traduction seule) ; la Justification le dit (« = 10, plafonnée à 8 (aucune brique du profil) ») ;
+     l'absence de la colonne facultative « Brique pour » dans Notion ne compte jamais
+  ✅ Dépôt sans description, sans topics et sans README exploitable (titre seul, badges, images) : fiche
+     créée, Pertinence laissée vide, Justification « [NON NOTÉ] … », aucun appel LLM ; jamais filtrée
+     par SCORE_MIN_THRESHOLD ; « non notée » dans la console et le bilan
+  ✅ Distribution Docker seulement si une image désigne le dépôt analysé (nom de l'image = nom du
+     dépôt, ou image <dépôt>-<suffixe> du propriétaire) : une image tierce (« docker run postgres »),
+     « docker compose up » ou « docker build » seuls ne sont pas des preuves ; cache GitHub relu
+  ✅ Repli lexical neutre : plus de bonus de langage ni de pénalité jeu/mobile codée en dur ; seule
+     pénalité, une exclusion du profil écrite comme un topic exact (« game-engine ») → score ≤ 2
 
 Nouveautés v7.3 (profil v2 et notation orientée réutilisation — aucune donnée Notion existante
 n'est modifiée, aucune ancienne fiche n'est recalculée) :
@@ -84,7 +99,10 @@ from urllib.parse import urlsplit
 
 import requests
 
-__version__ = "7.3.0"
+__version__ = "7.4.0"
+# Règles de notation appliquées par le code (plafond, note vide, repli lexical) : comprises dans
+# l'empreinte du profil, pour que deux fiches notées selon des règles différentes ne la partagent jamais
+SCORING_RULES = "7.4"
 
 # =============================================================================
 # DOSSIER DE DONNÉES ET FICHIER .env
@@ -290,8 +308,9 @@ USE_CASE_MAX_CHARS      = 200
 BRIQUES_MAX             = 3     # « brique pour » : 0 à 3 noms du profil
 SECTION_MAX_LINES       = 5     # Installation / Exemple / Prérequis : extrait verbatim du README
 SECTION_MAX_CHARS       = 300
-CACHE_FORMAT            = 3     # entrées plus anciennes (v7.2 sans licence ni pushed_at ; v7.3 avant la
-                                # revue : indice GPU sans gestion des négations) : relues sur GitHub
+CACHE_FORMAT            = 4     # entrées plus anciennes (v7.2 sans licence ni pushed_at ; v7.3 avant la
+                                # revue : indice GPU sans gestion des négations ; v7.3 : distribution
+                                # Docker sans lien avec le dépôt) : relues sur GitHub
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'normal').strip().lower() or 'normal'
 if LOG_LEVEL not in _LOG_LEVELS:
@@ -543,6 +562,9 @@ LLM_V2_SCORING_KEYS = ('categorie', 'type_reutilisation', 'brique_pour') + tuple
     + ('justification',)
 DEFAULT_WEIGHTS = {'valeur': 4, 'interet': 1, 'integration': 2, 'compatibilite': 1,
                    'maturite': 1, 'licence': 1}
+# v7.4 : sans « brique pour » validée (nom exact d'un projet ou d'un domaine du profil), Pertinence ≤ 8
+# (toutes voies : LLM, repli lexical, réponse partielle, traduction seule) ; jamais déduit du schéma Notion
+PERTINENCE_MAX_SANS_BRIQUE = 8
 DEFAULT_LICENCES_PREFEREES = ('MIT', 'Apache-2.0', 'BSD-2-Clause', 'BSD-3-Clause', 'ISC', 'MPL-2.0',
                               'Unlicense', '0BSD', 'Zlib', 'CC0-1.0')
 DEFAULT_LICENCES_CONTRAINTES = ('GPL-2.0', 'GPL-3.0', 'LGPL-2.1', 'LGPL-3.0', 'AGPL-3.0',
@@ -761,6 +783,9 @@ def normalize_profile(profile: Any) -> Tuple[Dict[str, Any], List[str]]:
         if problem:
             warnings.append(f"{key} : « {name[:60]}{'…' if len(name) > 60 else ''} » ({problem}) ne pourra pas "
                             "être écrit dans une colonne Sélection — renommez-le")
+    if not norm['projets'] and not norm['domaines']:
+        warnings.append("ni projet ni domaine : « Brique pour » restera vide et toute note sera plafonnée à "
+                        f"{PERTINENCE_MAX_SANS_BRIQUE}")
     return norm, warnings
 
 
@@ -865,15 +890,16 @@ def build_system_prompt_combined() -> str:
 def compute_profile_hash() -> str:
     """Empreinte de la grille de notation : 6 premiers caractères du sha1 du profil JSON
     canonique (profil complet : clés v1 et v2, pondérations comprises) suivi du prompt système
-    utilisé (prompt v2 construit depuis ce profil). Deux fiches de même empreinte ont été notées
-    avec le même profil et le même prompt ; la Justification la précède de la version du profil."""
+    utilisé (prompt v2 construit depuis ce profil) puis de SCORING_RULES (règles de calcul du code).
+    Deux fiches de même empreinte ont été notées avec le même profil, le même prompt et les mêmes
+    règles ; la Justification la précède de la version du profil."""
     try:
         canonical = json.dumps(USER_PROFILE, sort_keys=True, ensure_ascii=False,
                                separators=(',', ':'), default=str)
     except (TypeError, ValueError):
         canonical = repr(USER_PROFILE)
     prompt = build_system_prompt_combined() if LLM_SCORING_ENABLED else SYSTEM_PROMPT_TRANSLATE
-    return hashlib.sha1((canonical + prompt).encode('utf-8')).hexdigest()[:6]
+    return hashlib.sha1((canonical + prompt + SCORING_RULES).encode('utf-8')).hexdigest()[:6]
 
 # =============================================================================
 # HEADERS HTTP
@@ -2539,21 +2565,25 @@ def print_progress_bar(current: int, total: int, elapsed: float) -> None:
 # =============================================================================
 # SCORING LEXICAL — fallback si LLM indisponible
 # =============================================================================
-IRRELEVANT_TOPICS = frozenset({'game', 'games', 'gamedev', 'game-development', 'game-engine', 'mobile-app',
-                               'mobile-apps', 'ios', 'ios-app', 'android', 'android-app'})
+# Topic GitHub : minuscules, chiffres et tirets (« game-engine »)
+_TOPIC_SLUG_RE = re.compile(r'^[a-z0-9][a-z0-9-]{0,49}$')
+
+
+def lexical_exclusion_topics(profile: Optional[Dict[str, Any]] = None) -> Set[str]:
+    """Exclusions du profil écrites comme un topic GitHub exact (« game-engine ») : les seules que le
+    repli lexical sait lire. Une phrase (« jeux vidéo et moteurs de jeu ») n'est appliquée que par le LLM."""
+    items = (profile or current_profile())['exclusions']
+    return {item.strip() for item in items if _TOPIC_SLUG_RE.match(item.strip())}
 
 
 def calculate_relevance_score(repo_info: Dict) -> int:
+    """Score lexical 0-10 (repli sans LLM). v7.4 : le langage ne donne ni bonus ni malus ; seule
+    pénalité, établie par le profil : un topic égal à une exclusion écrite comme un topic → score ≤ 2."""
     score      = 0
-    language   = (repo_info.get('language') or '').lower()
     desc       = (repo_info.get('description') or '').lower()
     topics     = [t.lower() for t in (repo_info.get('topics') or []) if isinstance(t, str)]
     topics_str = ' '.join(topics)
     readme     = (repo_info.get('readme') or '').lower()
-
-    # Égalité stricte : 'java' ne correspond plus à 'javascript'
-    if language and any(language == lang.lower() for lang in _profile_list('languages')):
-        score += 3
 
     fw_found = sum(
         1 for fw in _profile_list('frameworks')
@@ -2578,11 +2608,11 @@ def calculate_relevance_score(repo_info: Dict) -> int:
     if any(kw in desc or kw in topics_str for kw in fin):
         score += 1
 
-    # v7.3 : plus aucune pénalité de langage (un dépôt Go, Rust ou Java s'intègre par CLI, API ou
-    # Docker) ni pour le topic blockchain (intérêt crypto du profil). Topics jeu et mobile comparés
-    # EXACTEMENT : « financial-ratios », « scenarios » ou « game-theory » ne sont pas pénalisés.
-    if IRRELEVANT_TOPICS & set(topics):
-        score = max(score - 2, 0)
+    # v7.4 : aucune pénalité codée en dur (jeu, mobile, blockchain, langage) ; topics comparés EXACTEMENT
+    # aux exclusions du profil (« game-theory » n'est pas « game »). Même effet que le garde-fou LLM
+    # « valeur nulle → score ≤ 2 » qu'une exclusion produit.
+    if lexical_exclusion_topics() & set(topics):
+        score = min(score, 2)
 
     return min(max(score, 0), 10)
 
@@ -2691,11 +2721,26 @@ def compute_pertinence(components: Dict[str, Optional[int]],
     return min(max(score, 0), 10)
 
 
-def format_components(components: Dict[str, Optional[int]], score: int) -> str:
-    """« U2·P3·T1·I2·C2·M2·L2 = 9 » (« ? » pour une composante non vérifiée)."""
+def cap_unlinked(score: int, briques: List[str]) -> Tuple[int, Optional[int]]:
+    """Plafond v7.4 : sans « brique pour » validée, la note est ramenée à PERTINENCE_MAX_SANS_BRIQUE.
+    Renvoie (note retenue, note avant plafond) ; la note avant plafond vaut None quand le plafond ne
+    change rien (brique validée ou note déjà ≤ 8). Fonction pure : même réponse ⇒ même note."""
+    if briques or score <= PERTINENCE_MAX_SANS_BRIQUE:
+        return score, None
+    return PERTINENCE_MAX_SANS_BRIQUE, score
+
+
+def cap_text(uncapped: int) -> str:
+    """« 10, plafonnée à 8 (aucune brique du profil) » : la note brute reste lisible dans la Justification."""
+    return f"{uncapped}, plafonnée à {PERTINENCE_MAX_SANS_BRIQUE} (aucune brique du profil)"
+
+
+def format_components(components: Dict[str, Optional[int]], score: int, uncapped: Optional[int] = None) -> str:
+    """« U2·P3·T1·I2·C2·M2·L2 = 9 » (« ? » pour une composante non vérifiée) ; plafond v7.4 :
+    « U0·P3·T2·I2·C2·M2·L2 = 10, plafonnée à 8 (aucune brique du profil) »."""
     parts = [f"{letter}{'?' if components.get(key) is None else components[key]}"
              for key, letter in COMPONENT_LETTERS]
-    return f"{'·'.join(parts)} = {score}"
+    return f"{'·'.join(parts)} = {score if uncapped is None else cap_text(uncapped)}"
 
 # =============================================================================
 # MESSAGE UTILISATEUR v2 — contenu du dépôt (donnée non fiable) entre <depot> et </depot>
@@ -2744,12 +2789,29 @@ def deterministic_hints(repo_info: Dict) -> List[str]:
     return hints
 
 
+def readme_is_exploitable(cleaned: str, full_name: str = '') -> bool:
+    """README nettoyé (clean_readme) dont il reste au moins une ligne autre que le titre égal au nom du
+    dépôt (« # my-tool », ou « my-tool » souligné de « ==== ») et les lignes sans lettre ni chiffre.
+    Tout autre texte, même « TODO » ou un titre différent du nom, compte comme information."""
+    repo_core = _name_core((full_name or '').rsplit('/', 1)[-1])
+    for line in (cleaned or '').splitlines():
+        text = line.strip().strip('#').strip()
+        if not re.search(r'[^\W_]', text):                 # ligne vide, soulignement, ponctuation seule
+            continue
+        if repo_core and _name_core(text) == repo_core:      # titre = nom du dépôt
+            continue
+        return True
+    return False
+
+
 def repo_has_no_information(repo_info: Dict, description: str) -> bool:
-    """Ni description, ni topics, ni README transmis au LLM : rien ne dit ce que fait le dépôt."""
+    """Ni description, ni topics, ni README exploitable (README transmis au LLM seulement si
+    README_LLM_CHARS > 0) : rien ne dit ce que fait le dépôt, aucune note n'est donnée (v7.4)."""
     topics = repo_info.get('topics')
     has_topics = isinstance(topics, list) and any(isinstance(t, str) and t.strip() for t in topics)
     readme = clean_readme(repo_info.get('readme') or '') if README_LLM_CHARS > 0 else ''
-    return not (description or '').strip() and not has_topics and not readme.strip()
+    return not (description or '').strip() and not has_topics and not readme_is_exploitable(
+        readme, repo_info.get('full_name') or repo_info.get('name') or '')
 
 
 def build_user_message(repo_info: Dict, description: str) -> str:
@@ -2794,6 +2856,10 @@ def translate_and_score(
     utilisable) ou 'not_requested' (aucun LLM nécessaire). En mode reprise (REQUIRE_LLM), seuls
     'ok' et 'not_requested' donnent une fiche ; sinon le score lexical sert de repli.
 
+    v7.4 : sans « brique pour » validée, note plafonnée à 8 sur toutes les voies ('score_uncapped' =
+    note avant plafond quand il a joué). Dépôt sans description, sans topics et sans README exploitable :
+    aucun appel LLM, score None, scoring_method 'none' (fiche créée avec Pertinence vide).
+
     Cas d'usage écrits : ceux de la réponse v2, sinon « Non vérifié » (jamais de texte générique ;
     `use_cases` ne sert plus qu'au prompt de traduction seule).
     """
@@ -2817,7 +2883,20 @@ def translate_and_score(
         'llm_status':         'not_requested',
         'profile_hash':       compute_profile_hash(),
         'profile_version':    profile['version'],
+        'score_uncapped':     None,
     }
+
+    # Rien ne dit ce que fait le dépôt : une note, une catégorie ou une description seraient devinées
+    # d'après le seul nom. Aucune note, aucun appel LLM (toutes voies) ; la fiche garde les faits GitHub.
+    if repo_has_no_information(repo_info, description):
+        result['description_fr'] = NON_VERIFIE
+        result['scoring_method'] = 'none'
+        return result
+
+    def lexical_fallback() -> None:
+        # Sans LLM, aucune brique n'est jamais établie : plafond v7.4
+        result['score'], result['score_uncapped'] = cap_unlinked(calculate_relevance_score(repo_info), [])
+        result['scoring_method'] = 'lexical'
 
     already_fr = detect_language(description) == 'fr'
     providers  = configured_providers()
@@ -2825,8 +2904,7 @@ def translate_and_score(
     # Cas 1: traduction désactivée ou aucun provider
     if not TRANSLATION_ENABLED or not providers:
         result['llm_status']     = 'unavailable' if TRANSLATION_ENABLED else 'not_requested'
-        result['score']          = calculate_relevance_score(repo_info)
-        result['scoring_method'] = 'lexical'
+        lexical_fallback()
         if already_fr:
             result['translated'] = True
         stats.inc('llm_score_fallback')
@@ -2836,15 +2914,14 @@ def translate_and_score(
     if already_fr and not LLM_SCORING_ENABLED:
         result['translated']     = True
         result['provider']       = 'none (FR)'
-        result['score']          = calculate_relevance_score(repo_info)
-        result['scoring_method'] = 'lexical'
+        lexical_fallback()
         stats.inc('translation_success')
         stats.inc('llm_score_fallback')
         return result
 
     # Cas 3: traduction seule d'un dépôt sans description : rien à traduire, aucune requête
     if not LLM_SCORING_ENABLED and not description.strip():
-        result['score'] = calculate_relevance_score(repo_info)
+        lexical_fallback()
         stats.inc('llm_score_fallback')
         return result
 
@@ -2918,8 +2995,7 @@ def translate_and_score(
 
     # Fallback total : aucune réponse exploitable (un arrêt Ctrl-C n'est pas un échec du LLM)
     if chosen is None:
-        result['score']          = calculate_relevance_score(repo_info)
-        result['scoring_method'] = 'lexical'
+        lexical_fallback()
         if not _STOP_EVENT.is_set():
             stats.inc('translation_failed')
             stats.inc('llm_score_fallback')
@@ -2934,12 +3010,6 @@ def translate_and_score(
         # seule, la liste générique traduite n'est jamais écrite (aucune preuve)
         result['cas_usage']    = list(chosen.get('cas_usage') or [])
         result['use_cases_fr'] = chosen.get('use_cases_fr') or NON_VERIFIE
-        if repo_has_no_information(repo_info, description):
-            # Rien ne dit ce que fait le dépôt : description et cas d'usage du LLM seraient devinés
-            # d'après le seul nom, donc jamais écrits
-            result['description_fr'] = NON_VERIFIE
-            result['cas_usage']      = []
-            result['use_cases_fr']   = NON_VERIFIE
     stats.inc('translation_success')
 
     if LLM_SCORING_ENABLED and chosen.get('judgements') is not None:
@@ -2947,18 +3017,19 @@ def translate_and_score(
         components['maturite'] = compute_maturity(repo_info)
         components['licence']  = compute_licence_score(repo_info, profile)
         result['components']         = components
-        result['score']              = compute_pertinence(components, profile['ponderations'])
+        result['score'], result['score_uncapped'] = cap_unlinked(
+            compute_pertinence(components, profile['ponderations']), chosen['brique_pour'])
         result['reasoning']          = chosen['reasoning']
         result['categorie']          = chosen['categorie']
         result['type_reutilisation'] = chosen['type_reutilisation']
         result['brique_pour']        = list(chosen['brique_pour'])
         result['scoring_method']     = 'llm'
         stats.inc('llm_score_success')
-        log(f"   🧠 [{repo_name}] Score LLM: {format_components(components, result['score'])} — "
+        log(f"   🧠 [{repo_name}] Score LLM: "
+            f"{format_components(components, result['score'], result['score_uncapped'])} — "
             f"{result['reasoning']}", 'verbose')
     else:
-        result['score']          = calculate_relevance_score(repo_info)
-        result['scoring_method'] = 'lexical'
+        lexical_fallback()
         stats.inc('llm_score_fallback')
         if LLM_SCORING_ENABLED:
             log(f"   ⚠️  [{repo_name}] Score LLM invalide → fallback lexical", 'verbose')
@@ -3506,8 +3577,6 @@ def extract_readme_sections(readme: str) -> Dict[str, str]:
 _PIP_RE       = re.compile(r'\b(?:pip3?|uv\s+pip|pipx)\s+install\s+(?:-{1,2}[\w-]+\s+)*["\']?([A-Za-z][\w.\-]*)')
 _NPM_RE       = re.compile(r'\b(?:npm\s+(?:i|install)|pnpm\s+(?:add|i|install)|yarn\s+(?:global\s+)?add|bun\s+add'
                            r'|npx)\s+(?:-{1,2}[\w-]+\s+)*(@?[A-Za-z0-9][\w.\-]*(?:/[\w.\-]+)?)')
-_DOCKER_RE    = re.compile(r'\bdocker(?:\s+(?:run|pull)\b|\s+compose\b|-compose\b)|\bghcr\.io/|hub\.docker\.com/',
-                           re.I)
 # Liens vers la page ou le badge d'un paquet : le nom capturé doit être celui du dépôt (_same_project)
 _PYPI_LINK_RE = re.compile(r'(?:pypi\.org/project/|img\.shields\.io/pypi/[\w-]+/)([A-Za-z0-9][\w.\-]*?)'
                            r'(?:\.svg|\.png)?(?![\w.\-])', re.I)
@@ -3534,8 +3603,13 @@ _SENTENCE_SPLIT_RE = re.compile(r'(?<=[.!?;])\s+|\n')
 GPU_SOURCE_MAX_CHARS = 120     # phrase source citée dans l'indice (début verbatim de la phrase du README)
 
 
+def _name_core(text: str) -> str:
+    """Forme de comparaison d'un nom : _fold puis caractères [a-z0-9] seulement."""
+    return re.sub(r'[^a-z0-9]+', '', _fold(text))
+
+
 def _package_core(name: str) -> str:
-    core = re.sub(r'[^a-z0-9]+', '', _fold(name))
+    core = _name_core(name)
     for prefix in ('python', 'py', 'node'):
         if core.startswith(prefix) and len(core) > len(prefix) + 2:
             core = core[len(prefix):]
@@ -3556,9 +3630,90 @@ def _same_project(package: str, full_name: str) -> bool:
     return len(repo) >= 3 and any(_package_core(name) == repo for name in names)
 
 
+# Distribution Docker (v7.4) : seule une RÉFÉRENCE D'IMAGE qui désigne le dépôt analysé est une preuve.
+# Commande docker run/create/pull : l'image est le premier argument après les options (continuations
+# « \ » bash, « ` » PowerShell et « ^ » cmd jointes) ; « docker compose up » et « docker build » seuls
+# ne nomment aucune image du dépôt.
+_DOCKER_CMD_RE    = re.compile(r'\bdocker(?:\s+container)?\s+(?:run|create)\b|\bdocker(?:\s+image)?\s+pull\b', re.I)
+_CONTINUATION_RE  = re.compile(r'(?:[ \t]*\\|[ \t]+[`^])[ \t]*\r?\n[ \t]*')   # « ` » ou « ^ » après une espace
+# Options SANS valeur (toute autre option consomme le jeton suivant, sauf la forme --option=valeur)
+_DOCKER_FLAGS     = frozenset({
+    '-d', '-i', '-t', '-it', '-ti', '-dit', '-itd', '-di', '-id', '-td', '-dt', '-P', '-q', '-a',
+    '--detach', '--interactive', '--tty', '--rm', '--privileged', '--init', '--publish-all', '--read-only',
+    '--quiet', '--all-tags', '--disable-content-trust', '--sig-proxy', '--oom-kill-disable', '--no-healthcheck',
+})
+# Références d'image hors commande : URL de registre, page Docker Hub, badge shields.io
+_IMAGE_URL_RES    = (
+    re.compile(r'\b(?:ghcr\.io|quay\.io|registry\.gitlab\.com|docker\.io|lscr\.io|public\.ecr\.aws)/'
+               r'([\w.\-]+(?:/[\w.\-]+)+)', re.I),
+    re.compile(r'\bhub\.docker\.com/(?:r|repository/docker)/([\w.\-]+/[\w.\-]+)', re.I),
+    re.compile(r'\bhub\.docker\.com/_/([\w.\-]+)', re.I),
+    re.compile(r'\bimg\.shields\.io/docker/(?:pulls|v|image-size|stars|automated|cloud/build|cloud/automated)/'
+               r'([\w.\-]+/[\w.\-]+)', re.I),
+)
+_COMPOSE_IMAGE_RE = re.compile(r'(?m)^[ \t]*-?[ \t]*image:[ \t]*["\']?([^\s"\'#]+)')   # extrait compose ou k8s
+_IMAGE_TOKEN_RE   = re.compile(r'^[A-Za-z0-9][\w.\-]*(?::\d+)?(?:/[\w.\-]+)*(?::[\w.\-]+)?(?:@sha256:[0-9a-f]+)?$')
+
+
+def _image_path(ref: str) -> List[str]:
+    """'ghcr.io/o/r:tag' → ['o', 'r'] ; 'postgres:16' → ['postgres'] (registre, tag et digest retirés)."""
+    ref = ref.strip().strip('"\'').split('@', 1)[0]
+    parts = [part for part in ref.split('/') if part]
+    if len(parts) > 1 and ('.' in parts[0] or ':' in parts[0] or parts[0] == 'localhost'):
+        parts = parts[1:]
+    if parts and ':' in parts[-1]:
+        parts[-1] = parts[-1].split(':', 1)[0]
+    return parts
+
+
+def _image_designates_repo(ref: str, full_name: str) -> bool:
+    """L'image désigne-t-elle le dépôt 'propriétaire/nom' ? (R1) nom de l'image = nom du dépôt, quel que
+    soit l'espace de noms ; (R3) espace de noms = propriétaire ET nom = « <dépôt>-<suffixe> ». Une image
+    au nom du propriétaire seul (« ollama/ollama » pour ollama/ollama-python) ne prouve rien. Noms comparés
+    par _name_core, 3 caractères au moins, sans les tolérances py/js/cli/ai des paquets."""
+    owner, _, repo = (full_name or '').partition('/')
+    parts = _image_path(ref)
+    core_repo = _name_core(repo)
+    if len(core_repo) < 3 or not parts:
+        return False
+    name = parts[-1]
+    if _name_core(name) == core_repo:
+        return True
+    return (len(parts) >= 2 and _name_core(parts[-2]) == _name_core(owner)
+            and re.match(re.escape(_fold(repo)) + r'[-_.]', _fold(name)) is not None)
+
+
+def _docker_image_refs(text: str) -> List[str]:
+    """Références d'image citées par le README : commandes docker run/create/pull, URL de registre,
+    pages Docker Hub, badges shields.io et clés « image: »."""
+    refs: List[str] = []
+    flat = _CONTINUATION_RE.sub(' ', text)
+    for match in _DOCKER_CMD_RE.finditer(flat):
+        skip = False
+        for token in flat[match.end():].split('\n', 1)[0].split():
+            if skip:
+                skip = False
+            elif token.startswith('-'):
+                skip = '=' not in token and token not in _DOCKER_FLAGS
+            else:
+                token = token.strip('"\'`;,)')
+                if _IMAGE_TOKEN_RE.match(token):
+                    refs.append(token)
+                break
+    for rx in _IMAGE_URL_RES + (_COMPOSE_IMAGE_RE,):
+        refs += [m.group(1) for m in rx.finditer(text)]
+    return refs
+
+
+def _docker_distribution(text: str, full_name: str) -> bool:
+    return any(_image_designates_repo(ref, full_name) for ref in _docker_image_refs(text))
+
+
 def readme_hints(readme: str, full_name: str = '') -> Dict[str, Any]:
     """Indices calculés sur le README complet : distribution (PyPI, npm, Docker) et exigence de GPU
-    (avec la quantité de VRAM quand elle est écrite, et la phrase source). Lecture phrase par phrase :
+    (avec la quantité de VRAM quand elle est écrite, et la phrase source). Une distribution n'est
+    retenue que pour le paquet ou l'image du dépôt analysé (une image tierce, comme « docker run
+    postgres », n'est pas une preuve). Exigence de GPU lue phrase par phrase :
     une phrase négative, facultative ou qui propose le CPU (« No GPU required », « Optional: … 6 GB
     VRAM », « sans GPU ») n'est jamais une exigence ; dans le doute, aucun indice. Indices pour le LLM
     seulement, jamais écrits dans Notion."""
@@ -3568,7 +3723,7 @@ def readme_hints(readme: str, full_name: str = '') -> Dict[str, Any]:
         distribution.append('PyPI')
     if any(_same_project(m.group(1), full_name) for rx in (_NPM_RE, _NPM_LINK_RE) for m in rx.finditer(text)):
         distribution.append('npm')
-    if _DOCKER_RE.search(text):
+    if _docker_distribution(text, full_name):
         distribution.append('Docker')
     amounts: Set[int] = set()
     sources: List[str] = []           # phrases avec une quantité de VRAM, puis phrases « GPU exigé »
@@ -4075,17 +4230,25 @@ def build_page_properties(
 
     # Justification (800 caractères) préfixée par la méthode, le modèle réellement servi, la version
     # et l'empreinte du profil, puis le détail du score :
-    # « [LLM <modèle> · profil <version>/<hash6>] U2·P3·T1·I2·C2·M2·L2 = 9 — … » ou « [LEXICAL · profil …] »
+    # « [LLM <modèle> · profil <version>/<hash6>] U2·P3·T1·I2·C2·M2·L2 = 9 — … » ou « [LEXICAL · profil …] » ;
+    # plafond v7.4 seulement s'il a changé la note : « … = 10, plafonnée à 8 (aucune brique du profil) — … »
+    # ou « [LEXICAL · profil …] Note 10, plafonnée à 8 (aucune brique du profil). » ; dépôt sans
+    # information : « [NON NOTÉ] … » (aucune grille appliquée, ni profil ni composantes)
     if has_justification:
         version = llm_result.get('profile_version') or current_profile()['version']
         profile = f"profil {version}/{llm_result.get('profile_hash') or compute_profile_hash()}"
         components = llm_result.get('components')
-        if scoring_method == 'llm':
+        uncapped = llm_result.get('score_uncapped')
+        if scoring_method == 'none':
+            tag = "[NON NOTÉ] Ni description, ni topics, ni README exploitable : Pertinence laissée vide."
+        elif scoring_method == 'llm':
             tag = f"[LLM {llm_result.get('model') or '?'} · {profile}]"
             if isinstance(components, dict):
-                tag += f" {format_components(components, llm_result.get('score'))} —"
+                tag += f" {format_components(components, llm_result.get('score'), uncapped)} —"
         else:
             tag = f"[LEXICAL · {profile}]"
+            if uncapped is not None:
+                tag += f" Note {cap_text(uncapped)}."
         justif_text = f"{tag} {reasoning}".strip()
         properties['Justification'] = {'rich_text': [{'text': {'content': justif_text[:REASONING_MAX_CHARS]}}]}
 
@@ -4302,7 +4465,8 @@ def _process_repo(
         reasoning       = llm_result.get('reasoning') or ''
         scoring_method  = llm_result.get('scoring_method', 'lexical')
 
-        if SCORE_MIN_THRESHOLD > 0 and relevance_score < SCORE_MIN_THRESHOLD:
+        # Une fiche non notée (score None) n'a pas été jugée : jamais filtrée par le seuil
+        if SCORE_MIN_THRESHOLD > 0 and relevance_score is not None and relevance_score < SCORE_MIN_THRESHOLD:
             result['skipped'] = True
             stats.inc('filtered')
             log(f"[{idx}/{total}] ⏭️  {label} — Score {relevance_score}/10 < seuil {SCORE_MIN_THRESHOLD}")
@@ -4311,6 +4475,9 @@ def _process_repo(
         score_icon     = "🧠" if scoring_method == 'llm' else "📐"
         provider_label = llm_result.get('provider', '?') if llm_result.get('translated') else None
         trans_icon     = f"🌍 [{provider_label}]" if provider_label else "⚠️ EN"
+        score_text     = f"{score_icon} {relevance_score}/10"
+        if relevance_score is None:
+            score_text, trans_icon = "∅ non notée", "(aucune information)"
 
         # Payload construit avant le court-circuit DRY_RUN (révèle les erreurs de payload)
         properties = build_page_properties(repo_info, html_url, analysis, llm_result, has_justification,
@@ -4320,7 +4487,7 @@ def _process_repo(
         if DRY_RUN:
             reasoning_preview = f" — {reasoning[:80]}" if reasoning else ""
             log(f"[{idx}/{total}] 🔍 DRY-RUN: {label} "
-                f"({repo_info.get('stars') or 0} ⭐ | {score_icon} {relevance_score}/10) "
+                f"({repo_info.get('stars') or 0} ⭐ | {score_text}) "
                 f"{trans_icon}{reasoning_preview}")
             result['success']   = True
             result['simulated'] = True
@@ -4349,7 +4516,7 @@ def _process_repo(
             stats.add_page(relevance_score, llm_result.get('categorie') or '')
             reasoning_preview = f" — {reasoning[:80]}" if reasoning and LOG_LEVEL == 'verbose' else ""
             log(f"[{idx}/{total}] ✅ {label} "
-                f"({repo_info.get('stars') or 0} ⭐ | {score_icon} {relevance_score}/10) "
+                f"({repo_info.get('stars') or 0} ⭐ | {score_text}) "
                 f"{trans_icon}{reasoning_preview}")
         elif response is not None and (response.status_code == 408 or 500 <= response.status_code < 600):
             # Notion a peut-être créé la fiche malgré l'erreur : jamais de seconde création dans ce run
@@ -4550,7 +4717,8 @@ def print_summary(elapsed: float, total: int, interrupted: bool) -> None:
 
     if stats.scores:
         ordered = sorted(stats.scores.items(), key=lambda kv: (-int(kv[0]) if kv[0].isdigit() else 1, kv[0]))
-        log("   • Pertinence:      " + ', '.join(f"{score}/10 ×{count}" for score, count in ordered))
+        log("   • Pertinence:      " + ', '.join(          # clé 'aucun' : fiches non notées (Pertinence vide)
+            f"{score}/10 ×{count}" if score.isdigit() else f"non notée ×{count}" for score, count in ordered))
     if stats.categories:
         log(f"   • Catégories:      {_format_counts(stats.categories, ' ×')}")
     if stats.models_used:
@@ -4838,8 +5006,9 @@ def _run() -> int:
     log(f"   → {db_url}")
     log("")
     log("💡 Tri recommandé: Pertinence ↓ + Stars ↓")
-    log("   Icônes: 🧠 = scoré par LLM (avec README)   📐 = fallback lexical")
-    log("   Notes v7.3 (7 critères) non comparables aux anciennes : voir le préfixe de la Justification")
+    log("   Icônes: 🧠 = scoré par LLM (avec README)   📐 = fallback lexical   ∅ = non notée (aucune information)")
+    log("   Notes v7.4 (7 critères, plafond sans brique) non comparables aux anciennes : voir le préfixe "
+        "de la Justification")
     log("=" * 70)
     return exit_code
 

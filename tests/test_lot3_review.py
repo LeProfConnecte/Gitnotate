@@ -439,10 +439,11 @@ def test_s11_no_substring_penalty(load_gn, extra):
 
 
 @pytest.mark.parametrize('extra', ['game', 'games', 'gamedev', 'ios', 'android', 'mobile-app'])
-def test_s11_exact_game_or_mobile_topics_still_penalized(load_gn, extra):
+def test_s11_exact_game_or_mobile_topics_no_hardcoded_penalty(load_gn, extra):
+    # v7.4 : pénalité jeu/mobile codée en dur retirée (non établie par le profil, qui ne les exclut pas)
     gn = load_gn()
     base = {'description': 'Finance toolkit', 'topics': ['finance'], 'language': 'Python'}
-    assert gn.calculate_relevance_score(dict(base, topics=['finance', extra])) < gn.calculate_relevance_score(base)
+    assert gn.calculate_relevance_score(dict(base, topics=['finance', extra])) == gn.calculate_relevance_score(base)
 
 # =============================================================================
 # S12 — balises </depot> sosies retirées du contenu du dépôt

@@ -606,7 +606,8 @@ def test_lexical_fallback_no_language_or_blockchain_penalty(load_gn):
         assert gn.calculate_relevance_score(dict(base, language=language)) == reference
     assert gn.calculate_relevance_score(dict(base, topics=['ai', 'blockchain'])) == \
         gn.calculate_relevance_score(dict(base))
-    assert gn.calculate_relevance_score(dict(base, topics=['ai', 'game'])) < gn.calculate_relevance_score(base)
+    # v7.4 : plus aucune pénalité jeu/mobile codée en dur (seules les exclusions du profil écrites comme un topic)
+    assert gn.calculate_relevance_score(dict(base, topics=['ai', 'game'])) == gn.calculate_relevance_score(base)
 
 # =============================================================================
 # C. VALIDATION DE LA RÉPONSE v2
@@ -794,7 +795,8 @@ def test_gpu_hint(load_gn, readme, expected):
 
 @pytest.mark.parametrize('readme,expected', [
     ('pip install docling', ['PyPI']), ('pip install requests', []), ('pip install -r requirements.txt', []),
-    ('npm install -g n8n', ['npm']), ('npx n8n', ['npm']), ('docker run -p 80:80 o/x', ['Docker']),
+    # v7.4 : « o/x » est une image tierce pour docling-project/docling, donc pas une distribution du dépôt
+    ('npm install -g n8n', ['npm']), ('npx n8n', ['npm']), ('docker run -p 80:80 o/x', []),
     # revue du lot 3 (INV-2) : un lien vers la page d'un AUTRE paquet n'est plus une distribution du dépôt
     ('[![PyPI](https://img.shields.io/pypi/v/x)](https://pypi.org/project/x/)', []),
     ('[![PyPI](https://img.shields.io/pypi/v/docling)](https://pypi.org/project/docling/)', ['PyPI']), ('', []),
@@ -1068,7 +1070,7 @@ def test_full_run_sections_are_substrings_of_the_served_readme(world3, label):
     ({}, None, {'Installation': 'Non vérifié', 'Exemple': 'Non vérifié', 'Prérequis': 'Non vérifié'}),
     ({'license': _DROP, 'pushed_at': _DROP, 'archived': _DROP, 'language': None, 'topics': _DROP,
       'description': None, 'fork': _DROP, 'disabled': _DROP, 'updated_at': _DROP}, None,
-     {'Licence': 'Non vérifiée', 'L': '?', 'M': '?', 'Dernière MAJ': None}),
+     {'Licence': 'Non vérifiée', 'Dernière MAJ': None, 'Pertinence': None}),     # v7.4 : rien → non noté
 ])
 def test_missing_github_metadata_never_crashes(world3, repo, readme, checks):
     columns = dict(V71_COLUMNS, Licence=('rich_text', None))
@@ -1086,8 +1088,12 @@ def test_missing_github_metadata_never_crashes(world3, repo, readme, checks):
             assert props['Type'] == {'multi_select': value}
         elif key == 'Dernière MAJ':
             assert props['Dernière MAJ'] == ({'date': None} if value is None else {'date': {'start': value}})
+        elif key == 'Pertinence':        # v7.4 : ni description, ni topics, ni README → Pertinence vide
+            assert props['Pertinence'] == {'number': value} and just.startswith('[NON NOTÉ]'), just
         else:
             assert text(page, key) == value, key
+    if 'Pertinence' in checks:
+        return
     # M ou L non vérifiés : exclus du score (jamais comptés comme 0)
     expected = gn.compute_pertinence({**{k: ANSWER[k] for k, _ in gn.SCORE_SCALES},
                                       'maturite': None if checks.get('M') == '?' else int(checks.get('M', 2)),
@@ -1096,11 +1102,12 @@ def test_missing_github_metadata_never_crashes(world3, repo, readme, checks):
 
 
 def test_message_with_missing_metadata(world3):
-    gn, api = world3(repo={'language': None, 'topics': _DROP, 'description': None}, readme=None)
+    # v7.4 : un dépôt sans aucune information n'est plus envoyé au LLM (non noté) : README minimal ici
+    gn, api = world3(repo={'language': None, 'topics': _DROP, 'description': None}, readme='# repo\nConvertit des PDF.')
     assert gn.main([]) == 0
     user = api.llm_bodies('mistral')[0]['messages'][1]['content']
     assert 'langage : non détecté' in user and 'topics : aucun' in user and 'description : aucune' in user
-    assert '(vide ou absent)' in user
+    assert '(vide ou absent)' in gn.build_user_message({'full_name': 'owner/repo'}, '')
 
 
 @pytest.mark.parametrize('days,expected', [(0, 2), (364, 2), (366, 1), (3 * 365 - 1, 1), (3 * 365 + 2, 0),
@@ -1155,7 +1162,7 @@ def test_justification_prefix_and_stats(world3):
     assert text(page, 'Description') == ANSWER['description_fr']
     assert page['properties']['Dernière MAJ'] == {'date': {'start': FRESH['pushed_at'][:10]}}
     last = history(gn)[-1]
-    assert last['version'] == '7.3.0' and last['profile_version'] == '2026-10-11'
+    assert last['version'] == '7.4.0' and last['profile_version'] == '2026-10-11'
     assert last['profile_hash'] == profile_hash
     assert last['scores_distribution'] == {'9': 1} and last['categories_count'] == {'OCR/Documents': 1}
 

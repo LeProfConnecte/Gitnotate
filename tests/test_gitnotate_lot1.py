@@ -259,11 +259,11 @@ NULL_REPO = {'name': 'demo', 'language': None, 'topics': None, 'readme': None,
 # =============================================================================
 def test_version_constant_banner_and_stats(world, capsys):
     gn, api = world()
-    assert gn.__version__ == "7.3.0"
-    assert 'Nouveautés v7.3' in gn.__doc__ and 'Nouveautés v7.2' in gn.__doc__
+    assert gn.__version__ == "7.4.0"
+    assert 'Nouveautés v7.4' in gn.__doc__ and 'Nouveautés v7.3' in gn.__doc__ and 'Nouveautés v7.2' in gn.__doc__
     assert gn.main([]) == 0
-    assert "GITNOTATE v7.3.0" in capsys.readouterr().out
-    assert history(gn)[-1]['version'] == '7.3.0'
+    assert "GITNOTATE v7.4.0" in capsys.readouterr().out
+    assert history(gn)[-1]['version'] == '7.4.0'
 
 
 def test_version_option(load_gn, capsys):
@@ -271,7 +271,7 @@ def test_version_option(load_gn, capsys):
     with pytest.raises(SystemExit) as exc:
         gn.main(['--version'])
     assert exc.value.code == 0
-    assert '7.3.0' in capsys.readouterr().out
+    assert '7.4.0' in capsys.readouterr().out
 
 # =============================================================================
 # 2. AUCUN EFFET DE BORD À L'IMPORT, BASE_DIR, .env, PROFIL, JETONS
@@ -436,7 +436,7 @@ def test_script_exit_code_via_sys_exit(tmp_path):
     assert 'PARENT_PAGE_ID' in r.stderr.decode('utf-8')
     r = subprocess.run([sys.executable, script, '--version'], env=_subprocess_env(tmp_path),
                        capture_output=True, timeout=60)
-    assert r.returncode == 0 and b'7.3.0' in r.stdout
+    assert r.returncode == 0 and b'7.4.0' in r.stdout
 
 # =============================================================================
 # 5. JOURNALISATION
@@ -742,7 +742,7 @@ def test_lexical_language_compared_by_equality(load_gn):
     gn.USER_PROFILE = {'languages': ['Python', 'JavaScript']}
     assert gn.calculate_relevance_score({'language': 'Py'}) == 0        # 'py' ⊂ 'python' : plus compté
     assert gn.calculate_relevance_score({'language': 'Java'}) == 0      # 'java' ⊂ 'javascript' : plus compté
-    assert gn.calculate_relevance_score({'language': 'JavaScript'}) == 3
+    assert gn.calculate_relevance_score({'language': 'JavaScript'}) == 0   # v7.4 : langage neutre (ni bonus)
 
 
 @pytest.mark.parametrize('path', ['sans_fournisseur', 'fr_sans_scoring', 'score_invalide',
