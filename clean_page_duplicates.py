@@ -745,7 +745,7 @@ def _confirmed(confirm: Callable[[str], Optional[str]], phrase: str) -> bool:
 # =============================================================================
 def print_plan(scan: SourceScan, plan: Plan, max_delete: int) -> None:
     link_blocks = sum(1 for e in scan.entries if e.is_link_block)
-    print(f"\n📊 Analyse :")
+    print("\n📊 Analyse :")
     print(f"  • Blocs lus : {scan.blocks_read}")
     print(f"  • Liens GitHub : {len(scan.entries)} (dont {link_blocks} blocs lien)")
     print(f"  • Liens présents plusieurs fois : {plan.duplicate_links}")
