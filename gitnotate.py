@@ -290,7 +290,8 @@ USE_CASE_MAX_CHARS      = 200
 BRIQUES_MAX             = 3     # « brique pour » : 0 à 3 noms du profil
 SECTION_MAX_LINES       = 5     # Installation / Exemple / Prérequis : extrait verbatim du README
 SECTION_MAX_CHARS       = 300
-CACHE_FORMAT            = 2     # entrées v7.2 (sans licence, archived, pushed_at…) : relues
+CACHE_FORMAT            = 3     # entrées plus anciennes (v7.2 sans licence ni pushed_at ; v7.3 avant la
+                                # revue : indice GPU sans gestion des négations) : relues sur GitHub
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'normal').strip().lower() or 'normal'
 if LOG_LEVEL not in _LOG_LEVELS:
@@ -752,7 +753,27 @@ def normalize_profile(profile: Any) -> Tuple[Dict[str, Any], List[str]]:
             norm['categories'] = value
         elif value is not None:
             warnings.append("categories : liste vide — liste par défaut utilisée")
+    # Noms qui ne pourront jamais être une option de sélection Notion (Catégorie, Brique pour)
+    named = ([('categories', c) for c in norm['categories']] + [('projets', p['nom']) for p in norm['projets']]
+             + [('domaines', d['nom']) for d in norm['domaines']])
+    for key, name in named:
+        problem = _option_problem(name)
+        if problem:
+            warnings.append(f"{key} : « {name[:60]}{'…' if len(name) > 60 else ''} » ({problem}) ne pourra pas "
+                            "être écrit dans une colonne Sélection — renommez-le")
     return norm, warnings
+
+
+NOTION_OPTION_MAX_CHARS = 100
+
+
+def _option_problem(name: str) -> Optional[str]:
+    """Raison pour laquelle `name` ne peut pas être une option de sélection Notion, sinon None."""
+    if ',' in name:
+        return "virgule interdite dans une option"
+    if len(name) > NOTION_OPTION_MAX_CHARS:
+        return f"plus de {NOTION_OPTION_MAX_CHARS} caractères"
+    return None
 
 
 def current_profile() -> Dict[str, Any]:
@@ -823,7 +844,7 @@ def build_system_prompt_combined() -> str:
         "",
         "RÉPONSE : un seul objet JSON, sans texte avant ou après, avec exactement ces clés :",
         "- description_fr : ce que fait le dépôt, 1 à 2 phrases en français (40 mots maximum), termes "
-        "techniques conservés.",
+        "techniques conservés ; \"Non vérifié\" si ni la description, ni les topics, ni le README ne le disent.",
         "- cas_usage : 0 à 3 usages spécifiques à CE dépôt, justifiés par sa description ou son README ; [] si "
         "les informations ne permettent pas de conclure.",
         "- categorie : une valeur parmi : " + " | ".join(p['categories']) + ".",
@@ -991,8 +1012,9 @@ _ATEXIT_REGISTERED: bool = False
 
 
 def _cache_entry_valid(entry: Any, now: Optional[float] = None) -> bool:
-    """Entrée récente (CACHE_TTL_HOURS) et au format courant : une entrée v7.2, sans licence,
-    archived ni pushed_at, est périmée (relue sur GitHub)."""
+    """Entrée récente (CACHE_TTL_HOURS) et au format courant : une entrée d'un format plus ancien
+    (v7.2 sans licence, archived ni pushed_at ; indice GPU d'avant la revue du lot 3) est périmée
+    (relue sur GitHub)."""
     if not isinstance(entry, dict) or entry.get('cache_format') != CACHE_FORMAT:
         return False
     cached_at = entry.get('cached_at')
@@ -2083,13 +2105,26 @@ def _parse_llm_json(raw_text: str, need_score: Optional[bool] = None) -> Optiona
     return best if best is not None else first_dict
 
 
+_SCALE_FRACTION_RE = re.compile(r'(\d{1,2})\s*(?:/|sur|out\s+of)\s*(\d{1,2})', re.I)
+_SCALE_LEADING_RE  = re.compile(r'(\d{1,2})\s*(?:\(|[-–—:]\s*(?=[^\d\s]))')
+
+
 def _coerce_scale(value: Any, maximum: int) -> Optional[int]:
-    """Entier de 0 à `maximum` : int, float entier (2.0) ou chaîne (« 2 », « 2.0 »). Booléen, nombre
-    non entier (2.5), autre type ou valeur hors plage → None (réponse invalide)."""
+    """Entier de 0 à `maximum` : int, float entier (2.0) ou chaîne (« 2 », « 2.0 », « 2/3 » ou « 2 sur 3 »
+    si le dénominateur est le maximum de l'échelle, « 2 (utile à un domaine) », « 2 - utile »). Booléen,
+    nombre non entier (2.5), autre dénominateur, autre type ou valeur hors plage → None (réponse invalide)."""
     if isinstance(value, bool):
         return None
     if isinstance(value, str):
         text = value.strip()
+        fraction = _SCALE_FRACTION_RE.fullmatch(text)
+        leading = _SCALE_LEADING_RE.match(text)
+        if fraction:
+            if int(fraction.group(2)) != maximum:
+                return None
+            text = fraction.group(1)
+        elif leading:
+            text = leading.group(1)
         try:
             value = int(text)
         except ValueError:
@@ -2144,22 +2179,38 @@ def _clean_cas_usage(value: Any) -> Optional[List[str]]:
     return items
 
 
+_CHOICE_SEP_RE = re.compile(r'\s*([/\-])\s*')
+
+
+def _choice_key(value: Any) -> str:
+    """Forme comparée par _match_choice : sans accents ni casse, sans guillemets ni point final, sans
+    espaces autour de « / » et « - » (« OCR / Documents » = « OCR/Documents »)."""
+    return _CHOICE_SEP_RE.sub(r'\1', _fold(value).strip(' .«»"\''))
+
+
 def _match_choice(value: Any, choices) -> str:
-    """Valeur de `choices` égale à `value` sans accents ni casse (guillemets et point final ignorés),
-    sinon ''."""
-    wanted = _fold(value).strip(' .«»"\'')
+    """Valeur de `choices` égale à `value` sans accents ni casse (guillemets, point final et espaces
+    autour de « / » ou « - » ignorés), sinon ''."""
+    wanted = _choice_key(value)
     if not wanted:
         return ''
     for choice in choices:
-        if _fold(choice) == wanted:
+        if _choice_key(choice) == wanted:
             return choice
     return ''
 
 
+# Statut recopié du prompt après le nom d'un projet (« Gitnotate (actif) ») : ignoré pour la comparaison
+_BRIQUE_STATUS_RE = re.compile(r"\s*[(\[]\s*(?:actif|active|envisag[ée]e?|planned)\s*[)\]]\s*$", re.I)
+
+
 def _match_briques(value: Any, profile: Dict[str, Any]) -> List[str]:
-    """« brique pour » : noms EXACTS du profil (projets puis domaines, comparaison sans accents ni
-    casse), au plus BRIQUES_MAX, sans doublon. Les noms hors profil sont retirés. Liste, chaîne JSON de
-    liste ou chaîne unique (découpée aux « , » ou « ; » si elle n'est pas un nom du profil)."""
+    """« brique pour » : noms EXACTS du profil (projets et domaines, comparaison sans accents ni
+    casse ; un statut recopié du prompt, « (actif) » ou « (envisagé) », est ignoré), au plus
+    BRIQUES_MAX, sans doublon. Les noms hors profil sont retirés. Liste, chaîne JSON de liste ou chaîne
+    unique (découpée aux « , » ou « ; » si elle n'est pas un nom du profil). Au-delà de BRIQUES_MAX
+    noms, les projets actifs passent en tête (garde-fou de l'utilité immédiate), sinon l'ordre du LLM
+    est gardé."""
     names = [p['nom'] for p in profile['projets']] + [d['nom'] for d in profile['domaines']]
     value = _decode_json_list(value)
     if isinstance(value, str):
@@ -2168,9 +2219,13 @@ def _match_briques(value: Any, profile: Dict[str, Any]) -> List[str]:
         return []
     found: List[str] = []
     for item in value:
-        name = _match_choice(item, names) if isinstance(item, str) else ''
+        name = (_match_choice(item, names) or _match_choice(_BRIQUE_STATUS_RE.sub('', item), names)
+                if isinstance(item, str) else '')
         if name and name not in found:
             found.append(name)
+    if len(found) > BRIQUES_MAX:
+        active = {_fold(p['nom']) for p in profile['projets'] if p['statut'] == PROJECT_ACTIVE}
+        found.sort(key=lambda name: _fold(name) not in active)          # tri stable
     return found[:BRIQUES_MAX]
 
 
@@ -2262,6 +2317,30 @@ def _validate_llm_payload(parsed: Any, need_score: bool,
     return _validate_scoring_payload(parsed, current_profile() if profile is None else profile)
 
 
+# Mots-outils anglais sans équivalent français (« a », « on », « as », « in » exclus : ambigus)
+_ENGLISH_MARKERS = frozenset({'the', 'and', 'for', 'with', 'of', 'to', 'that', 'this', 'is', 'are', 'from',
+                              'your', 'which', 'into', 'using', 'an', 'it', 'its', 'by', 'allows', 'lets',
+                              'enables', 'provides'})
+# Mots-outils et mots courants français ; un mot accentué compte aussi comme français
+_FRENCH_MARKERS = frozenset({'le', 'la', 'les', 'un', 'une', 'des', 'du', 'de', 'et', 'ou', 'pour', 'avec',
+                             'sans', 'dans', 'sur', 'par', 'en', 'est', 'sont', 'au', 'aux', 'ce', 'cet',
+                             'cette', 'ces', 'son', 'sa', 'ses', 'leur', 'leurs', 'qui', 'que', 'permet',
+                             'permettant', 'outil', 'outils', 'serveur', 'gestion', 'fichiers'})
+_WORD_RE = re.compile(r"[a-zà-ÿ]+(?:['’][a-zà-ÿ]+)?")
+
+
+def _looks_english(text: str) -> bool:
+    """Texte nettement anglais : au moins 4 mots, au moins un mot-outil anglais et AUCUN indice
+    français (mot-outil, élision d'/l'/qu', mot accentué). Une description française courte
+    (« Bibliothèque Python pour convertir des PDF en Markdown. », « CLI Rust pour Git. ») passe."""
+    words = _WORD_RE.findall(text.lower())
+    if len(words) < 4:
+        return False
+    french = any(w in _FRENCH_MARKERS or re.match(r"(?:d|l|qu|s|n|j)['’]", w) or re.search(r'[à-ÿ]', w)
+                 for w in words)
+    return not french and any(w in _ENGLISH_MARKERS for w in words)
+
+
 def _check_description(parsed: Any) -> Tuple[Optional[str], str]:
     if not isinstance(parsed, dict):
         return None, "pas d'objet JSON"
@@ -2270,6 +2349,8 @@ def _check_description(parsed: Any) -> Tuple[Optional[str], str]:
         return None, "description_fr absente ou vide"
     if _description_is_template(description):
         return None, "description_fr recopiée du gabarit du prompt"
+    if _looks_english(description):
+        return None, "description_fr en anglais (traduction absente)"
     return description.strip(), ''
 
 
@@ -2294,13 +2375,59 @@ def _validate_translation_payload(parsed: Any) -> Tuple[Optional[Dict], str]:
     }, ''
 
 
-def _validate_scoring_payload(parsed: Any, profile: Dict[str, Any]) -> Tuple[Optional[Dict], str]:
-    """Réponse v2. Invalide (None) : description absente, vide ou gabarit ; cas_usage absent, non
-    textuel ou recopié du gabarit (une liste vide est valide). Partielle ('judgements' à None) : clé
-    de notation manquante, entier hors plage, booléen, justification absente ou gabarit.
+_V2_KEYS = ('description_fr', 'cas_usage') + LLM_V2_SCORING_KEYS
 
-    Normalisations : catégorie inconnue → '' ; type inconnu → « inspiration » ; « brique pour »
-    limitée aux noms du profil ; utilite_immediate ≥ 2 sans projet ACTIF dans « brique pour » → 1."""
+
+def _answer_key(key: Any) -> str:
+    return _fold(str(key)).replace(' ', '_').replace('-', '_')
+
+
+def _normalize_answer_keys(parsed: Any) -> Any:
+    """Réponse v2 aux clés mal orthographiées : clé accentuée ou en majuscules (« catégorie »,
+    « intérêt », « Utilité immédiate ») ramenée à la clé attendue, et notes regroupées dans un unique
+    sous-objet (« notes »: {…}) remontées au premier niveau. Une clé déjà présente n'est jamais
+    remplacée ; les valeurs restent validées normalement."""
+    if not isinstance(parsed, dict):
+        return parsed
+    out = dict(parsed)
+    for key, value in parsed.items():
+        wanted = _answer_key(key)
+        if wanted in _V2_KEYS and wanted not in out:
+            out[wanted] = value
+    scales = [key for key, _ in SCORE_SCALES]
+    nested = [v for v in parsed.values() if isinstance(v, dict)]
+    if len(nested) == 1 and any(key not in out for key in scales):
+        for key, value in nested[0].items():
+            wanted = _answer_key(key)
+            if wanted in scales and wanted not in out:
+                out[wanted] = value
+    return out
+
+
+# Cas d'usage qui disent seulement « rien à signaler » (comparés repliés, ponctuation retirée)
+_EMPTY_USE_CASES = frozenset({'n/a', 'na', 'n a', 'aucun', 'aucune', 'none', 'non verifie', 'non verifiee',
+                              'non determine', 'non determinee', 'neant', 'rien', 'inconnu', 'inconnue',
+                              'non applicable', 'sans objet', 'non renseigne', 'non precise'})
+_EMPTY_USE_CASE_PREFIXES = ('aucun cas', 'aucun usage', 'pas de cas', 'aucune information disponible',
+                            'aucune information suffisante', 'informations insuffisantes',
+                            'information insuffisante', "pas assez d'information", 'impossible de determiner')
+
+
+def _is_empty_use_case(item: str) -> bool:
+    text = ' '.join(re.sub(r"[^\w/' ]+", ' ', _fold(item)).split())
+    return text in _EMPTY_USE_CASES or text.startswith(_EMPTY_USE_CASE_PREFIXES)
+
+
+def _validate_scoring_payload(parsed: Any, profile: Dict[str, Any]) -> Tuple[Optional[Dict], str]:
+    """Réponse v2. Invalide (None) : description absente, vide, gabarit ou en anglais ; cas_usage
+    absent, non textuel ou recopié du gabarit (une liste vide est valide). Partielle ('judgements' à
+    None) : clé de notation manquante, entier hors plage, booléen, justification absente ou gabarit.
+
+    Normalisations : clés accentuées ou notes imbriquées ramenées aux clés attendues ; cas d'usage de
+    remplissage (« N/A », « Aucun », « Non vérifié ») retirés ; catégorie inconnue → '' ; type
+    inconnu → « inspiration » ; « brique pour » limitée aux noms du profil ; utilite_immediate ≥ 2
+    sans projet ACTIF dans « brique pour » → 1."""
+    parsed = _normalize_answer_keys(parsed)
     description, why = _check_description(parsed)
     if description is None:
         return None, why
@@ -2315,7 +2442,7 @@ def _validate_scoring_payload(parsed: Any, profile: Dict[str, Any]) -> Tuple[Opt
     kept = [_USE_CASE_LABEL_RE.sub(r'\1', item).strip() for item in items if not _use_cases_are_template(item)]
     if items and not kept:
         return None, "cas_usage recopiés du gabarit du prompt"
-    kept = [item[:USE_CASE_MAX_CHARS] for item in kept if item][:USE_CASES_MAX]
+    kept = [item[:USE_CASE_MAX_CHARS] for item in kept if item and not _is_empty_use_case(item)][:USE_CASES_MAX]
     cleaned: Dict[str, Any] = {
         'description_fr':     description,
         'cas_usage':          kept,
@@ -2412,6 +2539,10 @@ def print_progress_bar(current: int, total: int, elapsed: float) -> None:
 # =============================================================================
 # SCORING LEXICAL — fallback si LLM indisponible
 # =============================================================================
+IRRELEVANT_TOPICS = frozenset({'game', 'games', 'gamedev', 'game-development', 'game-engine', 'mobile-app',
+                               'mobile-apps', 'ios', 'ios-app', 'android', 'android-app'})
+
+
 def calculate_relevance_score(repo_info: Dict) -> int:
     score      = 0
     language   = (repo_info.get('language') or '').lower()
@@ -2448,9 +2579,9 @@ def calculate_relevance_score(repo_info: Dict) -> int:
         score += 1
 
     # v7.3 : plus aucune pénalité de langage (un dépôt Go, Rust ou Java s'intègre par CLI, API ou
-    # Docker) ni pour le topic blockchain (intérêt crypto du profil)
-    irrelevant_topics = ['game', 'mobile-app', 'ios', 'android']
-    if any(t in topics_str for t in irrelevant_topics):
+    # Docker) ni pour le topic blockchain (intérêt crypto du profil). Topics jeu et mobile comparés
+    # EXACTEMENT : « financial-ratios », « scenarios » ou « game-theory » ne sont pas pénalisés.
+    if IRRELEVANT_TOPICS & set(topics):
         score = max(score - 2, 0)
 
     return min(max(score, 0), 10)
@@ -2569,14 +2700,20 @@ def format_components(components: Dict[str, Optional[int]], score: int) -> str:
 # =============================================================================
 # MESSAGE UTILISATEUR v2 — contenu du dépôt (donnée non fiable) entre <depot> et </depot>
 # =============================================================================
-_DEPOT_TAG_RE = re.compile(r'<\s*/?\s*depot\b[^>\n]{0,100}>?', re.IGNORECASE)
+_DEPOT_TAG_RE = re.compile(r'<\s*/?\s*d[eé]p[oô]t\b[^>\n]{0,100}>?', re.IGNORECASE)
+
+
+def _without_format_chars(text: str) -> str:
+    """Forme NFKC (« ＜ » devient « < ») sans caractères de format invisibles (U+200B, U+2060…)."""
+    return ''.join(c for c in unicodedata.normalize('NFKC', text) if unicodedata.category(c) != 'Cf')
 
 
 def _strip_depot_tags(text: str) -> str:
-    """Retire toute balise <depot> / </depot> (y compris écrite &lt;/depot&gt;) : le contenu du dépôt
-    ne peut jamais fermer le bloc de données du message."""
-    text = _DEPOT_TAG_RE.sub(' ', text or '')
-    return _DEPOT_TAG_RE.sub(' ', html_unescape(text))
+    """Retire toute balise <depot> / </depot>, y compris écrite &lt;/depot&gt;, accentuée (</dépôt>), en
+    pleine chasse (＜/depot＞) ou coupée par un caractère invisible : le contenu du dépôt ne peut jamais
+    fermer le bloc de données du message."""
+    text = _DEPOT_TAG_RE.sub(' ', _without_format_chars(text or ''))
+    return _DEPOT_TAG_RE.sub(' ', _without_format_chars(html_unescape(text)))
 
 
 def _message_field(value: Any, limit: int) -> str:
@@ -2584,7 +2721,8 @@ def _message_field(value: Any, limit: int) -> str:
 
 
 def deterministic_hints(repo_info: Dict) -> List[str]:
-    """Indices calculés par le code : fork, archivé, distribution détectée, GPU exigé (README complet)."""
+    """Indices calculés par le code : fork, archivé, distribution détectée, exigence de GPU relevée dans
+    le README complet (avec sa phrase source)."""
     hints: List[str] = []
     if repo_info.get('fork') is True:
         parent = _message_field(repo_info.get('parent_full_name'), 140)
@@ -2598,8 +2736,20 @@ def deterministic_hints(repo_info: Dict) -> List[str]:
     if distribution:
         hints.append("distribution détectée : " + ", ".join(distribution))
     if isinstance(found.get('gpu'), str) and found['gpu']:
-        hints.append(f"GPU exigé d'après le README ({found['gpu']})")
+        # Formulation neutre et phrase source citée : le LLM peut juger un passage situé hors de
+        # l'extrait du README qu'il reçoit
+        source = _message_field(found.get('gpu_source'), GPU_SOURCE_MAX_CHARS)
+        hints.append(f"exigence de GPU relevée dans le README ({_message_field(found['gpu'], 60)})"
+                     + (f" : « {source} »" if source else ""))
     return hints
+
+
+def repo_has_no_information(repo_info: Dict, description: str) -> bool:
+    """Ni description, ni topics, ni README transmis au LLM : rien ne dit ce que fait le dépôt."""
+    topics = repo_info.get('topics')
+    has_topics = isinstance(topics, list) and any(isinstance(t, str) and t.strip() for t in topics)
+    readme = clean_readme(repo_info.get('readme') or '') if README_LLM_CHARS > 0 else ''
+    return not (description or '').strip() and not has_topics and not readme.strip()
 
 
 def build_user_message(repo_info: Dict, description: str) -> str:
@@ -2784,6 +2934,12 @@ def translate_and_score(
         # seule, la liste générique traduite n'est jamais écrite (aucune preuve)
         result['cas_usage']    = list(chosen.get('cas_usage') or [])
         result['use_cases_fr'] = chosen.get('use_cases_fr') or NON_VERIFIE
+        if repo_has_no_information(repo_info, description):
+            # Rien ne dit ce que fait le dépôt : description et cas d'usage du LLM seraient devinés
+            # d'après le seul nom, donc jamais écrits
+            result['description_fr'] = NON_VERIFIE
+            result['cas_usage']      = []
+            result['use_cases_fr']   = NON_VERIFIE
     stats.inc('translation_success')
 
     if LLM_SCORING_ENABLED and chosen.get('judgements') is not None:
@@ -3261,16 +3417,30 @@ def _readme_headings(lines: List[str]) -> List[Tuple[int, int, int, str]]:
     return headings
 
 
+# Fin de ligne d'une commande ou d'un bloc inachevé (« \ », « ` » ou « ^ » de continuation, tube,
+# « && », « : » d'ouverture de bloc) ou commentaire seul : jamais la dernière ligne d'un extrait coupé
+_UNFINISHED_LINE_RE = re.compile(r'(?:\\|\s`|\s\^|\||&&|:)\s*$|^\s*(?:#|//|REM\b)(?:\s|$)', re.I)
+
+
 def _clip_snippet(lines: List[str]) -> str:
-    """Au plus SECTION_MAX_LINES lignes et SECTION_MAX_CHARS caractères, sous-chaîne exacte du README."""
+    """Au plus SECTION_MAX_LINES lignes et SECTION_MAX_CHARS caractères, sous-chaîne exacte du README.
+    Extrait coupé : les dernières lignes inachevées (continuation « \\ », commentaire seul, « : »
+    final…) sont retirées ; s'il ne reste rien, '' (« Non vérifié »)."""
     while lines and not lines[0].strip():
         lines = lines[1:]
     while lines and not lines[-1].strip():
         lines = lines[:-1]
+    truncated = len(lines) > SECTION_MAX_LINES
     text = '\n'.join(lines[:SECTION_MAX_LINES]).strip()
     if len(text) > SECTION_MAX_CHARS:
+        truncated = True
         cut = text.rfind('\n', 0, SECTION_MAX_CHARS + 1)
         text = text[:cut].rstrip() if cut > 0 else text[:SECTION_MAX_CHARS]
+    if truncated:
+        kept = text.split('\n')
+        while kept and (not kept[-1].strip() or _UNFINISHED_LINE_RE.search(kept[-1])):
+            kept.pop()
+        text = '\n'.join(kept).strip()
     return text
 
 
@@ -3290,9 +3460,16 @@ def _first_code_block(lines: List[str]) -> str:
 
 
 def _first_list(lines: List[str]) -> str:
+    """Premières lignes de la première liste (éléments et lignes indentées qui les prolongent). Liste
+    aérée : une ligne vide ne la termine que si la ligne non vide suivante n'en fait plus partie."""
     body: List[str] = []
-    for line in lines:
+    for index, line in enumerate(lines):
         if _LIST_ITEM_RE.match(line) or (body and line[:1] in (' ', '\t') and line.strip()):
+            body.append(line)
+        elif body and not line.strip():
+            following = next((nxt for nxt in lines[index + 1:] if nxt.strip()), '')
+            if not (_LIST_ITEM_RE.match(following) or following[:1] in (' ', '\t')):
+                break
             body.append(line)
         elif body:
             break
@@ -3331,16 +3508,30 @@ _NPM_RE       = re.compile(r'\b(?:npm\s+(?:i|install)|pnpm\s+(?:add|i|install)|y
                            r'|npx)\s+(?:-{1,2}[\w-]+\s+)*(@?[A-Za-z0-9][\w.\-]*(?:/[\w.\-]+)?)')
 _DOCKER_RE    = re.compile(r'\bdocker(?:\s+(?:run|pull)\b|\s+compose\b|-compose\b)|\bghcr\.io/|hub\.docker\.com/',
                            re.I)
-_PYPI_LINK_RE = re.compile(r'pypi\.org/project/|img\.shields\.io/pypi/', re.I)
-_NPM_LINK_RE  = re.compile(r'npmjs\.com/package/|img\.shields\.io/npm/', re.I)
+# Liens vers la page ou le badge d'un paquet : le nom capturé doit être celui du dépôt (_same_project)
+_PYPI_LINK_RE = re.compile(r'(?:pypi\.org/project/|img\.shields\.io/pypi/[\w-]+/)([A-Za-z0-9][\w.\-]*?)'
+                           r'(?:\.svg|\.png)?(?![\w.\-])', re.I)
+_NPM_LINK_RE  = re.compile(r'(?:npmjs\.com/package/|img\.shields\.io/npm/[\w-]+/)'
+                           r'(@?[A-Za-z0-9][\w.\-]*?(?:/[\w.\-]+?)?)(?:\.svg|\.png)?(?![\w.\-/])', re.I)
 _VRAM_RES     = (
-    re.compile(r'(\d{1,3})(?:[.,]\d+)?\s?(?:GB|GiB|Go)\b(?:\s+(?:of|de))?\s+(?:VRAM|GPU\s+memory|GPU\s+RAM'
+    re.compile(r'(\d{1,3})(?:[.,]\d+)?\s?(?:GB|GiB|Go|G)\b(?:\s+(?:of|de))?\s+(?:VRAM|GPU\s+memory|GPU\s+RAM'
                r'|GPU\b|m[ée]moire\s+(?:GPU|vid[ée]o))', re.I),
     re.compile(r'(?:VRAM|GPU\s+memory|m[ée]moire\s+GPU)\s*(?:[:=≥>]|of|de|at\s+least|minimum|au\s+moins|\s)*'
                r'(\d{1,3})(?:[.,]\d+)?\s?(?:GB|GiB|Go)\b', re.I),
+    # « a single GPU with more than 80GB of memory »
+    re.compile(r'\bGPUs?\b[^.\n;]{0,40}?(\d{1,3})(?:[.,]\d+)?\s?(?:GB|GiB|Go|G)\b(?:\s+(?:of|de))?\s+'
+               r'(?:memory|RAM|m[ée]moire)', re.I),
 )
 _GPU_REQUIRED_RE = re.compile(r'\b(?:requires?|required|needs?|n[ée]cessite|exige)\b[^.\n]{0,60}\b(?:GPU|CUDA)\b'
                               r'|\b(?:GPU|CUDA)\b[^.\n]{0,30}\b(?:required|requis|obligatoire)\b', re.I)
+# Phrase négative, facultative ou avec alternative CPU : jamais lue comme une exigence de GPU
+# (« No GPU required », « does not require a GPU », « Optional: a GPU with 6 GB VRAM », « sans GPU »)
+_GPU_SOFT_RE = re.compile(
+    r"\b(?:no|not|without|optional(?:ly)?|recommended|cpu[- ]only|sans|pas|aucun|aucune|facultati(?:f|ve)"
+    r"|optionnel(?:le)?|recommand[ée]e?s?|non\s+requis)\b|n[’']t\b|\bif\s+(?:you\s+have|available)\b"
+    r"|\bcpu\s+(?:works|also\s+works|fallback)\b|\bruns?\s+on\s+(?:the\s+|your\s+)?cpu\b", re.I)
+_SENTENCE_SPLIT_RE = re.compile(r'(?<=[.!?;])\s+|\n')
+GPU_SOURCE_MAX_CHARS = 120     # phrase source citée dans l'indice (début verbatim de la phrase du README)
 
 
 def _package_core(name: str) -> str:
@@ -3348,38 +3539,57 @@ def _package_core(name: str) -> str:
     for prefix in ('python', 'py', 'node'):
         if core.startswith(prefix) and len(core) > len(prefix) + 2:
             core = core[len(prefix):]
-    for suffix in ('python', 'py', 'js', 'cli', 'sdk'):
+    for suffix in ('python', 'py', 'js', 'cli', 'sdk', 'ai'):
         if core.endswith(suffix) and len(core) > len(suffix) + 2:
             core = core[:-len(suffix)]
     return core
 
 
 def _same_project(package: str, full_name: str) -> bool:
-    """Le paquet installé porte-t-il le nom du dépôt (au préfixe ou suffixe py/js/cli près) ?"""
-    repo = (full_name or '').rsplit('/', 1)[-1]
-    package = package.split('[')[0].rsplit('/', 1)[-1]
-    return len(_package_core(package)) >= 3 and _package_core(package) == _package_core(repo)
+    """Le paquet installé ou lié porte-t-il le nom du dépôt (au préfixe ou suffixe py/js/cli/ai près) ?
+    Paquet npm à portée : son nom ou sa portée (« @kilocode/cli » pour le dépôt kilocode)."""
+    repo = _package_core((full_name or '').rsplit('/', 1)[-1])
+    package = package.split('[')[0]
+    names = [package.rsplit('/', 1)[-1]]
+    if package.startswith('@') and '/' in package:
+        names.append(package[1:].split('/', 1)[0])
+    return len(repo) >= 3 and any(_package_core(name) == repo for name in names)
 
 
 def readme_hints(readme: str, full_name: str = '') -> Dict[str, Any]:
-    """Indices calculés sur le README complet : distribution (PyPI, npm, Docker) et GPU exigé (avec la
-    quantité de VRAM quand elle est écrite). Indices pour le LLM seulement, jamais écrits dans Notion."""
+    """Indices calculés sur le README complet : distribution (PyPI, npm, Docker) et exigence de GPU
+    (avec la quantité de VRAM quand elle est écrite, et la phrase source). Lecture phrase par phrase :
+    une phrase négative, facultative ou qui propose le CPU (« No GPU required », « Optional: … 6 GB
+    VRAM », « sans GPU ») n'est jamais une exigence ; dans le doute, aucun indice. Indices pour le LLM
+    seulement, jamais écrits dans Notion."""
     text = readme if isinstance(readme, str) else ''
     distribution: List[str] = []
-    if any(_same_project(m.group(1), full_name) for m in _PIP_RE.finditer(text)) or _PYPI_LINK_RE.search(text):
+    if any(_same_project(m.group(1), full_name) for rx in (_PIP_RE, _PYPI_LINK_RE) for m in rx.finditer(text)):
         distribution.append('PyPI')
-    if any(_same_project(m.group(1), full_name) for m in _NPM_RE.finditer(text)) or _NPM_LINK_RE.search(text):
+    if any(_same_project(m.group(1), full_name) for rx in (_NPM_RE, _NPM_LINK_RE) for m in rx.finditer(text)):
         distribution.append('npm')
     if _DOCKER_RE.search(text):
         distribution.append('Docker')
-    amounts = sorted({int(m.group(1)) for rx in _VRAM_RES for m in rx.finditer(text) if 1 <= int(m.group(1)) <= 640})
+    amounts: Set[int] = set()
+    sources: List[str] = []           # phrases avec une quantité de VRAM, puis phrases « GPU exigé »
+    required: List[str] = []
+    for sentence in (part.strip() for part in _SENTENCE_SPLIT_RE.split(text)):
+        if not sentence or _GPU_SOFT_RE.search(sentence):
+            continue
+        found = {int(m.group(1)) for rx in _VRAM_RES for m in rx.finditer(sentence) if 1 <= int(m.group(1)) <= 640}
+        if found:
+            amounts |= found
+            sources.append(sentence)
+        elif _GPU_REQUIRED_RE.search(sentence):
+            required.append(sentence)
     gpu: Optional[str] = None
     if amounts:
-        gpu = (f"{amounts[0]} Go de VRAM" if len(amounts) == 1
-               else f"{amounts[0]} à {amounts[-1]} Go de VRAM")
-    elif _GPU_REQUIRED_RE.search(text):
+        low, high = min(amounts), max(amounts)
+        gpu = f"{low} Go de VRAM" if low == high else f"{low} à {high} Go de VRAM"
+    elif required:
         gpu = "quantité de VRAM non précisée"
-    return {'distribution': distribution, 'gpu': gpu}
+    source = (sources or required or [''])[0][:GPU_SOURCE_MAX_CHARS] if gpu else ''
+    return {'distribution': distribution, 'gpu': gpu, 'gpu_source': source}
 
 
 def analyze_repo_for_usage(repo_info: Dict) -> Dict[str, str]:
@@ -3481,6 +3691,13 @@ def check_database_schema(db_data: Dict) -> List[str]:
     return problems
 
 
+def _schema_options(prop: Dict, kind: str) -> Set[str]:
+    """Noms des options d'une colonne Sélection ou Sélection multiple du schéma lu (vide sinon)."""
+    config = prop.get(kind) if isinstance(prop.get(kind), dict) else {}
+    raw = config.get('options') if isinstance(config.get('options'), list) else []
+    return {o['name'] for o in raw if isinstance(o, dict) and isinstance(o.get('name'), str)}
+
+
 def detect_optional_columns(db_data: Dict) -> Tuple[Dict[str, Dict[str, Any]], List[str], List[str]]:
     """Colonnes facultatives présentes dans le schéma lu (aucun appel de plus) :
     ({nom: {'type', 'options'}}, absentes, avertissements pour un type non géré).
@@ -3498,20 +3715,41 @@ def detect_optional_columns(db_data: Dict) -> Tuple[Dict[str, Dict[str, Any]], L
             warnings.append(f"Colonne facultative '{name}' de type {_type_label(str(kind))} non géré "
                             f"(attendu : {' ou '.join(_type_label(t) for t in accepted)}) — ignorée")
             continue
-        options: Set[str] = set()
-        if kind in ('select', 'multi_select'):
-            config = prop.get(kind) if isinstance(prop.get(kind), dict) else {}
-            raw = config.get('options') if isinstance(config.get('options'), list) else []
-            options = {o['name'] for o in raw if isinstance(o, dict) and isinstance(o.get('name'), str)}
+        options = _schema_options(prop, kind) if kind in ('select', 'multi_select') else set()
         columns[name] = {'type': kind, 'options': options}
     return columns, absent, warnings
+
+
+# Options envoyées dans les colonnes de sélection OBLIGATOIRES (celles de la base v7.1)
+REQUIRED_SELECT_VALUES = {
+    'Langage': ('Python', 'JavaScript', 'TypeScript', 'Go', 'Autre'),
+    'Statut':  ('À explorer',),
+    'Type':    ('Agent IA', 'ML/AI', 'Web'),
+}
+
+
+def detect_select_options(db_data: Dict) -> Dict[str, Set[str]]:
+    """Options existantes des colonnes Langage, Statut et Type (schéma déjà lu, aucun appel de plus) :
+    seules ces options sont envoyées, sinon Notion ajouterait l'option (modification de schéma) ou
+    refuserait la fiche."""
+    props = db_data.get('properties') if isinstance(db_data.get('properties'), dict) else {}
+    options: Dict[str, Set[str]] = {}
+    for name in REQUIRED_SELECT_VALUES:
+        prop = props.get(name) if isinstance(props.get(name), dict) else {}
+        options[name] = _schema_options(prop, REQUIRED_DB_PROPERTIES[name])
+    return options
 
 
 def create_database(parent_page_id: str) -> Optional[Dict]:
     """POST /v1/databases, jamais réessayé après timeout (pas de base en double). Nouvelle base
     seulement : elle reçoit aussi les colonnes facultatives (Licence et Brique pour en texte,
     Catégorie en sélection avec les catégories du profil comme options)."""
-    categories = [c for c in current_profile()['categories'] if ',' not in c][:100]   # virgule interdite
+    # Options valides seulement : sans virgule (refusée par Notion), 100 caractères au plus, sans doublon
+    categories: List[str] = []
+    for category in current_profile()['categories']:
+        if _option_problem(category) is None and _fold(category) not in {_fold(c) for c in categories}:
+            categories.append(category)
+    categories = categories[:100]
     payload = {
         'parent': {'page_id': parent_page_id},
         'title':  [{'type': 'text', 'text': {'content': 'Ressources GitHub'}}],
@@ -3547,7 +3785,7 @@ def create_database(parent_page_id: str) -> Optional[Dict]:
             'Dernière MAJ': {'date': {}},
             'Analysé le':   {'date': {}},
             'Licence':      {'rich_text': {}},
-            'Catégorie':    {'select': {'options': [{'name': c[:100]} for c in categories]}},
+            'Catégorie':    {'select': {'options': [{'name': c} for c in categories]}},
             'Brique pour':  {'rich_text': {}},
         },
     }
@@ -3611,8 +3849,15 @@ def setup_database() -> Tuple[Optional[int], Optional[Dict]]:
             log(f"⚠️  {warning}")
         if absent:
             log(f"ℹ️  Colonnes facultatives absentes (ignorées, schéma inchangé) : {', '.join(absent)}")
+        select_options = detect_select_options(db_data)
+        for name, values in REQUIRED_SELECT_VALUES.items():
+            known = {_fold(option) for option in select_options[name]}
+            missing = [value for value in values if _fold(value) not in known]
+            if missing:
+                log(f"⚠️  Colonne '{name}' sans l'option {', '.join(f'« {v} »' for v in missing)} : "
+                    "cette valeur ne sera pas écrite (aucune option n'est créée, schéma inchangé)")
         return None, {'id': db_data['id'], 'url': db_data.get('url', ''), 'has_justification': has_just,
-                      'columns': columns}
+                      'columns': columns, 'select_options': select_options}
 
     # DATABASE_ID vide
     state, state_error = read_state()
@@ -3713,8 +3958,8 @@ _TYPE_TOPICS = (
 )
 
 
-# Valeurs omises car l'option n'existe pas dans une colonne de sélection facultative (rapportées
-# une fois en fin de run) : {colonne: {valeur}}
+# Valeurs omises car l'option n'existe pas dans une colonne de sélection (obligatoire ou facultative ;
+# rapportées une fois en fin de run) : {colonne: {valeur}}
 MISSING_OPTIONS: Dict[str, Set[str]] = {}
 _missing_options_lock = Lock()
 
@@ -3722,6 +3967,20 @@ _missing_options_lock = Lock()
 def _note_missing_option(column: str, value: str) -> None:
     with _missing_options_lock:
         MISSING_OPTIONS.setdefault(column, set()).add(value)
+
+
+def _existing_options(column: str, values: List[str], options: Any) -> List[str]:
+    """Noms EXACTS des options existantes qui correspondent à `values` (sans accents ni casse), sans
+    doublon ; une valeur sans option est omise et signalée en fin de run (jamais d'option créée)."""
+    existing = {_fold(option): option for option in (options or ()) if isinstance(option, str)}
+    kept: List[str] = []
+    for value in values:
+        option = existing.get(_fold(value))
+        if option is None:
+            _note_missing_option(column, value)
+        elif option not in kept:
+            kept.append(option)
+    return kept
 
 
 def _optional_properties(repo_info: Dict, llm_result: Dict[str, Any],
@@ -3746,14 +4005,7 @@ def _optional_properties(repo_info: Dict, llm_result: Dict[str, Any],
         if kind == 'rich_text':
             properties[name] = {'rich_text': [{'text': {'content': ', '.join(wanted)[:NOTION_FIELD_MAX_CHARS]}}]}
             continue
-        existing = {_fold(option): option for option in (column.get('options') or ()) if isinstance(option, str)}
-        kept: List[str] = []
-        for value in wanted:
-            option = existing.get(_fold(value))
-            if option is None:
-                _note_missing_option(name, value)
-            elif option not in kept:
-                kept.append(option)
+        kept = _existing_options(name, wanted, column.get('options'))
         if kept and kind == 'select':
             properties[name] = {'select': {'name': kept[0]}}
         elif kept:
@@ -3768,17 +4020,29 @@ def build_page_properties(
     llm_result:        Dict[str, Any],
     has_justification: bool,
     db_columns:        Optional[Dict[str, Dict[str, Any]]] = None,
+    select_options:    Optional[Dict[str, Set[str]]] = None,
 ) -> Dict:
     """Propriétés de la fiche Notion (construites aussi en DRY_RUN). Colonnes obligatoires v7.1
-    inchangées ; colonnes facultatives (db_columns, lues dans le schéma) seulement si présentes."""
+    inchangées ; colonnes facultatives (db_columns, lues dans le schéma) seulement si présentes.
+
+    select_options (options de Langage, Statut et Type lues dans le schéma) : seules les options
+    existantes sont envoyées, avec leur nom exact ; une valeur sans option est omise (Langage ou
+    Statut laissé vide, Type sans cette valeur) et signalée en fin de run. None : options non lues
+    (appel direct), valeurs envoyées telles quelles."""
     # Type : seulement des topics GitHub exacts (pas de sous-chaîne, pas de valeur par défaut) ;
     # une liste vide est valide pour un multi_select
-    topics = {t.lower() for t in (repo_info.get('topics') or []) if isinstance(t, str)}
-    types  = [{'name': name} for name, wanted in _TYPE_TOPICS if topics & wanted]
+    topics     = {t.lower() for t in (repo_info.get('topics') or []) if isinstance(t, str)}
+    type_names = [name for name, wanted in _TYPE_TOPICS if topics & wanted]
 
     language = repo_info.get('language') or 'Autre'
     if language not in ['Python', 'JavaScript', 'TypeScript', 'Go']:
         language = 'Autre'
+    status = 'À explorer'
+    if select_options is not None:
+        type_names = _existing_options('Type', type_names, select_options.get('Type'))
+        language   = next(iter(_existing_options('Langage', [language], select_options.get('Langage'))), None)
+        status     = next(iter(_existing_options('Statut', [status], select_options.get('Statut'))), None)
+    types = [{'name': name} for name in type_names]
 
     # Dernière MAJ : dernier push (pushed_at), à défaut updated_at
     last_change    = repo_info.get('pushed_at') or repo_info.get('updated_at') or ''
@@ -3801,10 +4065,13 @@ def build_page_properties(
         'Pertinence':   {'number':    llm_result.get('score')},
         'Langage':      {'select':    {'name': language}},
         'Type':         {'multi_select': types},
-        'Statut':       {'select':    {'name': 'À explorer'}},
+        'Statut':       {'select':    {'name': status}},
         'Dernière MAJ': {'date':      {'start': updated} if updated else None},
         'Analysé le':   {'date':      {'start': time.strftime("%Y-%m-%d")}},
     }
+    for name, value in (('Langage', language), ('Statut', status)):
+        if value is None:                # option absente de la base : colonne laissée vide
+            del properties[name]
 
     # Justification (800 caractères) préfixée par la méthode, le modèle réellement servi, la version
     # et l'empreinte du profil, puis le détail du score :
@@ -3859,11 +4126,13 @@ def process_single_repo(
     in_progress:       Optional[Set[str]] = None,
     uncertain_keys:    Optional[Set[str]] = None,
     db_columns:        Optional[Dict[str, Dict[str, Any]]] = None,
+    select_options:    Optional[Dict[str, Set[str]]] = None,
 ) -> Dict:
     """uncertain_keys : clés des dépôts dont la création Notion a eu une issue incertaine
     (timeout, 5xx) pendant ce run ; un autre lien vers le même dépôt n'est pas recréé.
     Par défaut, l'ensemble du run en cours (UNCERTAIN_KEYS, vidé au début de chaque run).
-    db_columns : colonnes facultatives présentes dans la base (setup_database)."""
+    db_columns : colonnes facultatives présentes dans la base (setup_database) ;
+    select_options : options existantes de Langage, Statut et Type (setup_database)."""
     result: Dict[str, Any] = {'url': url, 'success': False, 'error': None}
     existing_keys  = existing_keys if existing_keys is not None else set()
     in_progress    = in_progress if in_progress is not None else set()
@@ -3920,7 +4189,8 @@ def process_single_repo(
 
     try:
         return _process_repo(result, owner, repo, database_id, existing_urls, has_justification,
-                             idx, total, existing_keys, in_progress, uncertain_keys, db_columns)
+                             idx, total, existing_keys, in_progress, uncertain_keys, db_columns,
+                             select_options)
     finally:
         if result.get('created'):
             NEW_REPO_BUDGET.commit()
@@ -3950,6 +4220,7 @@ def _process_repo(
     in_progress:       Set[str],
     uncertain_keys:    Optional[Set[str]] = None,
     db_columns:        Optional[Dict[str, Dict[str, Any]]] = None,
+    select_options:    Optional[Dict[str, Set[str]]] = None,
 ) -> Dict:
     """Suite du traitement après les pré-contrôles : GitHub, LLM, puis création de la fiche.
     result['created'] passe à True quand une fiche est écrite (ou simulée en DRY_RUN)."""
@@ -4043,7 +4314,7 @@ def _process_repo(
 
         # Payload construit avant le court-circuit DRY_RUN (révèle les erreurs de payload)
         properties = build_page_properties(repo_info, html_url, analysis, llm_result, has_justification,
-                                           db_columns=db_columns)
+                                           db_columns=db_columns, select_options=select_options)
         payload    = {'parent': {'database_id': database_id}, 'properties': properties}
 
         if DRY_RUN:
@@ -4314,16 +4585,22 @@ def print_summary(elapsed: float, total: int, interrupted: bool) -> None:
 
 
 def report_missing_options() -> None:
-    """Valeurs omises faute d'option dans une colonne de sélection facultative : listées une fois."""
+    """Valeurs omises faute d'option dans une colonne de sélection : listées une fois. Une valeur qui
+    ne peut pas devenir une option Notion (virgule, plus de 100 caractères) est signalée à part."""
     with _missing_options_lock:
         missing = {column: sorted(values) for column, values in MISSING_OPTIONS.items() if values}
     if not missing:
         return
     log("ℹ️  Valeurs non écrites faute d'option dans la base (aucune option n'est créée par Gitnotate) :")
     for column, values in sorted(missing.items()):
-        shown = ', '.join(f"« {v} »" for v in values[:ERRORS_DISPLAY_MAX])
-        more = f" (+{len(values) - ERRORS_DISPLAY_MAX})" if len(values) > ERRORS_DISPLAY_MAX else ""
-        log(f"   • {column} : ajoutez l'option {shown}{more} dans Notion pour l'utiliser aux prochains runs")
+        addable = [v for v in values if _option_problem(v) is None]
+        if addable:
+            shown = ', '.join(f"« {v} »" for v in addable[:ERRORS_DISPLAY_MAX])
+            more = f" (+{len(addable) - ERRORS_DISPLAY_MAX})" if len(addable) > ERRORS_DISPLAY_MAX else ""
+            log(f"   • {column} : ajoutez l'option {shown}{more} dans Notion pour l'utiliser aux prochains runs")
+        for value in [v for v in values if _option_problem(v) is not None][:ERRORS_DISPLAY_MAX]:
+            log(f"   • {column} : « {value[:60]}{'…' if len(value) > 60 else ''} » ne peut pas devenir une option "
+                f"Notion ({_option_problem(value)}) : renommez-le dans user_profile.json")
     log("")
 
 
@@ -4388,6 +4665,7 @@ def _run() -> int:
     db_id, db_url         = db_result['id'], db_result['url']
     has_justification_col = db_result.get('has_justification', False)
     db_columns            = db_result.get('columns') or {}
+    select_options        = db_result.get('select_options')
     log("✅ Database prête!")
     log(f"   • ID:             {db_id}")
     log(f"   • URL:            {db_url}")
@@ -4474,7 +4752,7 @@ def _run() -> int:
             executor.submit(
                 process_single_repo,
                 url, db_id, existing_urls, has_justification_col, idx, total,
-                existing_keys, in_progress, UNCERTAIN_KEYS, db_columns,
+                existing_keys, in_progress, UNCERTAIN_KEYS, db_columns, select_options,
             ): url
             for idx, url in enumerate(unique_urls, 1)
         }

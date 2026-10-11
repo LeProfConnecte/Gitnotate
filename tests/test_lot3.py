@@ -795,7 +795,9 @@ def test_gpu_hint(load_gn, readme, expected):
 @pytest.mark.parametrize('readme,expected', [
     ('pip install docling', ['PyPI']), ('pip install requests', []), ('pip install -r requirements.txt', []),
     ('npm install -g n8n', ['npm']), ('npx n8n', ['npm']), ('docker run -p 80:80 o/x', ['Docker']),
-    ('[![PyPI](https://img.shields.io/pypi/v/x)](https://pypi.org/project/x/)', ['PyPI']), ('', []),
+    # revue du lot 3 (INV-2) : un lien vers la page d'un AUTRE paquet n'est plus une distribution du dépôt
+    ('[![PyPI](https://img.shields.io/pypi/v/x)](https://pypi.org/project/x/)', []),
+    ('[![PyPI](https://img.shields.io/pypi/v/docling)](https://pypi.org/project/docling/)', ['PyPI']), ('', []),
 ])
 def test_distribution_hint(load_gn, readme, expected):
     gn = load_gn()
@@ -821,7 +823,9 @@ def test_prompt_v2_rules(load_gn):
 
 
 def test_message_sent_in_full_run(world3):
-    gn, api = world3(repo=dict(FRESH, stargazers_count=12345))
+    # full_name du dépôt de Docling : la distribution PyPI n'est détectée que pour le paquet du dépôt
+    # (revue du lot 3, INV-2)
+    gn, api = world3(repo=dict(FRESH, stargazers_count=12345, full_name='docling-project/docling'))
     assert gn.main([]) == 0
     (body,) = api.llm_bodies('mistral')
     system, user = body['messages'][0]['content'], body['messages'][1]['content']

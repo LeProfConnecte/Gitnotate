@@ -8,7 +8,9 @@ Rappels :
 
 - Dans Notion, `gitnotate.py` ne fait que lire (GET, et POST de requête sur la base) et créer (des
   fiches ; une base seulement avec `CREATE_DATABASE=true`). Il ne modifie jamais une fiche, ne
-  supprime rien et ne change jamais le schéma d'une base existante.
+  supprime rien et ne change jamais le schéma d'une base existante : il n'envoie que des options de
+  sélection déjà présentes (`Langage`, `Statut`, `Type` et colonnes facultatives) et omet les autres
+  valeurs, signalées au démarrage (`⚠️  Colonne '…' sans l'option …`) et en fin de run.
 - `--dry-run` appelle GitHub et le LLM (le quota est consommé), mais n'écrit rien dans Notion.
 - Commandes données pour PowerShell (Windows), avec l'équivalent Linux. Dans chaque nouvelle fenêtre,
   placez-vous dans le dossier du projet et réactivez l'environnement virtuel
@@ -317,8 +319,10 @@ légèrement entre D et E.
      ```
 
 7. Augmentez ensuite le plafond par paliers (par exemple `MAX_NEW_PER_RUN=20`), puis remettez
-   `MAX_NEW_PER_RUN=0` (sans limite) dans `.env`. Pour retrouver les fiches de la v7.3, filtrez ou
-   triez sur `Analysé le`.
+   `MAX_NEW_PER_RUN=0` (sans limite) dans `.env`. Avant de modifier `.env`, fermez la fenêtre ou
+   tapez `Remove-Item Env:MAX_NEW_PER_RUN` (sous Linux `unset MAX_NEW_PER_RUN`) : la variable
+   `$env:MAX_NEW_PER_RUN=3` du point 4 reste active dans la fenêtre et l'emporte sur `.env`. Pour
+   retrouver les fiches de la v7.3, filtrez ou triez sur `Analysé le`.
 
 ## G. Critères d'acceptation et retour arrière
 
@@ -361,6 +365,10 @@ apparaissent jamais en clair) ainsi que la fiche concernée.
   place : la v7.2 ne lit que ses 5 listes historiques. Pour revenir à la v7.3 :
   `git checkout HEAD -- gitnotate.py`. Sans git : reprenez la copie du dossier v7.2 faite à
   l'étape A.
-- **Fichiers locaux** : rien à restaurer. Le cache et les statistiques écrits par la v7.3 restent
+- **Fichiers locaux** : supprimez le cache GitHub écrit par la v7.3 avant le premier run de la v7.2
+  (`Remove-Item .gitnotate_cache.json`, sous Linux `rm .gitnotate_cache.json`, dans le dossier de
+  données). La v7.2 le relirait pendant 24 heures sans appeler GitHub, mais ce cache garde un README
+  déjà nettoyé (blocs de code retirés) : la v7.2 en tirerait une `Installation` moins bonne. Le
+  cache est simplement reconstruit au run suivant. Les statistiques écrites par la v7.3 restent
   lisibles par la v7.2. Le dossier de test (`..\gitnotate-test`) peut être supprimé après la
   validation : il contient une copie de vos clés.

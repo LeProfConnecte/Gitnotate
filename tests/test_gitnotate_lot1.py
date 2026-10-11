@@ -62,12 +62,26 @@ def chat(content, finish='stop', model='mistral-small-2503'):
                          'message': {'role': 'assistant', 'content': content}}]}
 
 
+# Options des colonnes de sélection d'une base v7.1 (créée par CREATE_DATABASE). Depuis la revue du
+# lot 3, seules les options existantes sont envoyées : le schéma simulé doit donc les porter.
+SCHEMA_OPTIONS = {
+    'Langage': ['Python', 'JavaScript', 'TypeScript', 'Go', 'Autre'],
+    'Type':    ['Agent IA', 'ML/AI', 'Web', 'Outils'],
+    'Statut':  ['À explorer', 'En test', 'Utilisé'],
+}
+
+
 def db_body(types=None, justification='rich_text'):
     types = dict(SCHEMA_TYPES if types is None else types)
     if justification:
         types['Justification'] = justification
+
+    def config(name, kind):
+        if kind in ('select', 'multi_select') and name in SCHEMA_OPTIONS:
+            return {'options': [{'name': option} for option in SCHEMA_OPTIONS[name]]}
+        return {}
     return {'object': 'database', 'id': 'db-1', 'url': 'https://www.notion.so/db1',
-            'properties': {n: {'id': n, 'type': t, t: {}} for n, t in types.items()}}
+            'properties': {n: {'id': n, 'type': t, t: config(n, t)} for n, t in types.items()}}
 
 
 def rt_text(content, link=None):

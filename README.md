@@ -164,8 +164,11 @@ sans être appliquées.
   notées avec ce profil. L'empreinte change de toute façon.
 - Si la colonne `Brique pour` est une Sélection multiple, créez dans Notion une option qui porte le
   même nom. Sinon, la valeur est omise et signalée en fin de run.
-- Évitez les virgules dans les noms : Notion les refuse dans une option, et la version texte de
-  `Brique pour` sépare les noms par « , ».
+- Évitez les virgules dans les noms et les noms de plus de 100 caractères : Notion les refuse dans
+  une option (un avertissement `⚠️  Profil` s'affiche au démarrage, et la fin de run indique que la
+  valeur ne peut pas devenir une option), et la version texte de `Brique pour` sépare les noms par
+  « , ». Il en va de même pour les catégories ; `CREATE_DATABASE` ne crée que des options valides,
+  sans doublon.
 
 **Ajouter un domaine** : ajoutez `{"nom": "Nom du domaine", "description": "mots-clés qui le
 décrivent"}` à la liste `domaines`. Les mêmes règles s'appliquent pour l'option `Brique pour` et les
@@ -184,8 +187,9 @@ virgules. Pour que le score lexical de secours le reconnaisse aussi, ajoutez un 
   ignorer **tout** le fichier : un avertissement `[load_user_profile/file]` s'affiche, et le profil
   par défaut intégré est utilisé (la ligne de démarrage indique « profil par défaut (intégré au
   script) »). Enregistrez le fichier en UTF-8 sans BOM (Bloc-notes : « UTF-8 »).
-- Toute modification du fichier, même d'un commentaire `_`, change l'empreinte. Les fiches déjà
-  créées ne sont ni modifiées ni recalculées.
+- Tout changement de contenu du profil (valeurs, clés, commentaires `_`) change l'empreinte ; la
+  mise en forme seule (indentation, ordre des clés) ne la change pas. Les fiches déjà créées ne
+  sont ni modifiées ni recalculées.
 
 ## Notation
 
@@ -218,7 +222,9 @@ profil). Exemple avec ces poids : `U0·P2·T1·I1·C2·M?·L?` donne
 Garde-fous appliqués par le script :
 
 - U vaut 2 ou plus seulement si `Brique pour` nomme au moins un projet **actif** du profil ; sinon,
-  U est ramené à 1 avant le calcul (la Justification affiche la valeur corrigée).
+  U est ramené à 1 avant le calcul (la Justification affiche la valeur corrigée). Un nom suivi du
+  statut recopié du prompt (« Gitnotate (actif) ») est reconnu, et si le LLM cite plus de 3 noms, les
+  projets actifs sont gardés en premier.
 - Valeur nulle (U = P = 0) : la note ne dépasse pas 2.
 - La note reste entre 0 et 10. Les poids viennent du profil (nombres ≥ 0) ; si les poids des
   critères présents ont une somme nulle, les poids par défaut sont utilisés.
@@ -233,11 +239,15 @@ un défaut. Un dépôt en Go, Rust, Java ou C++ utilisable par une CLI, une API,
 comme service est intégrable. Le langage n'entre pas dans le calcul, et la colonne `Langage` reste
 une simple information. Le score lexical de secours ne retire plus de points pour un langage absent
 du profil, ni pour le topic `blockchain`. Il garde son bonus pour un langage du profil, et sa pénalité
-pour les topics jeu et mobile.
+pour les topics jeu et mobile, comparés exactement (`game`, `games`, `gamedev`, `game-engine`,
+`mobile-app`, `ios`, `android`… ; `game-theory` ou `financial-ratios` ne sont pas pénalisés).
 
 **« Non vérifié »** : une information que ni les métadonnées GitHub ni le README ne prouvent est
 écrite « Non vérifié » (« Non vérifiée » pour la licence), jamais devinée. Une maturité ou une
-licence inconnue est notée `?` et sort du calcul.
+licence inconnue est notée `?` et sort du calcul. Un dépôt sans description, sans topics et sans
+README reçoit « Non vérifié » en `Description` et en `Cas d'usage`, quoi que réponde le LLM (le
+prompt lui demande d'ailleurs « Non vérifié » dans ce cas) ; sa note, jugée sur le seul nom du
+dépôt, est à prendre avec prudence.
 
 **Repli lexical** : dans trois cas, la note est un score lexical de 0 à 10, calculé localement à
 partir des mots-clés du profil : `REQUIRE_LLM=false` sans réponse LLM valide,
@@ -266,6 +276,14 @@ grille. Le préfixe de la Justification permet de distinguer les deux.
 | `Justification` | `[LLM <modèle réellement servi> · profil <version>/<empreinte>] U2·P3·T1·I2·C2·M2·L2 = 10 — <justification>` (faits tirés du dépôt ; 40 mots demandés au LLM, 400 caractères gardés au plus) ; `M?` ou `L?` si la donnée manque ; `[LEXICAL · profil <version>/<empreinte>]` en repli lexical ; 800 caractères au plus en tout |
 | `Licence`, `Catégorie`, `Brique pour` | colonnes facultatives, voir ci-dessous |
 
+`Langage`, `Type` et `Statut` ne reçoivent que des options **déjà présentes** dans la base (celles
+d'une base v7.1 : Python, JavaScript, TypeScript, Go, Autre ; Agent IA, ML/AI, Web ; À explorer). La
+comparaison ignore les accents et la casse, et le nom exact de l'option existante est envoyé. Si
+vous avez renommé ou supprimé une de ces options, une ligne `⚠️  Colonne '…' sans l'option …`
+s'affiche au démarrage, la valeur est omise (colonne laissée vide pour `Langage` ou `Statut`), la
+fiche est créée quand même, et la valeur figure en fin de run dans `ℹ️  Valeurs non écrites faute
+d'option dans la base`. Gitnotate ne crée jamais d'option.
+
 Le LLM indique aussi un type de réutilisation (bibliothèque, service, CLI, API, plugin, modèle,
 cours, liste…). Le script le valide, mais la v7.3 ne l'écrit ni dans la fiche ni dans les
 statistiques.
@@ -277,8 +295,11 @@ reconnus. Une section comprend ses sous-sections. Le script retient, dans l'ordr
 première section qui correspond et qui contient un extrait utilisable (bloc de code, ou liste pour
 Prérequis). Le texte placé dans un commentaire HTML `<!-- … -->` est ignoré.
 L'extrait fait au plus 5 lignes et 300 caractères (coupé en fin de ligne quand c'est possible), et il est toujours
-recopié tel quel : le script vérifie qu'il figure mot pour mot dans le README. Sinon, la colonne
-reçoit « Non vérifié » : pas de section, section sans bloc de code (pour Installation et Exemple),
+recopié tel quel : le script vérifie qu'il figure mot pour mot dans le README. Quand il est coupé,
+ses dernières lignes inachevées (commande continuée par `\`, `` ` `` ou `^`, ligne finissant par
+`|`, `&&` ou `:`, commentaire seul) sont retirées ; s'il ne reste rien, « Non vérifié » est écrit
+plutôt qu'une commande incomplète. Une liste de prérequis aérée (lignes vides entre les éléments)
+est lue comme une seule liste. Sinon, la colonne reçoit « Non vérifié » : pas de section, section sans bloc de code (pour Installation et Exemple),
 ou README absent. Rien n'est plus déduit du langage : fini les « pip install <nom> », « <langage>
 recent » et « See documentation ».
 
@@ -327,8 +348,10 @@ avec leur type.
   Notion. Avec une intégration limitée à Read + Insert, Notion refuserait d'ailleurs toute modification.
 - **Aucune modification de schéma ni recalcul** : le schéma d'une base existante n'est jamais
   modifié (les colonnes facultatives ne servent que si vous les avez créées, et aucune option de
-  sélection n'est créée). Les fiches existantes ne sont jamais recalculées ni complétées, même quand
-  le profil ou la grille de notation change.
+  sélection n'est créée : `Langage`, `Statut`, `Type` et les colonnes facultatives de sélection ne
+  reçoivent que des options déjà présentes dans la base, les autres valeurs sont omises). Les
+  fiches existantes ne sont jamais recalculées ni complétées, même quand le profil ou la grille de
+  notation change.
 - **Aucune base créée implicitement** : `DATABASE_ID` vide ou illisible → arrêt (code 1) avec le code
   HTTP et une piste. `CREATE_DATABASE=true` ne crée qu'une base, jamais en simulation ; une seconde
   création est refusée tant que `.gitnotate_state.json` garde l'ID.
@@ -374,14 +397,20 @@ avec leur type.
 - **Mode reprise** (`REQUIRE_LLM=true`, par défaut), aucune fiche dégradée : sans réponse LLM valide,
   le dépôt est **reporté**. Rien n'est écrit, et comme il reste absent de la base, il est repris
   automatiquement au run suivant. Une réponse est valide si elle contient toutes les clés attendues,
-  sans recopie du modèle de réponse du prompt : `description_fr` non vide ; `cas_usage` sous forme
-  de liste de textes (une liste vide est acceptée et donne « Non vérifié ») ; les cinq jugements en
-  entiers dans leur échelle (`"2"` et `2.0` sont acceptés, un booléen ou une valeur hors échelle ne
-  l'est pas) ; `justification` non vide. Certaines valeurs sont corrigées sans faire rejeter la
-  réponse : une catégorie inconnue est laissée vide, un type de réutilisation inconnu devient
-  `inspiration`, les noms de `brique_pour` absents du profil sont retirés (3 au plus), et la
-  justification est tronquée à 400 caractères. Une réponse invalide fait passer au fournisseur
-  suivant. Si aucun fournisseur n'est disponible au démarrage, le run s'arrête (code 1) avant tout
+  sans recopie du modèle de réponse du prompt : `description_fr` non vide et en français (une
+  description nettement anglaise, sans aucun mot français, est refusée) ; `cas_usage` sous forme de
+  liste de textes, ou d'un texte unique découpé aux puces et aux sauts de ligne (une liste vide, un
+  texte vide ou `null` sont acceptés et donnent « Non vérifié », comme les cas d'usage de remplissage
+  « N/A », « Aucun » ou « Non vérifié ») ; les cinq jugements en entiers dans leur échelle (`"2"`,
+  `2.0`, `"2/3"`, `"2 sur 3"` et `"2 (utile…)"` sont acceptés ; un booléen, `2.5`, une autre échelle
+  comme `"2/5"` ou une valeur hors échelle ne le sont pas) ; `justification` non vide. Une clé
+  accentuée (`catégorie`, `intérêt`) ou des notes regroupées dans un sous-objet (`"notes": {…}`)
+  sont ramenées aux clés attendues. Certaines valeurs sont corrigées sans faire rejeter la
+  réponse : une catégorie inconnue est laissée vide (`OCR / Documents` vaut `OCR/Documents`), un
+  type de réutilisation inconnu devient `inspiration`, les noms de `brique_pour` absents du profil
+  sont retirés (3 au plus ; un statut recopié du prompt, comme « Gitnotate (actif) », est ignoré ;
+  au-delà de 3 noms, les projets actifs sont gardés en premier), et la justification est tronquée à
+  400 caractères. Une réponse invalide fait passer au fournisseur suivant. Si aucun fournisseur n'est disponible au démarrage, le run s'arrête (code 1) avant tout
   appel GitHub, avec la piste qui correspond à la cause (clé refusée, quota épuisé, modèle
   introuvable). `REQUIRE_LLM=false` rétablit l'ancien
   comportement (fiche avec un score lexical calculé localement).
@@ -389,8 +418,11 @@ avec leur type.
   justification) que si `TRANSLATION_ENABLED=true` et `LLM_SCORING_ENABLED=true` (valeurs par
   défaut). Avec `LLM_SCORING_ENABLED=false`, seule la traduction est exigée : la note est lexicale,
   la Justification ne vient pas du LLM, `Cas d'usage` vaut « Non vérifié », et ni `Catégorie` ni
-  `Brique pour` ne sont écrites. Avec `TRANSLATION_ENABLED=false`, aucun LLM n'est appelé : les
-  fiches gardent la description GitHub d'origine (en anglais le plus souvent) avec un score lexical,
+  `Brique pour` ne sont écrites. La réponse doit tout de même contenir `use_cases_fr` (traduction
+  de la liste générique, héritée de la v7.2) non vide et non recopié du gabarit : ce champ n'est
+  jamais écrit, mais une réponse qui le laisse vide ou le recopie est refusée (signe d'un modèle qui
+  recopie le gabarit), et le dépôt est reporté. Avec `TRANSLATION_ENABLED=false`, aucun LLM n'est
+  appelé : les fiches gardent la description GitHub d'origine (en anglais le plus souvent) avec un score lexical,
   et `REQUIRE_LLM` est sans effet.
   Attention : un interrupteur laissé vide (`TRANSLATION_ENABLED=`) vaut **false** (sauf
   `REQUIRE_LLM`, que seule la valeur `false` désactive).
@@ -399,12 +431,16 @@ avec leur type.
 
 - Partent au LLM, pour les dépôts **publics** : nom, langage (« non détecté » s'il manque), topics,
   description, indices calculés par le script (fork, archivé, distribution PyPI, npm ou Docker
-  détectée, GPU exigé d'après le README avec la quantité de VRAM quand elle est écrite), et un extrait
-  du README **nettoyé avant d'être tronqué** (`README_LLM_CHARS`, 1 500 caractères). Le nettoyage
+  détectée — un lien ou une commande d'installation compte seulement s'il désigne le paquet du dépôt —,
+  exigence de GPU relevée dans le README, avec la quantité de VRAM quand elle est écrite et la phrase
+  source citée ; une phrase négative ou facultative comme « No GPU required » ou « Optional: a GPU
+  with 6 GB VRAM » n'est jamais lue comme une exigence), et un extrait du README **nettoyé avant
+  d'être tronqué** (`README_LLM_CHARS`, 1 500 caractères). Le nettoyage
   retire les commentaires HTML, les balises, les images, les badges, les URL et les définitions de
   liens, et réduit chaque bloc de code à 3 lignes. Ni les étoiles ni la licence ne sont envoyées
   (pour éviter un biais). Ce contenu est placé entre `<depot>` et `</depot>` ; le prompt le traite
-  comme une donnée non fiable (ces balises sont retirées du contenu lui-même) et interdit d'inventer
+  comme une donnée non fiable (ces balises sont retirées du contenu lui-même, y compris leurs
+  variantes accentuées, en pleine chasse ou coupées par un caractère invisible) et interdit d'inventer
   une commande, une compatibilité ou une fonctionnalité.
 - Partent aussi, depuis votre profil : `contexte`, `environnement`, les technologies (`languages`,
   `frameworks`, `infra`), les domaines, les projets avec leurs besoins, les exclusions et la liste
@@ -436,8 +472,10 @@ Validez d'abord la v7.3 sur une base de test : [docs/VALIDATION.md](docs/VALIDAT
   vous pouvez la garder telle quelle (un profil v1 reste accepté) ou reporter vos listes dans le
   nouveau fichier.
 - **Base Notion** : rien à changer. Le schéma de la v7.1 et de la v7.2 (avec ou sans
-  `Justification`) est accepté tel quel. Vous pouvez ajouter à la main `Licence`, `Catégorie` et
-  `Brique pour` (voir [Colonnes facultatives](#colonnes-facultatives)).
+  `Justification`) est accepté tel quel. Si vous avez renommé ou supprimé une option d'origine de
+  `Langage`, `Statut` ou `Type`, la valeur correspondante est désormais omise au lieu d'être créée
+  par Notion (voir [Contenu des fiches](#contenu-des-fiches)). Vous pouvez ajouter à la main
+  `Licence`, `Catégorie` et `Brique pour` (voir [Colonnes facultatives](#colonnes-facultatives)).
 - **Anciennes fiches** : jamais modifiées ni recalculées. Leur `Pertinence` suit l'ancienne grille et
   ne se compare pas aux notes de la v7.3. Pour les distinguer, regardez la Justification (v7.3 :
   `profil <version>/<empreinte>]` suivi du détail `U·P·T·I·C·M·L = note`) ou la date `Analysé le`.
