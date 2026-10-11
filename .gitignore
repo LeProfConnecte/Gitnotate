@@ -11,9 +11,7 @@ extracted_urls*.txt
 .gitnotate_cache.json
 .gitnotate_cache.json.tmp
 .gitnotate_state.json
-gitnotate_stats.json
 gitnotate_stats.json.tmp
-extracted_urls_unique.txt
 journal/
 exports/
 *.bak

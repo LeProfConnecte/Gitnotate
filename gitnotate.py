@@ -2876,7 +2876,7 @@ def _non_negative_int(value: str) -> int:
     try:
         number = int(value)
     except ValueError:
-        raise argparse.ArgumentTypeError(f"entier attendu : '{value}'")
+        raise argparse.ArgumentTypeError(f"entier attendu : '{value}'") from None
     if number < 0:
         raise argparse.ArgumentTypeError("valeur ≥ 0 attendue")
     return number
