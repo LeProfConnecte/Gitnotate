@@ -153,7 +153,7 @@ def test_default_providers_and_models(load_gn):
 def test_openrouter_model_compat_with_translation_model(load_gn):
     gn = load_gn(TRANSLATION_MODEL='openai/gpt-oss-20b:free')
     assert gn.OPENROUTER_MODEL == 'openai/gpt-oss-20b:free'
-    assert any('TRANSLATION_MODEL est obsolète' in w for w in gn.CONFIG_WARNINGS)
+    assert any('TRANSLATION_MODEL (v7.1) est obsolète' in w for w in gn.CONFIG_WARNINGS)
     gn = load_gn(TRANSLATION_MODEL='ancien/modele', OPENROUTER_MODEL='mistralai/mistral-small-2603')
     assert gn.OPENROUTER_MODEL == 'mistralai/mistral-small-2603'
 

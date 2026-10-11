@@ -34,6 +34,11 @@ python3 -m venv .venv && source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
+**À chaque nouvelle fenêtre de terminal**, placez-vous dans le dossier du projet et réactivez
+l'environnement virtuel avant de lancer un script : `.\.venv\Scripts\Activate.ps1` sous Windows
+(le préfixe `(.venv)` apparaît alors dans l'invite), `source .venv/bin/activate` sous Linux. Sinon
+Python ne trouve pas les dépendances (`ModuleNotFoundError: No module named 'requests'`).
+
 ## Configuration
 
 Copiez le modèle en `.env` **dans le dossier du script** (`Copy-Item env.example .env` sous
@@ -46,13 +51,26 @@ par défaut. Le profil qui sert à noter les dépôts se règle dans `user_profi
 
 1. `python scripts/check_llm.py` vérifie les clés LLM sans consommer de quota de génération
    (code 0 : au moins une clé, et toutes les clés présentes sont valides ; le modèle Mistral est
-   vérifié si `MISTRAL_API_KEY` est renseignée ; le quota gratuit OpenRouter est affiché).
+   vérifié si `MISTRAL_API_KEY` est renseignée, le modèle OpenRouter si `OPENROUTER_API_KEY` l'est ;
+   le quota gratuit OpenRouter est affiché).
 2. Pas encore de base ? Avec `CREATE_DATABASE=true`, `python gitnotate.py` crée « Ressources GitHub »
    (avec toutes les colonnes) dans la page source, affiche son ID (noté aussi dans `.gitnotate_state.json`)
    et s'arrête sans rien importer. Recopiez l'ID dans `DATABASE_ID` et remettez `CREATE_DATABASE=false`.
-3. `python gitnotate.py --dry-run --max-repos 10` simule 10 dépôts : GitHub et le LLM sont appelés
-   (le quota est consommé), mais rien n'est écrit dans Notion.
-4. `python gitnotate.py --max-repos 10` pour un premier import réel limité, puis `python gitnotate.py`.
+3. Simulation limitée à 10 nouvelles fiches : `MAX_NEW_PER_RUN=10` avec `--dry-run`. Écrivez
+   `MAX_NEW_PER_RUN=10` dans `.env`, ou bien, pour la seule fenêtre en cours :
+   - PowerShell : `$env:MAX_NEW_PER_RUN=10` puis `python gitnotate.py --dry-run` ;
+   - Linux : `MAX_NEW_PER_RUN=10 python gitnotate.py --dry-run`.
+
+   Une variable définie dans le terminal prime sur la ligne du `.env`. Au plus 10 dépôts **absents
+   de la base** sont simulés : GitHub et le LLM sont appelés (le quota est consommé), mais rien n'est
+   écrit dans Notion. N'utilisez pas `--max-repos 10` pour cet essai : `--max-repos` compte aussi les
+   dépôts déjà présents dans la base, et ne simulerait rien si les 10 premiers liens de la page y sont
+   déjà (cas d'une migration depuis la v7.1). Si aucun lien de la page n'est nouveau, rien n'est
+   simulé : ajoutez d'abord un lien neuf à la page pour tester la chaîne LLM.
+4. Même réglage sans `--dry-run` (`python gitnotate.py`, ou `MAX_NEW_PER_RUN=10 python gitnotate.py`
+   sous Linux) pour un premier import réel limité à 10 fiches.
+   Remettez ensuite `MAX_NEW_PER_RUN=0` dans `.env` (sous PowerShell, fermez la fenêtre ou tapez
+   `Remove-Item Env:MAX_NEW_PER_RUN`), puis lancez `python gitnotate.py` pour l'import complet.
 
 ## Utilisation courante
 
@@ -67,7 +85,9 @@ Les options priment sur `.env`. Les dépôts déjà présents dans la base sont 
 sans appel GitHub, et ne sont jamais modifiés ; chaque nouvelle fiche reçoit le Statut « À explorer ».
 `--max-repos` compte aussi les dépôts déjà présents : pour limiter les **créations** par run,
 utilisez `MAX_NEW_PER_RUN`. Le bilan final liste les créations, les dépôts reportés et les URL en
-erreur ; l'historique des 50 derniers runs est dans `gitnotate_stats.json`.
+erreur. `gitnotate_stats.json` garde l'historique des 50 derniers runs allés jusqu'au traitement des
+dépôts : un run arrêté avant (configuration, aucun fournisseur LLM, base ou page source illisible ou
+lue en partie) n'y figure pas ; son code de sortie et sa cause s'affichent seulement dans la console.
 
 ## Codes de sortie
 
@@ -115,9 +135,11 @@ erreur ; l'historique des 50 derniers runs est dans `gitnotate_stats.json`.
 - Ordre par défaut (`LLM_PROVIDERS=mistral,openrouter`) : **Mistral** en direct avec
   `mistral-small-2603` (Mistral Small 4), puis **OpenRouter** `openrouter/free` en secours. Un
   fournisseur sans clé est ignoré ; une réponse vide, tronquée ou invalide fait passer au suivant.
-- Chaque fournisseur est testé au démarrage (OpenRouter sans consommer de quota, Mistral par une très
-  courte requête). En cours de run, il est désactivé si sa clé est refusée, si ses crédits ou son
-  quota sont épuisés, ou après `LLM_BREAKER_THRESHOLD` échecs consécutifs (3).
+- Chaque fournisseur est testé au démarrage : OpenRouter sans consommer de quota (clé, quota gratuit
+  du jour, et existence du modèle dans la liste publique des modèles : un modèle introuvable écarte
+  OpenRouter avec la piste `OPENROUTER_MODEL=openrouter/free`), Mistral par une très courte requête.
+  En cours de run, il est désactivé si sa clé est refusée, si ses crédits ou son quota sont épuisés,
+  ou après `LLM_BREAKER_THRESHOLD` échecs consécutifs (3).
 - `openrouter/free` tire au hasard un modèle gratuit à chaque requête ; le modèle réellement servi
   est noté en tête de la Justification (`[LLM <modèle> · profil <empreinte>]`) et dans les
   statistiques. Quotas gratuits : 20 requêtes/min et 50 requêtes/jour tant que moins de 10 $ de
@@ -126,13 +148,24 @@ erreur ; l'historique des 50 derniers runs est dans `gitnotate_stats.json`.
   (traduction, cas d'usage, note et justification non vides, sans recopie du modèle de réponse du
   prompt), le dépôt est **reporté**, rien n'est écrit, et comme il reste absent de la
   base il est repris automatiquement au run suivant. Si aucun fournisseur n'est disponible au
-  démarrage, le run s'arrête (code 1) avant tout appel GitHub. `REQUIRE_LLM=false` rétablit l'ancien
+  démarrage, le run s'arrête (code 1) avant tout appel GitHub, avec la piste qui correspond à la
+  cause (clé refusée, quota épuisé, modèle introuvable). `REQUIRE_LLM=false` rétablit l'ancien
   comportement (fiche avec un score lexical calculé localement).
+- Le mode reprise ne garantit une fiche entièrement issue du LLM (traduction, cas d'usage, note et
+  justification) que si `TRANSLATION_ENABLED=true` et `LLM_SCORING_ENABLED=true` (valeurs par
+  défaut). Avec `LLM_SCORING_ENABLED=false`, seule la traduction est exigée : la note est lexicale
+  et la Justification ne vient pas du LLM. Avec `TRANSLATION_ENABLED=false`, aucun LLM n'est
+  appelé : les fiches restent en anglais avec un score lexical et `REQUIRE_LLM` est sans effet.
+  Attention : un interrupteur laissé vide (`TRANSLATION_ENABLED=`) vaut **false** (sauf
+  `REQUIRE_LLM`, que seule la valeur `false` désactive).
 
 ## Confidentialité
 
 - Partent au LLM : nom, langage, topics, étoiles, description et début du README (`README_LLM_CHARS`,
-  1 500 caractères) des dépôts **publics**, et votre profil de pertinence. Les dépôts privés sont ignorés.
+  1 500 caractères) des dépôts **publics**, et votre profil de pertinence.
+- Dépôts privés : aucune donnée d'un dépôt privé n'est envoyée au LLM. Avec un jeton GitHub sans
+  portée privée (recommandé) ou sans jeton, GitHub répond 404 : le dépôt apparaît en erreur
+  « GitHub HTTP 404 » (run en code 2) ; retirez ce lien de la page source.
 - Palier gratuit de Mistral : vos requêtes peuvent servir à entraîner ses modèles ; cette utilisation
   se désactive dans les réglages de confidentialité de la console Mistral.
 - OpenRouter : vérifiez les réglages **Privacy** de votre compte (entraînement et publication des
@@ -145,9 +178,13 @@ erreur ; l'historique des 50 derniers runs est dans `gitnotate_stats.json`.
 
 - `gitnotate_v7.1.py` devient `gitnotate.py` ; `scripts/check_llm.py` remplace `test_key.py`.
 - Repartez de `env.example` et recopiez-y vos jetons et ID : un ancien `MISTRAL_MODEL=mistral-small-2503`
-  (retiré par Mistral) ou `TRANSLATION_MODEL` resterait prioritaire sur les nouveaux défauts
-  (`TRANSLATION_MODEL` est remplacée par `OPENROUTER_MODEL`, encore lue avec un avertissement ;
-  un ancien `MISTRAL_MODEL` de la v7.1 est lui aussi signalé au démarrage).
+  (retiré par Mistral) ou `TRANSLATION_MODEL` resterait prioritaire sur les nouveaux défauts.
+  `TRANSLATION_MODEL` (v7.1) est obsolète : supprimez la ligne pour utiliser `openrouter/free` (ou
+  écrivez `OPENROUTER_MODEL=openrouter/free`) ; elle est encore lue, avec un avertissement, tout comme
+  l'ancien défaut `OPENROUTER_MODEL=openai/gpt-oss-20b:free` et un ancien `MISTRAL_MODEL` de la v7.1.
+- `MIN_UPDATE_DAYS` valait 180 dans l'ancien `env.example` (dépôts non mis à jour depuis 180 jours
+  ignorés) ; il vaut 0 désormais (filtre désactivé). Recopiez `MIN_UPDATE_DAYS=180` dans votre `.env`
+  pour garder ce filtre.
 - `DATABASE_ID` est **obligatoire** : la v7.1 créait une nouvelle base quand il était vide ou
   illisible, la v7.2 s'arrête (code 1). `CREATE_DATABASE=true` ne sert qu'à la première installation.
 - Nouveaux défauts LLM : Mistral `mistral-small-2603` puis OpenRouter `openrouter/free`, mode reprise

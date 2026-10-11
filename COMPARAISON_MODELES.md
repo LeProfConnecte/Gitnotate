@@ -1,3 +1,5 @@
+> ⚠️ Document obsolète (v2.5 / modèles retirés) : voir README.md
+
 
 # 🔬 Comparaison des Modèles OpenRouter Gratuits
 

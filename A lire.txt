@@ -1,3 +1,14 @@
-1. Installer les dépendances : python -m pip install -r requirements.txt
-2. Lancer : python gitnotate.py   (essai sans écriture dans Notion : python gitnotate.py --dry-run --max-repos 10)
-3. Mode d'emploi complet : lire README.md
+1. Installer dans un environnement virtuel (détails : README.md, « Installation ») :
+   Windows (PowerShell) : py -m venv .venv  puis  .\.venv\Scripts\Activate.ps1  puis  python -m pip install -r requirements.txt
+   Linux                : python3 -m venv .venv && source .venv/bin/activate && python -m pip install -r requirements.txt
+   À chaque nouvelle fenêtre : réactivez l'environnement virtuel (.\.venv\Scripts\Activate.ps1 sous Windows,
+   source .venv/bin/activate sous Linux) avant de lancer un script.
+2. Vérifier les clés LLM : python scripts/check_llm.py
+3. Essai sans écriture dans Notion, limité à 10 nouvelles fiches simulées :
+   PowerShell : $env:MAX_NEW_PER_RUN=10  puis  python gitnotate.py --dry-run
+   Linux      : MAX_NEW_PER_RUN=10 python gitnotate.py --dry-run
+   (ou MAX_NEW_PER_RUN=10 dans .env ; --max-repos compte aussi les dépôts déjà présents dans la base)
+4. Lancer : python gitnotate.py
+   (sous PowerShell, la limite reste active dans la même fenêtre : Remove-Item Env:MAX_NEW_PER_RUN ;
+   si vous l'avez écrite dans .env, remettez MAX_NEW_PER_RUN=0 dans .env)
+5. Mode d'emploi complet : lire README.md

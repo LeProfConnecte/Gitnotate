@@ -94,6 +94,7 @@ class PartialRead(Exception):
         super().__init__(message)
         self.status = status
         self.path = path
+        self.first_page = True     # False : échec sur une page suivante (pagination), jamais la configuration
 
 
 class NetworkError(Exception):
@@ -291,7 +292,11 @@ class NotionClient:
             params = {'page_size': 100}
             if cursor:
                 params['start_cursor'] = cursor
-            data = self.get_json(path, params=params)
+            try:
+                data = self.get_json(path, params=params)
+            except PartialRead as e:
+                e.first_page = cursor is None
+                raise
             results = data.get('results')
             if not isinstance(results, list):
                 raise PartialRead(f"GET {path} : liste 'results' absente", path=path)
@@ -793,6 +798,8 @@ def print_summary(result: RunResult, planned: int, journal_path: Optional[Path])
 # NETTOYAGE
 # =============================================================================
 _ROOT_HINTS = {
+    400: "PARENT_PAGE_ID invalide : recopiez l'identifiant de 32 caractères de la page source "
+         "(fin de son URL), pas l'URL entière",
     401: "jeton refusé : vérifiez NOTION_CLEANER_TOKEN / NOTION_TOKEN",
     403: "accès refusé : partagez la page source avec l'intégration Notion",
     404: "page introuvable : vérifiez PARENT_PAGE_ID et partagez la page avec l'intégration",
@@ -808,7 +815,7 @@ def run_clean(cfg: Config, nc: NotionClient, apply: bool,
         scan = read_source(nc, cfg.page_id)
     except PartialRead as e:
         print(f"\n❌ Lecture incomplète : {e}")
-        if e.status in _ROOT_HINTS and e.path == f'/blocks/{cfg.page_id}/children':
+        if e.status in _ROOT_HINTS and e.path == f'/blocks/{cfg.page_id}/children' and e.first_page:
             print(f"💡 {_ROOT_HINTS[e.status]}")
             return EXIT_CONFIG
         print("🛑 ABANDON : aucune suppression (la page doit être lue en entier).")

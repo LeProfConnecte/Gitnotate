@@ -5,6 +5,8 @@ Diagnostic des clés LLM de Gitnotate — sans consommer de quota de génératio
 
   • OpenRouter : GET https://openrouter.ai/api/v1/key
                  validité de la clé + quota gratuit du jour (used / limit / remaining)
+                 GET https://openrouter.ai/api/v1/models (liste publique)
+                 présence de OPENROUTER_MODEL (openrouter/free est toujours accepté)
   • Mistral    : GET https://api.mistral.ai/v1/models
                  validité de la clé + présence de MISTRAL_MODEL dans la liste
 
@@ -12,9 +14,9 @@ Les clés ne sont jamais affichées en clair (4 premiers et 4 derniers caractèr
 Le fichier .env est lu au même endroit que gitnotate.py (dossier du projet, ou GITNOTATE_DATA_DIR).
 
 Codes de sortie : 0 = au moins une clé et toutes les clés présentes sont utilisables
-                  1 = aucune clé, clé refusée, service injoignable ou modèle Mistral absent
+                  1 = aucune clé, clé refusée, service injoignable, modèle Mistral ou OpenRouter absent
 Un quota gratuit OpenRouter épuisé est signalé mais ne fait pas échouer le diagnostic
-(il est remis à zéro à minuit UTC).
+(il est remis à zéro à minuit UTC), pas plus qu'une liste des modèles OpenRouter illisible.
 
 Usage : python scripts/check_llm.py
 """
@@ -26,14 +28,17 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 
-# Même dossier de données que gitnotate.py : GITNOTATE_DATA_DIR, sinon la racine du projet
-BASE_DIR = Path(os.environ.get('GITNOTATE_DATA_DIR') or Path(__file__).resolve().parent.parent)
+# Même dossier de données que gitnotate.py : GITNOTATE_DATA_DIR (« ~ » accepté), sinon la racine
+# du projet
+_DATA_DIR = os.environ.get('GITNOTATE_DATA_DIR', '').strip()
+BASE_DIR = Path(_DATA_DIR).expanduser() if _DATA_DIR else Path(__file__).resolve().parent.parent
 
-OPENROUTER_KEY_URL  = 'https://openrouter.ai/api/v1/key'
-MISTRAL_MODELS_URL  = 'https://api.mistral.ai/v1/models'
-DEFAULT_MISTRAL     = 'mistral-small-2603'
-DEFAULT_OPENROUTER  = 'openrouter/free'
-TIMEOUT             = 15
+OPENROUTER_KEY_URL    = 'https://openrouter.ai/api/v1/key'
+OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models'
+MISTRAL_MODELS_URL    = 'https://api.mistral.ai/v1/models'
+DEFAULT_MISTRAL       = 'mistral-small-2603'
+DEFAULT_OPENROUTER    = 'openrouter/free'
+TIMEOUT               = 15
 
 
 def load_env() -> None:
@@ -86,8 +91,9 @@ def _api_message(response, limit: int = 200) -> str:
 
 
 def _get(url: str, key: str) -> Tuple[Optional[requests.Response], str]:
+    """GET avec la clé (aucun en-tête d'autorisation si key est vide)."""
     try:
-        return _http_get(url, {'Authorization': f'Bearer {key}'}), ''
+        return _http_get(url, {'Authorization': f'Bearer {key}'} if key else {}), ''
     except requests.exceptions.Timeout:
         return None, 'timeout'
     except requests.exceptions.ConnectionError:
@@ -119,7 +125,36 @@ def check_openrouter(key: str, model: str) -> Tuple[bool, List[str]]:
                          "jusqu'à minuit UTC")
     else:
         lines.append("   • quota gratuit : non communiqué")
-    return True, lines
+    return check_openrouter_model(model, lines)
+
+
+def check_openrouter_model(model: str, lines: List[str]) -> Tuple[bool, List[str]]:
+    """Présence du modèle dans GET /api/v1/models (liste publique, aucun quota, sans la clé).
+    Modèle absent → échec ; liste illisible → avertissement seulement (comme gitnotate.py)."""
+    if model.strip().lower() == DEFAULT_OPENROUTER:
+        lines.append(f"   ✅ modèle '{DEFAULT_OPENROUTER}' (routeur des modèles gratuits)")
+        return True, lines
+    response, error = _get(OPENROUTER_MODELS_URL, '')
+    if response is not None and response.status_code != 200:
+        error = f"HTTP {response.status_code}"
+    data = _json(response).get('data') if not error else None
+    ids = set()
+    if isinstance(data, list):
+        ids = {item['id'].strip().lower() for item in data
+               if isinstance(item, dict) and isinstance(item.get('id'), str)}
+    if not ids:
+        lines.append(f"   ⚠️  liste des modèles OpenRouter illisible ({error or 'réponse inattendue'}) : "
+                     f"modèle '{model}' non vérifié")
+        return True, lines
+    # Variante de routage (« :nitro », « :floor »...) d'un modèle listé ; les « :free » sont listés
+    name = model.strip().lower()
+    base, _, variant = name.partition(':')
+    if name in ids or (variant and variant != 'free' and base in ids):
+        lines.append(f"   ✅ modèle '{model}' disponible")
+        return True, lines
+    lines.append(f"   ❌ modèle '{model}' introuvable chez OpenRouter — utilisez "
+                 f"OPENROUTER_MODEL={DEFAULT_OPENROUTER}")
+    return False, lines
 
 
 def check_mistral(key: str, model: str) -> Tuple[bool, List[str]]:

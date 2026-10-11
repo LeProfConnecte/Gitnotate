@@ -22,8 +22,9 @@ Nouveautés v7.2 (stabilisation — aucune donnée n'est jamais supprimée dans 
 Fournisseurs LLM (v7.2) :
   ✅ Ordre configurable LLM_PROVIDERS (défaut : Mistral direct 'mistral-small-2603', puis OpenRouter
      'openrouter/free') ; un fournisseur sans clé est ignoré
-  ✅ Tests de démarrage sans quota OpenRouter (GET /api/v1/key, quota gratuit du jour) et complétion
-     Mistral avec les paramètres de production (reasoning_effort / response_format retirés si refusés)
+  ✅ Tests de démarrage sans quota OpenRouter (GET /api/v1/key : clé et quota gratuit du jour ;
+     GET /api/v1/models : existence du modèle) et complétion Mistral avec les paramètres de
+     production (reasoning_effort / response_format retirés si refusés)
   ✅ Mode reprise REQUIRE_LLM=true : aucune fiche sans réponse LLM valide, le dépôt est « reporté »
      et repris au run suivant ; aucun fournisseur au démarrage → arrêt avant tout appel GitHub
   ✅ Coupe-circuit par fournisseur (401/402, quota OpenRouter épuisé, échecs consécutifs), limiteur de
@@ -66,8 +67,9 @@ __version__ = "7.2.0"
 # DOSSIER DE DONNÉES ET FICHIER .env
 # =============================================================================
 # Tous les fichiers d'état sont relatifs au dossier du script (ou à GITNOTATE_DATA_DIR),
-# jamais au répertoire courant.
-BASE_DIR = Path(os.environ.get('GITNOTATE_DATA_DIR') or Path(__file__).resolve().parent)
+# jamais au répertoire courant. Même résolution dans les trois scripts (« ~ » accepté).
+_DATA_DIR = os.environ.get('GITNOTATE_DATA_DIR', '').strip()
+BASE_DIR = Path(_DATA_DIR).expanduser() if _DATA_DIR else Path(__file__).resolve().parent
 ENV_FILE = BASE_DIR / '.env'
 
 # GITNOTATE_NO_DOTENV : même règle que le nettoyeur (une valeur « vraie » empêche la lecture du .env ;
@@ -210,10 +212,15 @@ if MISTRAL_MODEL.lower() in _MISTRAL_MODELS_V71:
     CONFIG_WARNINGS.append(f"MISTRAL_MODEL={MISTRAL_MODEL} vient d'un .env v7.1 : le modèle recommandé est "
                            f"{MISTRAL_MODEL_DEFAULT} (supprimez la ligne MISTRAL_MODEL pour l'utiliser)")
 # OPENROUTER_MODEL, sinon l'ancienne variable TRANSLATION_MODEL (compatibilité), sinon le routeur gratuit
-OPENROUTER_MODEL = _env_str('OPENROUTER_MODEL') or _env_str('TRANSLATION_MODEL') or 'openrouter/free'
+OPENROUTER_MODEL_DEFAULT = 'openrouter/free'
+OPENROUTER_MODEL = _env_str('OPENROUTER_MODEL') or _env_str('TRANSLATION_MODEL') or OPENROUTER_MODEL_DEFAULT
+_OPENROUTER_MODEL_V71 = 'openai/gpt-oss-20b:free'      # ancien défaut de la v7.1
 if not _env_str('OPENROUTER_MODEL') and _env_str('TRANSLATION_MODEL'):
-    CONFIG_WARNINGS.append(f"TRANSLATION_MODEL est obsolète : renommez-la OPENROUTER_MODEL "
-                           f"(modèle OpenRouter utilisé : {OPENROUTER_MODEL[:60]})")
+    CONFIG_WARNINGS.append("TRANSLATION_MODEL (v7.1) est obsolète : supprimez la ligne pour utiliser "
+                           "openrouter/free (ou écrivez OPENROUTER_MODEL=openrouter/free)")
+elif OPENROUTER_MODEL.lower() == _OPENROUTER_MODEL_V71:
+    CONFIG_WARNINGS.append(f"OPENROUTER_MODEL={OPENROUTER_MODEL} est l'ancien défaut de la v7.1 : supprimez "
+                           "la ligne pour utiliser openrouter/free (ou écrivez OPENROUTER_MODEL=openrouter/free)")
 
 LLM_MAX_TOKENS        = _env_int('LLM_MAX_TOKENS', 3000, 16)    # budget de sortie (raisonnement compris)
 LLM_TIMEOUT           = _env_int('LLM_TIMEOUT', 120, 1)          # secondes, appels LLM uniquement
@@ -279,6 +286,21 @@ SYSTEM_PROMPT_TRANSLATE = (
 _TEMPLATE_DESCRIPTIONS = ("traduction française de la description", "traduction de la description")
 _TEMPLATE_USE_CASES    = ("cas d'usage 1", "traduction des cas d'usage")
 _TEMPLATE_REASONING    = "justification du score en 40 mots"
+# Gabarits complets : un début de ces textes (« <justification du score> », « traduction des cas
+# d'usage ») est encore une recopie du gabarit
+_TEMPLATE_REASONING_FULL     = "justification du score en 40 mots maximum"
+_TEMPLATE_USE_CASES_TRANSLATE = "traduction des cas d'usage avec puces"
+# Ligne du gabarit combiné (« • cas d'usage 1 ») : comparée à chaque élément ENTIER, puce et numéro
+# (« 1. », « 2) ») retirés ; les éléments sont séparés par un saut de ligne, « • », « , » ou « ; »
+_TEMPLATE_USE_CASE_LINE_RE = re.compile(r"cas d'usage \d+")
+_USE_CASE_NUMBER_RE = re.compile(r"^\(?\d+[ \t]*[.):\-–—][ \t]*")
+_USE_CASE_ITEM_SPLIT_RE = re.compile(r"[,;]")
+# Étiquette « Cas d'usage N : » placée devant un vrai contenu : retirée avant l'écriture
+_USE_CASE_LABEL_RE = re.compile(r"(?im)((?:^|•)[ \t]*(?:[-*–—·][ \t]*)?)cas d['’]usage[ \t]*\d+[ \t]*"
+                                r"[:.)\-–—][ \t]*(?=\S)")
+_USE_CASE_SPLIT_RE = re.compile(r"(?:\\n|[\r\n•])+")
+_BULLETS = '•-*–—· \t'
+_TEMPLATE_TRIM = _BULLETS + '.:;,…'
 
 # =============================================================================
 # PROFIL UTILISATEUR
@@ -365,17 +387,34 @@ def _api_error_message(response, limit: int = 200) -> str:
     if body is None:
         return ''
     err = body.get('error')
+    message = body.get('message')
     msg: Any = ''
-    if isinstance(body.get('message'), str):
-        msg = body['message']
+    if isinstance(message, str):
+        msg = message
+    elif isinstance(message, dict) and isinstance(message.get('detail'), list):
+        msg = _detail_list_text(message['detail'])          # 422 Mistral (format FastAPI)
     elif isinstance(err, dict) and isinstance(err.get('message'), str):
         msg = err['message']
     elif isinstance(err, str):
         msg = err
     elif isinstance(body.get('detail'), str):
         msg = body['detail']
+    elif isinstance(body.get('detail'), list):
+        msg = _detail_list_text(body['detail'])
     msg = ' '.join(msg.split())
     return msg[:limit] + ('…' if len(msg) > limit else '')
+
+
+def _detail_list_text(details: List[Any]) -> str:
+    """Liste d'erreurs de validation [{"loc": [..., "champ"], "msg": "..."}] → « champ : msg ; … »."""
+    parts = []
+    for item in details:
+        if not isinstance(item, dict) or not isinstance(item.get('msg'), str):
+            continue
+        loc = item.get('loc')
+        where = str(loc[-1]) if isinstance(loc, list) and loc else ''
+        parts.append(f"{where} : {item['msg']}" if where else item['msg'])
+    return ' ; '.join(parts)
 
 
 def _api_error_text(response, limit: int = 200) -> str:
@@ -1004,7 +1043,8 @@ LLM_ENDPOINTS = {
     'mistral':    'https://api.mistral.ai/v1/chat/completions',
     'openrouter': 'https://openrouter.ai/api/v1/chat/completions',
 }
-OPENROUTER_KEY_URL = 'https://openrouter.ai/api/v1/key'   # lecture de la clé : ne consomme aucun quota
+OPENROUTER_KEY_URL    = 'https://openrouter.ai/api/v1/key'      # lecture de la clé : ne consomme aucun quota
+OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models'   # liste publique des modèles : aucun quota
 _PROVIDER_NAMES    = {'mistral': 'Mistral AI', 'openrouter': 'OpenRouter'}
 _PROVIDER_KEY_VARS = {'mistral': 'MISTRAL_API_KEY', 'openrouter': 'OPENROUTER_API_KEY'}
 _OPENROUTER_DAILY_QUOTA_MARKERS = ('per-day', 'per day', 'daily')
@@ -1024,6 +1064,9 @@ class LLMProviderState:
         self.min_interval               = 60.0 / rpm if rpm > 0 else 0.0
         self._next_slot                 = 0.0
         self.dropped_params: Set[str]   = set()   # paramètres refusés au test de démarrage
+        # Cause d'un échec au test de démarrage (piste du message d'arrêt) : 'nokey', 'key',
+        # 'quota', 'model', 'network' ou 'other'
+        self.startup_issue: Optional[str] = None
 
     @property
     def available(self) -> bool:
@@ -1303,27 +1346,72 @@ def _probe_send(name: str, send) -> requests.Response:
     return send()
 
 
+def _openrouter_model_listed() -> Tuple[Optional[bool], str]:
+    """Le modèle OPENROUTER_MODEL existe-t-il ? GET /api/v1/models (liste publique, aucun quota).
+    Renvoie (True, '') présent, (False, '') absent, (None, cause) liste illisible.
+    openrouter/free (routeur des modèles gratuits) est accepté sans appel."""
+    model = OPENROUTER_MODEL.strip().lower()
+    if model == OPENROUTER_MODEL_DEFAULT:
+        return True, ''
+    try:
+        response = _probe_send(_provider_label('openrouter'), lambda: get_session().get(
+            OPENROUTER_MODELS_URL, headers={'Accept': 'application/json'}, timeout=15))
+    except requests.exceptions.Timeout:
+        return None, 'timeout'
+    except requests.exceptions.ConnectionError:
+        return None, 'connexion impossible'
+    except Exception as e:
+        return None, type(e).__name__
+    if response.status_code != 200:
+        return None, f"HTTP {response.status_code}"
+    data = (_json_dict(response) or {}).get('data')
+    ids: Set[str] = set()
+    if isinstance(data, list):
+        ids = {item['id'].strip().lower() for item in data
+               if isinstance(item, dict) and isinstance(item.get('id'), str)}
+    if not ids:
+        return None, 'réponse inattendue'
+    # Variante de routage (« :nitro », « :floor »...) d'un modèle listé ; les « :free » sont listés
+    base, _, variant = model.partition(':')
+    return model in ids or (bool(variant) and variant != 'free' and base in ids), ''
+
+
 def _probe_openrouter() -> Tuple[bool, str]:
-    """GET /api/v1/key : validité de la clé et quota gratuit du jour, sans consommer de quota."""
+    """GET /api/v1/key : validité de la clé et quota gratuit du jour ; GET /api/v1/models :
+    existence du modèle. Aucun quota consommé."""
     name  = _provider_label('openrouter')
     state = _provider_state('openrouter')
     try:
         response = _probe_send(name, lambda: get_session().get(
             OPENROUTER_KEY_URL, headers={'Authorization': f'Bearer {OPENROUTER_API_KEY}'}, timeout=15))
     except requests.exceptions.Timeout:
+        state.startup_issue = 'network'
         return False, f"⚠️  {name} — injoignable (timeout) : ignoré pour ce run"
     except requests.exceptions.ConnectionError:
+        state.startup_issue = 'network'
         return False, f"⚠️  {name} — injoignable (connexion impossible) : ignoré pour ce run"
     except Exception as e:
+        state.startup_issue = 'network'
         return False, f"⚠️  {name} — injoignable ({type(e).__name__}) : ignoré pour ce run"
 
     detail = _api_error_text(response)
     suffix = f" — {detail}" if detail else ""
     if response.status_code == 401:
+        state.startup_issue = 'key'
         return False, (f"❌ {name} — clé invalide (HTTP 401{suffix}, "
                        f"{_mask_token(OPENROUTER_API_KEY)}) : ignoré")
     if response.status_code != 200:
+        state.startup_issue = 'other'
         return False, f"❌ {name} — test de la clé en échec (HTTP {response.status_code}{suffix}) : ignoré"
+
+    listed, cause = _openrouter_model_listed()
+    if listed is False:
+        state.startup_issue = 'model'
+        return False, (f"❌ {name} — modèle '{OPENROUTER_MODEL}' introuvable chez OpenRouter — utilisez "
+                       f"OPENROUTER_MODEL={OPENROUTER_MODEL_DEFAULT} : ignoré pour ce run")
+    if listed is None:
+        log(f"   ⚠️  {name} — liste des modèles illisible ({cause}) : modèle non vérifié, "
+            "OpenRouter conservé")
 
     data  = (_json_dict(response) or {}).get('data')
     quota = data.get('free_model_daily_requests') if isinstance(data, dict) else None
@@ -1336,6 +1424,7 @@ def _probe_openrouter() -> Tuple[bool, str]:
     if not _openrouter_model_is_free():
         return True, f"✅ {name} — clé valide ; {quota_text}, non applicable (modèle payant)"
     if remaining <= 0:
+        state.startup_issue = 'quota'
         return False, f"⛔ {name} — {quota_text} : quota épuisé, OpenRouter désactivé pour ce run"
     state.budget = remaining
     return True, f"✅ {name} — clé valide ; {quota_text}"
@@ -1356,10 +1445,13 @@ def _probe_mistral() -> Tuple[bool, str]:
         try:
             response = _probe_send(name, send)
         except requests.exceptions.Timeout:
+            state.startup_issue = 'network'
             return False, f"⚠️  {name} — indisponible (timeout) : ignoré pour ce run"
         except requests.exceptions.ConnectionError:
+            state.startup_issue = 'network'
             return False, f"⚠️  {name} — indisponible (connexion impossible) : ignoré pour ce run"
         except Exception as e:
+            state.startup_issue = 'network'
             return False, f"⚠️  {name} — indisponible ({type(e).__name__}) : ignoré pour ce run"
 
         status = response.status_code
@@ -1377,19 +1469,50 @@ def _probe_mistral() -> Tuple[bool, str]:
                   and 'response_format' in body):
                 dropped = 'response_format'
             else:
+                # « Invalid model: … » (modèle retiré) : piste « corrigez le modèle »
+                state.startup_issue = 'model' if 'model' in raw else 'other'
                 return False, f"❌ {name} — requête refusée (HTTP {status}{suffix})"
             state.dropped_params.add(dropped)
             log(f"   ⚠️  {name} — paramètre {dropped} refusé (HTTP {status}{suffix}) : "
                 "nouvel essai sans ce paramètre")
             continue
         if status == 401:
+            state.startup_issue = 'key'
             return False, f"❌ {name} — clé invalide (HTTP 401{suffix}, {_mask_token(MISTRAL_API_KEY)})"
         if status == 404:
+            state.startup_issue = 'model'
             return False, f"❌ {name} — modèle '{MISTRAL_MODEL}' introuvable (HTTP 404{suffix})"
         if status == 429:
             return True, f"⚠️  {name} — joignable mais limité (HTTP 429{suffix}) : gardé actif"
+        state.startup_issue = 'other'
         return False, f"❌ {name} — indisponible (HTTP {status}{suffix}) : ignoré pour ce run"
+    state.startup_issue = 'other'
     return False, f"❌ {name} — requête refusée même sans les paramètres optionnels"
+
+
+def startup_hints() -> List[str]:
+    """Pistes du message d'arrêt « aucun fournisseur LLM disponible », selon la cause relevée au
+    test de démarrage de chaque fournisseur (jamais REQUIRE_LLM=false : aucune fiche dégradée)."""
+    issues = [(p, _provider_state(p).startup_issue) for p in LLM_PROVIDERS]
+    if all(issue == 'nokey' for _, issue in issues):
+        return [f"Renseignez {' et/ou '.join(_PROVIDER_KEY_VARS[p] for p, _ in issues)} dans .env, "
+                "puis lancez « python scripts/check_llm.py »"]
+    hints = []
+    for provider, issue in issues:
+        label = _provider_label(provider)
+        if issue == 'key':
+            hints.append(f"{label} : clé refusée — corrigez {_PROVIDER_KEY_VARS[provider]} dans .env, "
+                         "puis lancez « python scripts/check_llm.py »")
+        elif issue == 'quota':
+            hints.append(f"{label} : quota gratuit du jour épuisé — relancez après minuit UTC")
+        elif issue == 'model':
+            fix = (f"OPENROUTER_MODEL={OPENROUTER_MODEL_DEFAULT}" if provider == 'openrouter'
+                   else f"supprimez la ligne MISTRAL_MODEL pour utiliser {MISTRAL_MODEL_DEFAULT}")
+            hints.append(f"{label} : modèle introuvable — corrigez le modèle dans .env ({fix})")
+        elif issue in ('network', 'other'):
+            hints.append(f"{label} : injoignable ou indisponible — vérifiez la connexion et relancez plus "
+                         "tard (diagnostic : « python scripts/check_llm.py »)")
+    return hints or ["Vérifiez les clés avec « python scripts/check_llm.py », puis relancez"]
 
 
 def init_translation_providers() -> Tuple[Optional[str], Optional[str]]:
@@ -1403,6 +1526,7 @@ def init_translation_providers() -> Tuple[Optional[str], Optional[str]]:
     active: List[str] = []
     for provider in LLM_PROVIDERS:
         if not _provider_key(provider):
+            _provider_state(provider).startup_issue = 'nokey'
             log(f"   ℹ️  {_provider_label(provider)} ignoré : {_PROVIDER_KEY_VARS[provider]} absente")
             continue
         ok, msg = _probe_mistral() if provider == 'mistral' else _probe_openrouter()
@@ -1557,37 +1681,67 @@ _JSON_FENCE_RE = re.compile(r'```(?:json)?\s*(.*?)```', re.IGNORECASE | re.DOTAL
 _THINK_BLOCK_RE = re.compile(r'<(think|thinking)>.*?</\1>', re.IGNORECASE | re.DOTALL)
 
 
-def _parse_llm_json(raw_text: str) -> Optional[Dict]:
-    """Extrait l'objet JSON d'une réponse : bloc ```json, texte autour, sauts de ligne
-    littéraux dans les chaînes (strict=False).
+_JSON_MAX_DECODE_TRIES = 1000    # essais de décodage par texte examiné (réponse bornée par LLM_MAX_TOKENS)
 
-    Le raisonnement écrit en ligne (<think>…</think>, <thinking>…</thinking>) est retiré, et
-    c'est le DERNIER objet contenant description_fr qui est retenu : un brouillon placé avant
-    la réponse finale n'est jamais pris pour elle."""
+
+def _nested_answers(value: Any) -> List[Dict]:
+    """Objets contenant description_fr dans une valeur JSON décodée, dans l'ordre du texte
+    (enveloppe {"result": {...}} comprise) ; on ne descend pas dans un objet réponse."""
+    found: List[Dict] = []
+    stack = [value]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, dict):
+            if 'description_fr' in item:
+                found.append(item)
+            else:
+                stack.extend(reversed(list(item.values())))
+        elif isinstance(item, list):
+            stack.extend(reversed(item))
+    return found
+
+
+def _parse_llm_json(raw_text: str, need_score: Optional[bool] = None) -> Optional[Dict]:
+    """Extrait l'objet JSON d'une réponse : bloc ```json, texte autour, sauts de ligne
+    littéraux dans les chaînes (strict=False), réponse enveloppée dans un autre objet.
+
+    Le raisonnement écrit en ligne (<think>…</think>, <thinking>…</thinking>) est retiré. Parmi
+    les objets contenant description_fr, c'est le DERNIER qui passe la validation qui est retenu
+    (réponse complète, sinon partielle, sinon le dernier trouvé) : un brouillon placé avant la
+    réponse finale valide, ou un rappel du gabarit placé après elle, n'est jamais pris pour elle.
+    need_score : validation avec score (défaut : LLM_SCORING_ENABLED)."""
     if not isinstance(raw_text, str):
         return None
     text = _THINK_BLOCK_RE.sub(' ', raw_text).strip()
     candidates = [m.group(1) for m in _JSON_FENCE_RE.finditer(text)] + [text]
     decoder = json.JSONDecoder(strict=False)
     first_dict: Optional[Dict] = None
-    last_answer: Optional[Dict] = None
+    answers: List[Dict] = []
     for candidate in candidates:
         start = candidate.find('{')
         tries = 0
-        while start != -1 and tries < 20:
+        while start != -1 and tries < _JSON_MAX_DECODE_TRIES:
             tries += 1
             try:
                 obj, end = decoder.raw_decode(candidate, start)
-            except ValueError:
+            except (ValueError, RecursionError):
                 obj, end = None, start + 1
             if isinstance(obj, dict):
-                if 'description_fr' in obj:
-                    last_answer = obj
-                elif first_dict is None:
+                answers.extend(_nested_answers(obj))
+                if 'description_fr' not in obj and first_dict is None:
                     first_dict = obj
-            # Après un objet décodé, on reprend APRÈS lui (ses objets imbriqués sont ignorés)
+            # Après un objet décodé, on reprend APRÈS lui (son contenu a été parcouru ci-dessus)
             start = candidate.find('{', end)
-    return last_answer if last_answer is not None else first_dict
+    if need_score is None:
+        need_score = LLM_SCORING_ENABLED
+    best: Optional[Dict] = None
+    best_rank = -1
+    for obj in answers:
+        cleaned, why = _validate_llm_payload(obj, need_score)
+        rank = 0 if cleaned is None else (1 if why else 2)
+        if rank >= best_rank:                      # à rang égal, le plus tardif l'emporte
+            best, best_rank = obj, rank
+    return best if best is not None else first_dict
 
 
 def _coerce_score(value: Any) -> Optional[int]:
@@ -1628,6 +1782,36 @@ def _normalized_text(value: str) -> str:
     return ' '.join(value.replace('’', "'").lower().split())
 
 
+def _template_item(text: str) -> str:
+    """Texte normalisé d'un élément de liste, sans puce, sans numéro « 1. » ni ponctuation finale."""
+    text = _normalized_text(text).strip(_TEMPLATE_TRIM)
+    return _USE_CASE_NUMBER_RE.sub('', text).strip(_TEMPLATE_TRIM)
+
+
+def _use_cases_are_template(use_cases: str) -> bool:
+    """Cas d'usage recopiés du gabarit : TOUS les éléments (lignes, ou morceaux séparés par « • »,
+    « , » ou « ; », puce et numéro retirés) valent exactement « cas d'usage N », ou une ligne reprend
+    le gabarit du prompt de traduction seule (« traduction des cas d'usage avec puces », même
+    tronqué). « • Cas d'usage 1 : automatiser X » et « • Traduction des cas d'usage métier » sont
+    acceptés.
+
+    Règle générale : un texte qui ne contient que des « cas d'usage N », des séparateurs, de la
+    ponctuation ou « et » est un gabarit (tableau JSON mis en chaîne, guillemets, « / », « | »…)."""
+    text = _normalized_text(use_cases.replace('\\n', ' '))
+    if _TEMPLATE_USE_CASE_LINE_RE.search(text):
+        rest = _TEMPLATE_USE_CASE_LINE_RE.sub(' ', text)
+        if not re.sub(r"\b(?:et|and)\b|[\W\d_]", '', rest):
+            return True
+    lines = [_template_item(part) for part in _USE_CASE_SPLIT_RE.split(use_cases)]
+    items = [_template_item(piece) for line in lines for piece in _USE_CASE_ITEM_SPLIT_RE.split(line)]
+    items = [item for item in items if item]
+    if items and all(_TEMPLATE_USE_CASE_LINE_RE.fullmatch(item) for item in items):
+        return True
+    return any(_TEMPLATE_USE_CASES_TRANSLATE in line
+               or (line.startswith(_TEMPLATE_USE_CASES[1]) and _TEMPLATE_USE_CASES_TRANSLATE.startswith(line))
+               for line in lines)
+
+
 def _validate_llm_payload(parsed: Any, need_score: bool) -> Tuple[Optional[Dict], str]:
     """Renvoie (champs nettoyés, '') pour une réponse complète, ou (None, raison) pour une réponse
     invalide : description absente, vide ou recopiée du gabarit du prompt ; cas d'usage absents,
@@ -1648,11 +1832,11 @@ def _validate_llm_payload(parsed: Any, need_score: bool) -> Tuple[Optional[Dict]
         return None, "use_cases_fr ni chaîne ni liste"
     if not use_cases:
         return None, "use_cases_fr vide"
-    if any(marker in _normalized_text(use_cases) for marker in _TEMPLATE_USE_CASES):
+    if _use_cases_are_template(use_cases):
         return None, "use_cases_fr recopiés du gabarit du prompt"
     cleaned: Dict[str, Any] = {
         'description_fr': description.strip(),
-        'use_cases_fr':   use_cases,
+        'use_cases_fr':   _USE_CASE_LABEL_RE.sub(r'\1', use_cases),   # « Cas d'usage 1 : » retiré
         'score':          None,
         'reasoning':      '',
     }
@@ -1663,13 +1847,20 @@ def _validate_llm_payload(parsed: Any, need_score: bool) -> Tuple[Optional[Dict]
             why = "reasoning absent" if reasoning is None else "reasoning non textuel"
         elif not reasoning.strip():
             why = "reasoning vide"
-        elif reasoning.strip().startswith('<') or _TEMPLATE_REASONING in _normalized_text(reasoning):
+        elif _TEMPLATE_REASONING in _normalized_text(reasoning):
             why = "reasoning recopié du gabarit du prompt"
         else:
-            cleaned['score']     = _coerce_score(parsed.get('score'))
-            cleaned['reasoning'] = reasoning.strip()[:REASONING_MAX_CHARS]
-            if cleaned['score'] is None:
-                why = f"score invalide ('{str(parsed.get('score'))[:20]}')"
+            reasoning = reasoning.strip()
+            if reasoning.startswith('<') and reasoning.endswith('>'):   # chevrons du gabarit imités
+                reasoning = reasoning[1:-1].strip()
+            # « <…> » sans contenu, ou début du gabarit (« <justification> », « <justification du score> »)
+            if _TEMPLATE_REASONING_FULL.startswith(_normalized_text(reasoning).strip(' .…<>')):
+                why = "reasoning recopié du gabarit du prompt"
+            else:
+                cleaned['score']     = _coerce_score(parsed.get('score'))
+                cleaned['reasoning'] = reasoning[:REASONING_MAX_CHARS]
+                if cleaned['score'] is None:
+                    why = f"score invalide ('{str(parsed.get('score'))[:20]}')"
     return cleaned, why
 
 # =============================================================================
@@ -1894,7 +2085,7 @@ def translate_and_score(
         if not raw_text:
             log(f"   ⚠️  [{repo_name}] {provider} échec — basculement fallback", 'verbose')
             continue
-        parsed = _parse_llm_json(raw_text)
+        parsed = _parse_llm_json(raw_text, LLM_SCORING_ENABLED)
         cleaned, why = (_validate_llm_payload(parsed, LLM_SCORING_ENABLED) if parsed is not None
                         else (None, "aucun JSON trouvé"))
         if cleaned is None:
@@ -2913,6 +3104,7 @@ def apply_cli_overrides(args: argparse.Namespace) -> None:
     global DRY_RUN, MAX_REPOS, LOG_LEVEL
     if args.dry_run:
         DRY_RUN = True
+        CONFIG_ERRORS.pop('DRY_RUN', None)       # l'option prime sur une valeur DRY_RUN invalide
     if args.max_repos is not None:
         MAX_REPOS = args.max_repos
         CONFIG_ERRORS.pop('MAX_REPOS', None)
@@ -3101,8 +3293,8 @@ def _run() -> int:
     TRANSLATION_PROVIDER, TRANSLATION_FALLBACK = init_translation_providers()
     if llm_required() and not configured_providers():
         log("❌ Aucun fournisseur LLM disponible : rien n'est écrit (REQUIRE_LLM=true).", 'error')
-        log("   → Vérifiez les clés avec « python scripts/check_llm.py » et relancez plus tard, ou mettez "
-            "REQUIRE_LLM=false pour créer des fiches au score lexical.", 'error')
+        for hint in startup_hints():
+            log(f"   → {hint}", 'error')
         return EXIT_CONFIG
 
     if not validate_all_tokens():
