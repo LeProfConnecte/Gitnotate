@@ -416,10 +416,10 @@ def test_sec1_cleaner_network_error_shows_type_only(monkeypatch, capsys):
     assert 'InvalidHeader' in out.out and CL_TAIL not in out.out + out.err
 
 # =============================================================================
-# SEC-2 — secrets et fichiers d'exécution ignorés par git
-# (gitnotate_stats.json reste suivi tant que l'utilisateur n'a pas décidé de le retirer)
+# SEC-2 — secrets et fichiers produits par un run : ignorés par git, plus suivis dans le dépôt
+# (retrait du suivi décidé par l'utilisateur ; copies locales conservées, sauvegarde préalable)
 # =============================================================================
-IGNORED_RUNTIME = ('.gitnotate_cache.json', 'extracted_urls_unique.txt')
+IGNORED_RUNTIME = ('.gitnotate_cache.json', 'extracted_urls_unique.txt', 'gitnotate_stats.json')
 
 
 @pytest.mark.skipif(shutil.which('git') is None, reason='git absent')
@@ -435,7 +435,14 @@ def test_sec2_dry_run_leaves_only_ignored_files(load_gn, monkeypatch, tmp_path, 
     assert all((depot / name).exists() for name in IGNORED_RUNTIME)
     status = subprocess.run(['git', '-C', str(depot), 'status', '--porcelain', '--untracked-files=all'],
                             capture_output=True, text=True, check=True).stdout
-    assert sorted(status.splitlines()) == ['?? .gitignore', '?? gitnotate_stats.json'], status
+    assert status.splitlines() == ['?? .gitignore'], status
+
+
+@pytest.mark.skipif(shutil.which('git') is None or not (ROOT / '.git').exists(), reason='dépôt git absent')
+def test_sec2_generated_files_not_tracked():
+    tracked = subprocess.run(['git', '-C', str(ROOT), 'ls-files', '--', *IGNORED_RUNTIME],
+                             capture_output=True, text=True, check=True).stdout
+    assert tracked == '', f"fichiers produits encore suivis par git :\n{tracked}"
 
 
 @pytest.mark.skipif(shutil.which('git') is None, reason='git absent')
@@ -445,7 +452,8 @@ def test_sec2_secret_and_state_files_ignored(tmp_path):
     subprocess.run(['git', 'init', '-q', str(depot)], check=True)
     shutil.copy(ROOT / '.gitignore', depot / '.gitignore')
     for name in ('.env', '.env.local', '.gitnotate_cache.json', '.gitnotate_state.json',
-                 'journal/cleaner-1.jsonl', 'gitnotate_stats.json.tmp'):
+                 'journal/cleaner-1.jsonl', 'gitnotate_stats.json.tmp', 'gitnotate_stats.json',
+                 'extracted_urls_unique.txt', 'sauvegardes/2026-10-11/gitnotate_stats.json'):
         path = depot / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text('x', encoding='utf-8')

@@ -191,6 +191,11 @@ lue en partie) n'y figure pas ; son code de sortie et sa cause s'affichent seule
   actif (la v7.1 essayait OpenRouter `openai/gpt-oss-20b:free`, puis Mistral `mistral-small-2503`).
 - Régénérez le jeton GitHub en lecture seule (sans portée `repo`) ; un jeton invalide arrête le run.
 - Le nettoyeur simule par défaut et ne lit plus `DRY_RUN` (suppression : `--apply` + phrase exacte).
+- `gitnotate_stats.json` et `extracted_urls_unique.txt` ne sont plus suivis par git (ce sont des
+  fichiers produits par chaque run, désormais ignorés). **Si vous utilisez `git pull`** sur une copie
+  qui les contient, copiez-les d'abord ailleurs : git les retirerait de votre dossier. Leur dernière
+  version publiée reste récupérable : `git show 4b90d6f:gitnotate_stats.json > gitnotate_stats.json`
+  (même commande pour `extracted_urls_unique.txt`).
 - Les bases « Ressources GitHub » en double créées par l'ancienne version ne sont jamais supprimées
   par GitNotate : triez-les à la main dans Notion et gardez celle de `DATABASE_ID`.
 
