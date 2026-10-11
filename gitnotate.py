@@ -2438,17 +2438,30 @@ def get_github_repo_info(owner: str, repo: str) -> Optional[Dict]:
 # =============================================================================
 # ANALYSE README
 # =============================================================================
+# Valeur écrite quand ni les métadonnées GitHub ni le README ne prouvent l'information
+NON_VERIFIE = "Non vérifié"
+
+
+def _readme_install_example(readme: str, repo_name: str) -> str:
+    """« pip install <nom> » ou « npm install <nom> » si le README contient cette commande
+    pour le nom du dépôt (sans quoi rien ne prouve qu'un tel paquet existe), sinon ''."""
+    if not repo_name or not readme:
+        return ''
+    m = re.search(r'(?<![\w-])(pip3?|npm)[ \t]+install[ \t]+(' + re.escape(repo_name) + r')(?![\w-])(?!\.\w)',
+                  readme, re.IGNORECASE)
+    return f"{m.group(1)} install {m.group(2)}" if m else ''
+
+
 def analyze_repo_for_usage(repo_info: Dict) -> Dict[str, str]:
     description = repo_info.get('description') or "GitHub project"
     readme      = repo_info.get('readme') or ''
-    language    = repo_info.get('language') or ''
     topics      = [t for t in (repo_info.get('topics') or []) if isinstance(t, str)]
 
     is_agent = 'agent' in ' '.join(topics).lower() or 'agent' in description.lower()
     is_ml    = any(t in topics for t in ['machine-learning', 'deep-learning', 'ai'])
     is_web   = any(t in topics for t in ['web', 'frontend', 'backend', 'react'])
 
-    installation = "See documentation"
+    installation = NON_VERIFIE      # seulement ce que le README écrit, jamais de texte de remplissage
     for pattern in [r'## Installation(.{0,500}?)(?=##|\Z)', r'## Getting Started(.{0,500}?)(?=##|\Z)']:
         m = re.search(pattern, readme, re.IGNORECASE | re.DOTALL)
         if m:
@@ -2471,17 +2484,14 @@ def analyze_repo_for_usage(repo_info: Dict) -> Dict[str, str]:
     else:
         use_cases = ["Development integration", "Testing", "Business adaptation"]
 
-    repo_name = repo_info.get('name') or ''
-    example   = (f"pip install {repo_name}" if language == 'Python'
-                 else f"npm install {repo_name}" if language in ('JavaScript', 'TypeScript')
-                 else "See docs")
+    example = _readme_install_example(readme, repo_info.get('name') or '') or NON_VERIFIE
 
     return {
         'description':    description[:600],
         'use_cases_text': '\n'.join(f"• {uc}" for uc in use_cases),
         'installation':   installation,
         'example':        example,
-        'prerequisites':  f"{language} recent" if language else "See docs",
+        'prerequisites':  NON_VERIFIE,  # le langage ne dit ni la version ni les dépendances requises
     }
 
 # =============================================================================
@@ -2722,6 +2732,14 @@ def load_existing_urls(database_id: str) -> Optional[Tuple[Set[str], Set[str]]]:
 # =============================================================================
 # TRAITEMENT D'UN REPO
 # =============================================================================
+# Option de la colonne Type (déjà présente dans le schéma) → topics GitHub qui la prouvent
+_TYPE_TOPICS = (
+    ('Agent IA', frozenset({'agent', 'agents', 'ai-agent', 'ai-agents'})),
+    ('ML/AI',    frozenset({'machine-learning', 'ai'})),
+    ('Web',      frozenset({'web', 'frontend'})),
+)
+
+
 def build_page_properties(
     repo_info:         Dict,
     html_url:          str,
@@ -2730,17 +2748,10 @@ def build_page_properties(
     has_justification: bool,
 ) -> Dict:
     """Propriétés de la fiche Notion (construites aussi en DRY_RUN)."""
-    topics = [t for t in (repo_info.get('topics') or []) if isinstance(t, str)]
-    desc   = repo_info.get('description') or ''
-    types  = []
-    if 'agent' in ' '.join(topics).lower() or 'agent' in desc.lower():
-        types.append({'name': 'Agent IA'})
-    if any(t in topics for t in ['machine-learning', 'ai']):
-        types.append({'name': 'ML/AI'})
-    if any(t in topics for t in ['web', 'frontend']):
-        types.append({'name': 'Web'})
-    if not types:
-        types.append({'name': 'Outils'})
+    # Type : seulement des topics GitHub exacts (pas de sous-chaîne, pas de valeur par défaut) ;
+    # une liste vide est valide pour un multi_select
+    topics = {t.lower() for t in (repo_info.get('topics') or []) if isinstance(t, str)}
+    types  = [{'name': name} for name, wanted in _TYPE_TOPICS if topics & wanted]
 
     language = repo_info.get('language') or 'Autre'
     if language not in ['Python', 'JavaScript', 'TypeScript', 'Go']:
