@@ -1,0 +1,22 @@
+.env
+*.pyc
+__pycache__/
+extracted_urls*.txt
+
+# Secrets : toute variante de .env (sauf le modèle public)
+.env.*
+!env.example
+
+# Données locales générées par gitnotate.py
+.gitnotate_cache.json
+.gitnotate_cache.json.tmp
+.gitnotate_state.json
+journal/
+exports/
+*.bak
+*.tmp
+
+# Environnements virtuels et outils
+.venv/
+venv/
+.pytest_cache/

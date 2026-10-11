@@ -1,3 +1,7 @@
+> ⚠️ **Guide de la v6.7, en partie obsolète** : voir **README.md** pour la v7.2 (script `gitnotate.py`).
+> Les noms de fichiers, variables et options ci-dessous peuvent ne plus correspondre au script actuel.
+> Les identifiants Notion, jetons et chemins de ce guide sont des valeurs d'exemple fictives.
+
 # 📘 GitNotate v6.7 - Guide Complet
 
 **GitNotate** est un outil Python d'automatisation de veille technologique. Il extrait des URLs GitHub depuis une page Notion, analyse les dépôts, traduit les descriptions en français avec l'IA, et remplit une base de données Notion structurée.
@@ -49,10 +53,10 @@ bash
 # TOKENS & CLÉS API
 # ========================================
 
-# Token d'intégration Notion (secret_xxxxx...)
-NOTION_TOKEN=secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Token d'intégration Notion (ntn_xxxxx..., ou secret_xxxxx... pour les anciens jetons)
+NOTION_TOKEN=ntn_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# Token GitHub Personnel (ghp_xxxxx...)
+# Token GitHub Personnel, lecture seule (github_pat_xxxxx... ou ghp_xxxxx...)
 GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 # Clé API OpenRouter pour traduction IA (sk-or-v1-xxxxx...)
@@ -63,14 +67,14 @@ OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 # ========================================
 
 # ID de la PAGE contenant les liens GitHub à analyser
-# Exemple : https://www.notion.so/Ma-Page-1cab36ca5523800292cad5f59ab1fc0c
-# → PARENT_PAGE_ID = 1cab36ca5523800292cad5f59ab1fc0c
-PARENT_PAGE_ID=1cab36ca5523800292cad5f59ab1fc0c
+# Exemple : https://www.notion.so/Ma-Page-0123456789abcdef0123456789abcdef
+# → PARENT_PAGE_ID = 0123456789abcdef0123456789abcdef
+PARENT_PAGE_ID=0123456789abcdef0123456789abcdef
 
 # ID de la BASE DE DONNÉES de destination (laissez vide pour création auto)
-# Exemple : https://www.notion.so/2e8b36ca552381888439cb17eff24c83?v=...
-# → DATABASE_ID = 2e8b36ca552381888439cb17eff24c83
-DATABASE_ID=2e8b36ca-5523-816f-9f08-f2a87c465404
+# Exemple : https://www.notion.so/abcdef0123456789abcdef0123456789?v=...
+# → DATABASE_ID = abcdef0123456789abcdef0123456789
+DATABASE_ID=abcdef01-2345-6789-abcd-ef0123456789
 
 # ========================================
 # CONFIGURATION AVANCÉE
@@ -108,7 +112,7 @@ A. Token Notion
 
     Donnez un nom (ex: "GitNotate Bot")
 
-    Copiez le Internal Integration Token (commence par secret_...)
+    Copiez le Internal Integration Token (commence par ntn_..., ou secret_... pour les anciens jetons)
 
     Important : Invitez l'intégration sur votre page source ET votre base de données
 
@@ -120,13 +124,17 @@ A. Token Notion
 
 B. Token GitHub
 
-    Allez sur https://github.com/settings/tokens
+    Le script ne lit que des dépôts publics : aucun droit d'écriture ni d'accès aux dépôts privés n'est nécessaire.
 
-    Cliquez sur "Generate new token" → "Classic"
+    Recommandé : jeton "Fine-grained" sur https://github.com/settings/personal-access-tokens/new
 
-    Cochez au minimum : repo (accès aux dépôts publics)
+        Repository access : "Public repositories (read-only)"
 
-    Générez et copiez le token (commence par ghp_...)
+        Expiration : fixez une date d'expiration (ex. 90 jours)
+
+    Sinon : jeton "Classic" sur https://github.com/settings/tokens → ne cochez AUCUNE case (surtout pas "repo")
+
+    Générez et copiez le token (commence par github_pat_... en fine-grained, ghp_... en classique)
 
 C. Clé OpenRouter (Traduction IA)
 
@@ -194,8 +202,8 @@ text
 
 📋 Database Notion...
 ✅ Database prête!
- -  ID: 2e8b36ca-5523-816f-9f08-f2a87c465404
- -  URL: https://www.notion.so/2e8b36ca552381888439cb17eff24c83
+ -  ID: abcdef01-2345-6789-abcd-ef0123456789
+ -  URL: https://www.notion.so/abcdef0123456789abcdef0123456789
 
 🔍 Extraction URLs (pagination complète)...
 ✅ 312 URLs extraites
@@ -245,8 +253,8 @@ python clean_page_duplicates.py
 Sortie attendue (simulation) :
 
 text
-📂 Dossier : C:\Users\Fabrice\Desktop\GitNotate
-📄 Fichier .env : C:\Users\Fabrice\Desktop\GitNotate\.env
+📂 Dossier : C:\Users\VotreNom\Desktop\GitNotate
+📄 Fichier .env : C:\Users\VotreNom\Desktop\GitNotate\.env
 ✅ .env chargé
 
 ======================================================================
@@ -254,7 +262,7 @@ text
 ======================================================================
 
 🔑 Token : secr...xxxx
-📄 Page ID : 1cab36ca5523800292cad5f59ab1fc0c
+📄 Page ID : 0123456789abcdef0123456789abcdef
 
 🔍 MODE DRY-RUN : Simulation (aucune suppression)
 
@@ -401,7 +409,7 @@ Cause : Token invalide ou intégration non invitée sur la page/base.
 
 Solution :
 
-    Vérifiez que NOTION_TOKEN commence par secret_
+    Vérifiez que NOTION_TOKEN commence par ntn_ (ou secret_ pour les anciens jetons)
 
     Important : Invitez l'intégration sur CHAQUE page/base utilisée :
 

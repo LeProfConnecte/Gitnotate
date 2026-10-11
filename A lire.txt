@@ -1,2 +1,3 @@
-pip install python-dotenv
-python gitnotate_v6.6.py
+1. Installer les dépendances : python -m pip install -r requirements.txt
+2. Lancer : python gitnotate.py   (essai sans écriture dans Notion : python gitnotate.py --dry-run --max-repos 10)
+3. Mode d'emploi complet : lire README.md
