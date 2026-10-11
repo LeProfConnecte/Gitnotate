@@ -1,9 +1,14 @@
 {
+  "_lisez_moi": "Profil Gitnotate v2 (v7.3). Les 5 listes historiques (languages, frameworks, domains, interests, infra) restent lues par le score lexical de secours : y garder des mots-clés anglais courts en minuscules pour domains et interests. Les autres clés sont facultatives et lues par le prompt v2 : contexte, environnement, domaines, projets (statut actif ou envisagé), exclusions, licences, ponderations, categories (absente : liste par défaut du script). Les clés commençant par « _ » sont des commentaires, jamais envoyés au LLM. Seuls les noms de projets et de domaines écrits ici peuvent apparaître dans « Brique pour ». Changer ce fichier change l'empreinte du profil : les anciennes fiches ne sont jamais recalculées.",
+  "profile_version": "2026-10-11",
+  "contexte": "Enseignant en génie civil (BTS MEC, Nouvelle-Calédonie) et développeur polyvalent : applications web, outils d'IA et d'automatisation, documents, BTP, enseignement, création audiovisuelle, données, finance et cryptomonnaies. Objectif : repérer des dépôts qui pourraient devenir des composants réutilisables dans ses applications actuelles ou futures, même sans besoin immédiat.",
   "languages": [
     "Python",
     "JavaScript",
     "TypeScript",
-    "Node.js"
+    "Node.js",
+    "SQL",
+    "Bash"
   ],
   "frameworks": [
     "Next.js",
@@ -24,7 +29,11 @@
     "devops",
     "data-analysis",
     "finance",
-    "trading"
+    "trading",
+    "crypto",
+    "mcp",
+    "self-hosted",
+    "civil-engineering"
   ],
   "interests": [
     "teaching-tools",
@@ -36,7 +45,11 @@
     "no-code",
     "video-generation",
     "prompt-engineering",
-    "api-integration"
+    "api-integration",
+    "backtesting",
+    "web-scraping",
+    "code-assistant",
+    "bim"
   ],
   "infra": [
     "Docker",
@@ -46,6 +59,162 @@
     "VPS",
     "CloudPanel",
     "Supabase",
-    "MongoDB"
-  ]
+    "MongoDB",
+    "Ubuntu"
+  ],
+  "environnement": {
+    "_a_confirmer": "Quantité de VRAM du GPU (8 Go pour une RTX 3070 Ti) à confirmer par l'utilisateur.",
+    "materiel": [
+      "PC Windows avec GPU NVIDIA RTX 3070 Ti, 8 Go de VRAM (à confirmer)",
+      "VPS Ubuntu sans GPU"
+    ],
+    "systemes": [
+      "Windows (exécution manuelle)",
+      "Ubuntu (VPS)"
+    ],
+    "services": [
+      "Docker",
+      "Nginx",
+      "PostgreSQL / Supabase",
+      "n8n",
+      "Notion"
+    ],
+    "contraintes": [
+      "gratuit ou faible coût",
+      "auto-hébergeable de préférence"
+    ]
+  },
+  "domaines": [
+    {
+      "nom": "Applications web",
+      "description": "front et back-end (Next.js, React, FastAPI, Supabase), API, authentification, tableaux de bord"
+    },
+    {
+      "nom": "IA et agents",
+      "description": "LLM, agents, RAG, serveurs MCP, assistants de code, inférence locale ou par API"
+    },
+    {
+      "nom": "Automatisation",
+      "description": "workflows n8n ou Make, scraping, connecteurs d'API, tâches planifiées"
+    },
+    {
+      "nom": "Documents et OCR",
+      "description": "OCR, extraction de tableaux PDF, conversion et génération de documents Word ou PDF"
+    },
+    {
+      "nom": "BTP et génie civil",
+      "description": "métré, économie de la construction, pièces écrites (CCTP, DPGF), plans, BIM, calculs"
+    },
+    {
+      "nom": "Enseignement",
+      "description": "exercices, QCM, correction, supports de cours, plateformes d'apprentissage"
+    },
+    {
+      "nom": "Création audiovisuelle",
+      "description": "génération ou montage d'images, de vidéos et d'audio, sous-titres, voix"
+    },
+    {
+      "nom": "Données",
+      "description": "collecte, nettoyage, analyse et visualisation de données, bases de données"
+    },
+    {
+      "nom": "Finance",
+      "description": "suivi de portefeuille, données de marché, backtesting, indicateurs techniques"
+    },
+    {
+      "nom": "Cryptomonnaies",
+      "description": "API d'exchanges, portefeuilles, données on-chain, alertes"
+    },
+    {
+      "nom": "DevOps et auto-hébergement",
+      "description": "Docker, déploiement sur VPS, reverse proxy, supervision, sauvegardes"
+    }
+  ],
+  "projets": [
+    {
+      "nom": "Gitnotate",
+      "statut": "actif",
+      "_a_valider": "description et besoins repris de la proposition du 10/10/2026 : à confirmer",
+      "description": "veille GitHub vers des fiches Notion notées par LLM",
+      "besoins": [
+        "client LLM avec sortie JSON structurée",
+        "extraction et nettoyage de README",
+        "API Notion",
+        "planification sur VPS"
+      ]
+    },
+    {
+      "nom": "Automatisations n8n",
+      "statut": "actif",
+      "_a_valider": "description et besoins repris de la proposition du 10/10/2026 : à confirmer",
+      "description": "workflows n8n/Make auto-hébergés sur VPS : veille, e-mails, Notion, agents",
+      "besoins": [
+        "serveurs MCP ou nœuds n8n",
+        "connecteurs d'API",
+        "scraping web",
+        "agents appelables par webhook"
+      ]
+    },
+    {
+      "nom": "Outils pédagogiques BTS MEC",
+      "statut": "envisagé",
+      "_a_valider": "description et besoins repris de la proposition du 10/10/2026 : à confirmer",
+      "description": "génération et correction d'exercices (métré, économie de la construction), QCM, exploitation des pièces écrites",
+      "besoins": [
+        "OCR et extraction de tableaux PDF (CCTP, DPGF, plans)",
+        "RAG sur supports de cours",
+        "génération de QCM",
+        "export Word/PDF"
+      ]
+    },
+    {
+      "nom": "Suivi finance et crypto",
+      "statut": "envisagé",
+      "_a_valider": "description et besoins repris de la proposition du 10/10/2026 : à confirmer",
+      "description": "tableau de bord de portefeuille, backtesting de stratégies, alertes",
+      "besoins": [
+        "données de marché et API d'exchanges",
+        "backtesting",
+        "indicateurs techniques",
+        "alertes et notifications"
+      ]
+    }
+  ],
+  "_exclusions_a_valider": "Exclusions à confirmer. Suggestion non appliquée : « applications mobiles natives iOS/Android » (ajoutez-la à la liste si vous ne voulez pas de ces dépôts).",
+  "exclusions": [
+    "jeux vidéo et moteurs de jeu"
+  ],
+  "licences": {
+    "_note": "preferees : licence permissive (note licence 2/2) ; autre identifiant SPDX reconnu, dont avec_contraintes : 1/2 ; aucune licence : 0/2 ; licence non identifiée par GitHub : non vérifiée (exclue du score).",
+    "preferees": [
+      "MIT",
+      "Apache-2.0",
+      "BSD-2-Clause",
+      "BSD-3-Clause",
+      "ISC",
+      "MPL-2.0",
+      "Unlicense",
+      "0BSD",
+      "Zlib",
+      "CC0-1.0"
+    ],
+    "avec_contraintes": [
+      "GPL-2.0",
+      "GPL-3.0",
+      "LGPL-2.1",
+      "LGPL-3.0",
+      "AGPL-3.0",
+      "CC-BY-SA-4.0",
+      "CC-BY-NC-4.0"
+    ]
+  },
+  "ponderations": {
+    "_note": "Pertinence = 10 × Σ poids × (note / maximum) / Σ poids ; valeur = max(utilité immédiate, potentiel futur) / 3 ; une note non vérifiée (maturité ou licence) est exclue du calcul.",
+    "valeur": 4,
+    "interet": 1,
+    "integration": 2,
+    "compatibilite": 1,
+    "maturite": 1,
+    "licence": 1
+  }
 }

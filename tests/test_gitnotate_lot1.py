@@ -31,8 +31,12 @@ SCHEMA_TYPES = {
     'Stars': 'number', 'Pertinence': 'number', 'Langage': 'select', 'Statut': 'select',
     'Type': 'multi_select', 'Dernière MAJ': 'date', 'Analysé le': 'date',
 }
-GOOD_LLM = {'description_fr': 'Un outil en français', 'use_cases_fr': '• usage',
-            'score': 7, 'reasoning': 'pertinent pour le profil'}
+# Réponse LLM v2 (v7.3) : avec maturité et licence non vérifiées (dépôts simulés sans pushed_at
+# ni licence), Pertinence = arrondi de 10 × (4×2/3 + 1×2/2 + 2×1/2 + 1×2/2) / 8 = 7 (comme en v7.2)
+GOOD_LLM = {'description_fr': 'Un outil en français', 'cas_usage': ['usage'],
+            'categorie': 'Automatisation/No-code', 'type_reutilisation': 'bibliotheque', 'brique_pour': [],
+            'utilite_immediate': 0, 'potentiel_futur': 2, 'interet': 2, 'integration': 1, 'compatibilite': 2,
+            'justification': 'pertinent pour le profil'}
 GOOD_JSON = json.dumps(GOOD_LLM, ensure_ascii=False)
 
 
@@ -241,11 +245,11 @@ NULL_REPO = {'name': 'demo', 'language': None, 'topics': None, 'readme': None,
 # =============================================================================
 def test_version_constant_banner_and_stats(world, capsys):
     gn, api = world()
-    assert gn.__version__ == "7.2.0"
-    assert 'Nouveautés v7.2' in gn.__doc__
+    assert gn.__version__ == "7.3.0"
+    assert 'Nouveautés v7.3' in gn.__doc__ and 'Nouveautés v7.2' in gn.__doc__
     assert gn.main([]) == 0
-    assert "GITNOTATE v7.2.0" in capsys.readouterr().out
-    assert history(gn)[-1]['version'] == '7.2.0'
+    assert "GITNOTATE v7.3.0" in capsys.readouterr().out
+    assert history(gn)[-1]['version'] == '7.3.0'
 
 
 def test_version_option(load_gn, capsys):
@@ -253,7 +257,7 @@ def test_version_option(load_gn, capsys):
     with pytest.raises(SystemExit) as exc:
         gn.main(['--version'])
     assert exc.value.code == 0
-    assert '7.2.0' in capsys.readouterr().out
+    assert '7.3.0' in capsys.readouterr().out
 
 # =============================================================================
 # 2. AUCUN EFFET DE BORD À L'IMPORT, BASE_DIR, .env, PROFIL, JETONS
@@ -418,7 +422,7 @@ def test_script_exit_code_via_sys_exit(tmp_path):
     assert 'PARENT_PAGE_ID' in r.stderr.decode('utf-8')
     r = subprocess.run([sys.executable, script, '--version'], env=_subprocess_env(tmp_path),
                        capture_output=True, timeout=60)
-    assert r.returncode == 0 and b'7.2.0' in r.stdout
+    assert r.returncode == 0 and b'7.3.0' in r.stdout
 
 # =============================================================================
 # 5. JOURNALISATION
@@ -735,7 +739,7 @@ def test_five_lexical_paths_with_null_fields(load_gn, monkeypatch, path):
     gn.TRANSLATION_PROVIDER, gn.TRANSLATION_FALLBACK = (None, None) if path == 'sans_fournisseur' \
         else ('mistral', None)
     answers = {
-        'score_invalide': json.dumps(dict(GOOD_LLM, score=42)),
+        'score_invalide': json.dumps(dict(GOOD_LLM, interet=42)),
         'scoring_desactive': json.dumps({'description_fr': 'Outil', 'use_cases_fr': '• a'}),
         'tous_echouent': None,
     }
@@ -787,21 +791,20 @@ LLM_SCENARIOS = [
     ('S5 bloc ```json', make_response(200, chat('```json\n' + GOOD_JSON + '\n```')), 'openrouter'),
     ('S6 200 avec error', make_response(200, {'error': {'code': 502, 'message': 'Provider error'}}), 'mistral'),
     ('S7 429 quota', make_response(429, {'error': {'code': 429}}, {'X-RateLimit-Remaining': '0'}), 'mistral'),
-    ('S8 score chaîne', make_response(200, chat(json.dumps(dict(GOOD_LLM, score='7')))), 'openrouter'),
+    ('S8 score chaîne', make_response(200, chat(json.dumps(dict(GOOD_LLM, potentiel_futur='2')))), 'openrouter'),
     ('corps non JSON', make_response(200, text='<html>oops</html>'), 'mistral'),
     ('texte autour + accolades', make_response(200, chat('Voici {le résultat} :\n' + GOOD_JSON + '\nFin {ok}')),
      'openrouter'),
     ('saut de ligne littéral', make_response(200, chat(
-        '{"description_fr": "Un outil\nen français", "use_cases_fr": "• a", "score": 7, "reasoning": "r"}')),
-     'openrouter'),
+        json.dumps(GOOD_LLM, ensure_ascii=False).replace('Un outil en', 'Un outil\nen'))), 'openrouter'),
     ('blocs reasoning OpenAI', make_response(200, chat([{'type': 'reasoning', 'text': 'réflexion'},
                                                         {'type': 'text', 'text': GOOD_JSON}])), 'openrouter'),
-    ('score booléen', make_response(200, chat(json.dumps(dict(GOOD_LLM, score=True)))), 'mistral'),
-    ('score hors bornes', make_response(200, chat(json.dumps(dict(GOOD_LLM, score=11)))), 'mistral'),
+    ('score booléen', make_response(200, chat(json.dumps(dict(GOOD_LLM, interet=True)))), 'mistral'),
+    ('score hors bornes', make_response(200, chat(json.dumps(dict(GOOD_LLM, interet=3)))), 'mistral'),
     ('content objet', make_response(200, chat({'foo': 1})), 'mistral'),
     ('choices vide', make_response(200, {'choices': []}), 'mistral'),
     ('description vide', make_response(200, chat(json.dumps(dict(GOOD_LLM, description_fr='')))), 'mistral'),
-    ('use_cases nombre', make_response(200, chat(json.dumps(dict(GOOD_LLM, use_cases_fr=3)))), 'mistral'),
+    ('use_cases nombre', make_response(200, chat(json.dumps(dict(GOOD_LLM, cas_usage=3)))), 'mistral'),
     ('exception réseau', requests.exceptions.ConnectionError('coupure'), 'mistral'),
 ]
 
@@ -842,7 +845,7 @@ def test_s9_truncated_json_without_fallback(llm):
 
 
 def test_partial_translation_kept_when_all_scores_invalid(llm):
-    bad = make_response(200, chat(json.dumps(dict(GOOD_LLM, score='beaucoup'))))
+    bad = make_response(200, chat(json.dumps(dict(GOOD_LLM, interet='beaucoup'))))
     gn, api = llm(lambda u, p: bad, lambda u, p: make_response(200, chat('pas de json')))
     result = gn.translate_and_score('A tool', '• x', dict(NULL_REPO), 'demo')
     assert result['translated'] is True and result['provider'] == 'openrouter'
@@ -868,19 +871,21 @@ def test_normalize_llm_content(load_gn):
 
 
 def test_validate_llm_payload_rules(load_gn):
+    """v7.3 : mêmes règles sur la réponse v2 (jugements bornés au lieu du score 0-10, justification
+    tronquée à 400 caractères ; le score est calculé ensuite par le code)."""
     gn = load_gn()
     validate = gn._validate_llm_payload
-    ok, _ = validate({'description_fr': ' Outil ', 'use_cases_fr': ['a', '• b', None, ''],
-                      'score': '7.6', 'reasoning': 'x' * 900}, True)
+    ok, _ = validate(dict(GOOD_LLM, description_fr=' Outil ', cas_usage=['a', '• b', None, ''],
+                          potentiel_futur='2.0', justification='x' * 900), True)
     assert ok['description_fr'] == 'Outil' and ok['use_cases_fr'] == '• a\n• b'
-    assert ok['score'] == 8 and len(ok['reasoning']) == 800
-    assert validate({'description_fr': '', 'use_cases_fr': 'a'}, True)[0] is None
-    assert validate({'description_fr': 'x', 'use_cases_fr': 3}, True)[0] is None
+    assert ok['judgements']['potentiel_futur'] == 2 and len(ok['reasoning']) == 400
+    assert validate(dict(GOOD_LLM, description_fr=''), True)[0] is None
+    assert validate(dict(GOOD_LLM, cas_usage=3), True)[0] is None
     assert validate({'description_fr': 'x'}, True)[0] is None
-    for bad in (True, -1, 10.6, 'sept', float('nan'), None, [7]):
-        assert validate({'description_fr': 'x', 'use_cases_fr': 'a', 'score': bad}, True)[0]['score'] is None
-    assert gn._coerce_score('7,5') == 8 and gn._coerce_score(10) == 10 and gn._coerce_score(0.0) == 0
-    assert validate({'description_fr': 'x', 'use_cases_fr': 'a', 'score': 5, 'reasoning': 3}, True)[0]['score'] is None
+    for bad in (True, -1, 2.6, 'sept', float('nan'), None, [2], 4):
+        assert validate(dict(GOOD_LLM, potentiel_futur=bad), True)[0]['judgements'] is None
+    assert gn._coerce_scale('2', 3) == 2 and gn._coerce_scale(3, 3) == 3 and gn._coerce_scale(0.0, 2) == 0
+    assert validate(dict(GOOD_LLM, justification=3), True)[0]['judgements'] is None
 
 
 def test_parse_llm_json_tolerant(load_gn):
@@ -898,9 +903,9 @@ def test_translation_counters_never_double_count(load_gn, monkeypatch):
     plans = [
         {'openrouter': GOOD_JSON},
         {'openrouter': 'pas de json', 'mistral': GOOD_JSON},
-        {'openrouter': json.dumps(dict(GOOD_LLM, score=99)), 'mistral': None},
+        {'openrouter': json.dumps(dict(GOOD_LLM, interet=99)), 'mistral': None},
         {'openrouter': None, 'mistral': None},
-        {'openrouter': json.dumps(dict(GOOD_LLM, reasoning={'x': 1})), 'mistral': GOOD_JSON},
+        {'openrouter': json.dumps(dict(GOOD_LLM, justification={'x': 1})), 'mistral': GOOD_JSON},
     ]
     for plan in plans:
         monkeypatch.setattr(gn, '_call_translation_api', lambda p, m, t, plan=plan: plan.get(p))
@@ -1219,7 +1224,7 @@ def test_cli_invalid_arguments(load_gn, argv, capsys):
 def test_cache_validity_per_entry(world):
     gn, api = world()
     now = time.time()
-    fresh = dict(repo_data('owner', 'repo'), cached_at=now - 60, stars=42, readme='')
+    fresh = dict(repo_data('owner', 'repo'), cached_at=now - 60, stars=42, readme='', cache_format=gn.CACHE_FORMAT)
     gn.CACHE_FILE.write_text(json.dumps({
         'owner/repo': fresh,
         'old/one': dict(fresh, cached_at=now - 48 * 3600),

@@ -167,19 +167,25 @@ def test_s1_definitive_refusal_then_alias_creates_one_page(world2):
 # =============================================================================
 # S3 — mode reprise : réponses dégradées refusées (champs vides, gabarit du prompt recopié)
 # =============================================================================
+# v7.3 : réponse v2 (cas_usage, justification) ; une liste de cas d'usage VIDE est désormais valide
+# (écrite « Non vérifié ») : voir test_s3_empty_use_cases_written_non_verifie
 DEGRADED = {
-    'use_cases vide': J(use_cases_fr=''),
-    'use_cases liste vide': J(use_cases_fr=[]),
-    "use_cases [None, '']": J(use_cases_fr=[None, '']),
-    'reasoning absent': J(reasoning=_DROP),
-    'reasoning vide': J(reasoning='  '),
+    'justification absente': J(justification=_DROP),
+    'justification vide': J(justification='  '),
     'gabarit du prompt recopié': json.dumps({
+        'description_fr': '<description française du dépôt en 40 mots maximum>',
+        'cas_usage': ["<cas d'usage 1>", "<cas d'usage 2>"], 'categorie': '<catégorie>',
+        'type_reutilisation': '<type>', 'brique_pour': ['<nom exact>'], 'utilite_immediate': 0,
+        'potentiel_futur': 0, 'interet': 0, 'integration': 0, 'compatibilite': 0,
+        'justification': '<justification du score en 40 mots maximum>'}, ensure_ascii=False),
+    'gabarit v7.2 recopié': json.dumps({
         'description_fr': 'traduction française de la description',
         'use_cases_fr': "• cas d'usage 1\n• cas d'usage 2\n• cas d'usage 3",
         'score': 7, 'reasoning': '<justification du score en 40 mots maximum>'}, ensure_ascii=False),
     'description du gabarit seule': J(description_fr='Traduction française de la description.'),
-    'cas d’usage du gabarit seuls': J(use_cases_fr="• cas d’usage 1\n• cas d’usage 2"),
-    'reasoning du gabarit seul': J(reasoning='<justification du score en 40 mots maximum>'),
+    'description du gabarit v2 seule': J(description_fr='Description française du dépôt'),
+    'cas d’usage du gabarit seuls': J(cas_usage="• cas d’usage 1\n• cas d’usage 2"),
+    'justification du gabarit seule': J(justification='<justification du score en 40 mots maximum>'),
 }
 
 
@@ -191,6 +197,15 @@ def test_s3_degraded_answers_are_deferred(world2, label):
     assert history(gn)[-1]['deferred_by_reason'] == {gn.DEFER_LLM_FAILED: 1}
 
 
+@pytest.mark.parametrize('cases', ['', [], [None, ''], None])
+def test_s3_empty_use_cases_written_non_verifie(world2, cases):
+    """v7.3 : cas_usage vide (aucun usage justifiable) est une réponse valide : « Non vérifié » écrit."""
+    gn, api, code = run_with_generation(world2, J(cas_usage=cases))
+    (page,) = pages_posted(api)
+    assert page['properties']["Cas d'usage"]['rich_text'][0]['text']['content'] == 'Non vérifié'
+    assert gn.stats.deferred == 0 and code == 0
+
+
 def test_s3_translation_only_template_is_deferred(world2):
     content = json.dumps({'description_fr': 'traduction de la description',
                           'use_cases_fr': "traduction des cas d'usage avec puces • "})
@@ -198,7 +213,7 @@ def test_s3_translation_only_template_is_deferred(world2):
     assert pages_posted(api) == [] and gn.stats.deferred == 1
 
 
-@pytest.mark.parametrize('content', [J(), J(use_cases_fr=['a', '• b']), J(reasoning='x' * 900)])
+@pytest.mark.parametrize('content', [J(), J(cas_usage=['a', '• b']), J(justification='x' * 900)])
 def test_s3_valid_answers_still_written(world2, content):
     gn, api, code = run_with_generation(world2, content)
     (page,) = pages_posted(api)
@@ -209,7 +224,7 @@ def test_s3_valid_answers_still_written(world2, content):
 
 def test_s3_missing_reasoning_keeps_translation_when_require_llm_false(world2):
     """Justification absente : score LLM écarté (réponse partielle) mais traduction conservée."""
-    gn, api, code = run_with_generation(world2, J(reasoning=_DROP), REQUIRE_LLM='false')
+    gn, api, code = run_with_generation(world2, J(justification=_DROP), REQUIRE_LLM='false')
     (page,) = pages_posted(api)
     assert page['properties']['Description']['rich_text'][0]['text']['content'] == 'Un outil en français'
     assert page['properties']['Justification']['rich_text'][0]['text']['content'].startswith('[LEXICAL')
@@ -466,9 +481,10 @@ def test_sec2_secret_and_state_files_ignored(tmp_path):
 # S4 — raisonnement en ligne : le brouillon n'est jamais retenu
 # =============================================================================
 def test_s4_inline_think_draft_is_ignored(world2):
-    content = ('<think>Premier jet : {"description_fr": "brouillon", "use_cases_fr": "• x", "score": 2, '
-               '"reasoning": "premier jet"} — non, le README montre un usage éducatif.</think>\n'
-               + J(description_fr='Outil final', score=8, reasoning='définitif'))
+    # v7.3 : U0·P3·T1·I1·C2 (maturité et licence non vérifiées) → 10 × 6,5 / 8 = 8
+    content = ('<think>Premier jet : ' + J(description_fr='brouillon', potentiel_futur=0, justification='premier jet')
+               + ' — non, le README montre un usage éducatif.</think>\n'
+               + J(description_fr='Outil final', potentiel_futur=3, interet=1, justification='définitif'))
     gn, api, code = run_with_generation(world2, content)
     (page,) = pages_posted(api)
     assert page['properties']['Pertinence']['number'] == 8

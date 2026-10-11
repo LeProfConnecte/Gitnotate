@@ -68,12 +68,17 @@ def test_mf1_prerequisites_never_guessed_from_language(load_gn, language):
     assert gn.analyze_repo_for_usage(dict(REPO, language=language))['prerequisites'] == 'Non vérifié'
 
 
+# v7.3 : Exemple = premier bloc de code d'une section Usage / Example(s) / Exemple(s) / Utilisation du
+# README complet, recopié tel quel ; une commande hors section n'est plus reconstruite (« pip install <nom> »)
 @pytest.mark.parametrize('name,readme,expected', [
-    ('foo', 'Install with `pip install foo`.', 'pip install foo'),
-    ('foo', 'Run:\n\n    python -m pip install foo\n', 'pip install foo'),
-    ('foo', 'pip3 install foo', 'pip3 install foo'),
-    ('foo', '```\nnpm install foo --save\n```', 'npm install foo'),
-    ('FastAPI', 'pip install fastapi', 'pip install fastapi'),            # nom écrit comme dans le README
+    ('foo', 'Install with `pip install foo`.', 'Non vérifié'),
+    ('foo', 'Run:\n\n    python -m pip install foo\n', 'Non vérifié'),
+    ('foo', 'pip3 install foo', 'Non vérifié'),
+    ('foo', '```\nnpm install foo --save\n```', 'Non vérifié'),            # bloc de code hors section
+    ('FastAPI', 'pip install fastapi', 'Non vérifié'),
+    ('foo', '## Usage\n\n```python\nimport foo\nfoo.run()\n```\n', 'import foo\nfoo.run()'),
+    ('foo', '## Exemples\n```\nnpm install foo --save\n```', 'npm install foo --save'),
+    ('foo', '## Usage\nSee the source.\n', 'Non vérifié'),                 # section sans bloc de code
     ('foo', 'pip install "foo[all]"', 'Non vérifié'),
     ('foo', 'pip install foo-bar', 'Non vérifié'),                         # autre paquet
     ('foo', 'pip install foobar', 'Non vérifié'),
@@ -94,7 +99,8 @@ def test_mf1_example_only_when_readme_contains_command(load_gn, name, readme, ex
 def test_mf1_example_independent_of_language(load_gn):
     gn = load_gn()
     # Le README prouve la commande npm même si GitHub annonce Python ; rien n'est déduit du langage
-    assert gn.analyze_repo_for_usage(dict(REPO, readme='npm install foo'))['example'] == 'npm install foo'
+    readme = '## Usage\n```\nnpm install foo\n```'
+    assert gn.analyze_repo_for_usage(dict(REPO, readme=readme))['example'] == 'npm install foo'
     assert gn.analyze_repo_for_usage(dict(REPO, language='JavaScript', readme='# foo'))['example'] == 'Non vérifié'
 
 
@@ -102,8 +108,9 @@ def test_mf1_installation_still_extracted_from_readme(load_gn):
     gn = load_gn()
     block = '# foo\n\n## Installation\n\n```bash\npip install foo\n```\n\n## Usage\nfoo --help\n'
     assert gn.analyze_repo_for_usage(dict(REPO, readme=block))['installation'] == 'pip install foo'
+    # v7.3 : seulement le premier bloc de code de la section (verbatim) ; du texte seul → Non vérifié
     lines = '# foo\n\n## Getting Started\n\nClone the repository then run make.\n\n## License\nMIT\n'
-    assert gn.analyze_repo_for_usage(dict(REPO, readme=lines))['installation'] == 'Clone the repository then run make.'
+    assert gn.analyze_repo_for_usage(dict(REPO, readme=lines))['installation'] == 'Non vérifié'
     empty = '# foo\n\n## Installation\n\n## Usage\n'
     assert gn.analyze_repo_for_usage(dict(REPO, readme=empty))['installation'] == 'Non vérifié'
 
@@ -159,11 +166,11 @@ def test_mf1_full_run_writes_non_verifie_and_empty_type(world):
 
 
 def test_mf1_full_run_keeps_proven_values(world):
-    readme = b'# repo\n\n## Installation\n\n```bash\npip install repo\n```\n\n## Usage\nrepo --help\n'
+    readme = b'# repo\n\n## Installation\n\n```bash\npip install repo\n```\n\n## Usage\n```\nrepo --help\n```\n'
     gn, api = world(readme=readme, topics=['ai-agents', 'web'])
     assert gn.main([]) == 0
     props = _posted_pages(api)[0]['properties']
-    assert _text(props, 'Exemple') == 'pip install repo'
+    assert _text(props, 'Exemple') == 'repo --help'                  # v7.3 : bloc de la section Usage
     assert _text(props, 'Installation') == 'pip install repo'
     assert _text(props, 'Prérequis') == 'Non vérifié'
     assert props['Type'] == {'multi_select': [{'name': 'Agent IA'}, {'name': 'Web'}]}

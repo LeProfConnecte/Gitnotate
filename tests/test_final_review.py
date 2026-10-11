@@ -19,13 +19,18 @@ ROOT = Path(__file__).resolve().parent.parent
 README = (ROOT / 'README.md').read_text(encoding='utf-8')
 README_FLAT = ' '.join(README.split())
 
+# v7.3 : réponse v2 ; U0·P3·T1·I1·C2, maturité et licence non vérifiées → 10 × 6,5 / 8 = 8 (comme en v7.2)
 GOOD = {'description_fr': "Un outil d'automatisation pour les flux IA",
-        'use_cases_fr': '• Automatiser des tâches\n• Orchestrer des agents',
-        'score': 8, 'reasoning': 'Stack Python identique, domaine automatisation'}
+        'cas_usage': ['Automatiser des tâches', 'Orchestrer des agents'],
+        'categorie': 'Automatisation/No-code', 'type_reutilisation': 'bibliotheque', 'brique_pour': [],
+        'utilite_immediate': 0, 'potentiel_futur': 3, 'interet': 1, 'integration': 1, 'compatibilite': 2,
+        'justification': 'Stack Python identique, domaine automatisation'}
 GOOD_TEXT = json.dumps(GOOD, ensure_ascii=False)
-TEMPLATE_ANSWER = {'description_fr': 'traduction française de la description',
-                   'use_cases_fr': "• cas d'usage 1\n• cas d'usage 2", 'score': 0,
-                   'reasoning': 'justification du score en 40 mots maximum'}
+TEMPLATE_ANSWER = {'description_fr': 'description française du dépôt en 40 mots maximum',
+                   'cas_usage': ["cas d'usage 1", "cas d'usage 2"], 'categorie': 'Autre',
+                   'type_reutilisation': 'aucun', 'brique_pour': [], 'utilite_immediate': 0, 'potentiel_futur': 0,
+                   'interet': 0, 'integration': 0, 'compatibilite': 0,
+                   'justification': 'justification du score en 40 mots maximum'}
 OLD_OR_MODEL = 'openai/gpt-oss-20b:free'
 
 
@@ -70,17 +75,17 @@ def _validate(gn, **over):
     (["Cas d'usage 1 : automatiser des workflows n8n", "Cas d'usage 2 : orchestrer des agents"],
      "• automatiser des workflows n8n\n• orchestrer des agents"),
     ("• Cas d’usage 1 – intégration à une API de traduction", "• intégration à une API de traduction"),
-    ("• Cas d'usage 1 : X • Cas d'usage 2 : Y", "• X • Y"),
+    ("• Cas d'usage 1 : X • Cas d'usage 2 : Y", "• X\n• Y"),                 # v7.3 : liste découpée aux puces
     ("• Automatisation\n• Voir cas d'usage 12 de la doc", "• Automatisation\n• Voir cas d'usage 12 de la doc"),
     ("• Traduction des cas d'usage métier en workflows n8n",
      "• Traduction des cas d'usage métier en workflows n8n"),
-    ("1. Corriger des copies\n2. Générer des quiz", "1. Corriger des copies\n2. Générer des quiz"),
+    ("1. Corriger des copies\n2. Générer des quiz", "• Corriger des copies\n• Générer des quiz"),   # v7.3
 ])
 def test_fc1_numbered_real_use_cases_accepted_and_label_removed(load_gn, use_cases, expected):
     gn = load_gn()
-    cleaned, why = _validate(gn, use_cases_fr=use_cases)
+    cleaned, why = _validate(gn, cas_usage=use_cases)
     assert cleaned is not None and why == ''
-    assert cleaned['use_cases_fr'] == expected and cleaned['score'] == 8
+    assert cleaned['use_cases_fr'] == expected and cleaned['judgements'] is not None
 
 
 @pytest.mark.parametrize('use_cases', [
@@ -108,8 +113,8 @@ def test_fc1_numbered_real_use_cases_accepted_and_label_removed(load_gn, use_cas
 ])
 def test_fc1_prompt_templates_still_rejected(load_gn, use_cases):
     gn = load_gn()
-    cleaned, why = _validate(gn, use_cases_fr=use_cases)
-    assert cleaned is None and why == "use_cases_fr recopiés du gabarit du prompt"
+    cleaned, why = _validate(gn, cas_usage=use_cases)
+    assert cleaned is None and why == "cas_usage recopiés du gabarit du prompt"
 
 
 @pytest.mark.parametrize('use_cases', [
@@ -121,8 +126,8 @@ def test_fc1_prompt_templates_still_rejected(load_gn, use_cases):
 ])
 def test_p1_real_use_cases_with_separators_accepted(load_gn, use_cases):
     gn = load_gn()
-    cleaned, why = _validate(gn, use_cases_fr=use_cases)
-    assert cleaned is not None and why == '' and cleaned['score'] == 8
+    cleaned, why = _validate(gn, cas_usage=use_cases)
+    assert cleaned is not None and why == '' and cleaned['judgements'] is not None
 
 
 @pytest.mark.parametrize('use_cases', [
@@ -138,8 +143,8 @@ def test_p1_real_use_cases_with_separators_accepted(load_gn, use_cases):
 ])
 def test_residual_template_forms_rejected(load_gn, use_cases):
     gn = load_gn()
-    cleaned, why = _validate(gn, use_cases_fr=use_cases)
-    assert cleaned is None and why == "use_cases_fr recopiés du gabarit du prompt"
+    cleaned, why = _validate(gn, cas_usage=use_cases)
+    assert cleaned is None and why == "cas_usage recopiés du gabarit du prompt"
 
 
 @pytest.mark.parametrize('use_cases', [
@@ -150,7 +155,7 @@ def test_residual_template_forms_rejected(load_gn, use_cases):
 ])
 def test_residual_rule_keeps_real_use_cases(load_gn, use_cases):
     gn = load_gn()
-    cleaned, why = _validate(gn, use_cases_fr=use_cases)
+    cleaned, why = _validate(gn, cas_usage=use_cases)
     assert cleaned is not None and why == ''
 
 
@@ -163,7 +168,8 @@ def test_residual_rule_keeps_real_use_cases(load_gn, use_cases):
 def test_p1_full_run_template_use_cases_are_deferred(world2, env, use_cases):
     gn, api = world2(OPENROUTER_API_KEY=None, **env)
     api.set_page_urls(['https://github.com/org/repo0'])
-    _mistral_generation(api, json.dumps(dict(GOOD, use_cases_fr=use_cases), ensure_ascii=False))
+    key = 'use_cases_fr' if env else 'cas_usage'          # traduction seule : réponse v7.2 inchangée
+    _mistral_generation(api, json.dumps(dict(GOOD, **{key: use_cases}), ensure_ascii=False))
     assert gn.main([]) == 0
     assert pages_posted(api) == [] and gn.stats.deferred == 1
 
@@ -176,9 +182,13 @@ def test_fc1_template_markers_match_prompts(load_gn):
     assert gn._TEMPLATE_USE_CASE_LINE_RE.fullmatch(gn._TEMPLATE_USE_CASES[0])
     assert gn._TEMPLATE_USE_CASES_TRANSLATE in gn.SYSTEM_PROMPT_TRANSLATE
     assert f'"<{gn._TEMPLATE_REASONING_FULL}>"' in combined
-    # Les gabarits réellement écrits dans les prompts sont rejetés tels quels
-    combined_template = json.loads('{' + combined.split('{', 1)[1].split('"score"')[0].rstrip(' ,\n') + '}')
-    assert gn._use_cases_are_template(combined_template['use_cases_fr'])
+    assert f'"<{gn._TEMPLATE_DESCRIPTIONS[0]}>"' in combined
+    # Les gabarits réellement écrits dans les prompts sont rejetés tels quels (v7.3 : gabarit v2)
+    template_cases = json.loads(combined.split('"cas_usage": ', 1)[1].split(']', 1)[0] + ']')
+    assert gn._use_cases_are_template('\n'.join(template_cases))
+    assert _validate(gn, cas_usage=template_cases) == (None, "cas_usage recopiés du gabarit du prompt")
+    assert _validate(gn, description_fr=f"<{gn._TEMPLATE_DESCRIPTIONS[0]}>")[0] is None
+    assert _validate(gn, justification=f"<{gn._TEMPLATE_REASONING_FULL}>")[0]['judgements'] is None
     translate_template = json.loads('{' + gn.SYSTEM_PROMPT_TRANSLATE.split('{', 1)[1].split('}')[0] + '}')
     assert gn._use_cases_are_template(translate_template['use_cases_fr'])
 
@@ -186,8 +196,8 @@ def test_fc1_template_markers_match_prompts(load_gn):
 def test_fc1_full_run_numbered_use_cases_are_written(world2):
     gn, api = world2(OPENROUTER_API_KEY=None)
     api.set_page_urls([f'https://github.com/org/repo{i}' for i in range(4)])
-    _mistral_generation(api, json.dumps(dict(GOOD, use_cases_fr="• Cas d'usage 1 : automatiser des tâches\n"
-                                                                 "• Cas d'usage 2 : orchestrer des agents"),
+    _mistral_generation(api, json.dumps(dict(GOOD, cas_usage="• Cas d'usage 1 : automatiser des tâches\n"
+                                                              "• Cas d'usage 2 : orchestrer des agents"),
                                         ensure_ascii=False))
     assert gn.main([]) == 0
     pages = pages_posted(api)
@@ -207,8 +217,8 @@ def test_fc1_full_run_numbered_use_cases_are_written(world2):
 ])
 def test_fc2_real_reasoning_in_angle_brackets_accepted(load_gn, reasoning, expected):
     gn = load_gn()
-    cleaned, why = _validate(gn, reasoning=reasoning)
-    assert why == '' and cleaned['score'] == 8 and cleaned['reasoning'] == expected
+    cleaned, why = _validate(gn, justification=reasoning)
+    assert why == '' and cleaned['judgements'] is not None and cleaned['reasoning'] == expected
 
 
 @pytest.mark.parametrize('reasoning', ['<…>', '<...>', '<>', '< . >',
@@ -220,8 +230,8 @@ def test_fc2_real_reasoning_in_angle_brackets_accepted(load_gn, reasoning, expec
                                        'Justification du score'])
 def test_fc2_template_reasoning_still_rejected(load_gn, reasoning):
     gn = load_gn()
-    cleaned, why = _validate(gn, reasoning=reasoning)
-    assert cleaned['score'] is None and why == "reasoning recopié du gabarit du prompt"
+    cleaned, why = _validate(gn, justification=reasoning)
+    assert cleaned['judgements'] is None and why == "justification recopiée du gabarit du prompt"
 
 # =============================================================================
 # FC-3 — réponse enveloppée dans un objet décodé
@@ -235,7 +245,8 @@ def test_fc3_wrapped_answer_is_found(load_gn, raw):
     gn = load_gn()
     parsed = gn._parse_llm_json(raw)
     assert parsed == GOOD
-    assert gn._validate_llm_payload(parsed, True) == (dict(GOOD), '')
+    cleaned, why = gn._validate_llm_payload(parsed, True)
+    assert why == '' and cleaned['description_fr'] == GOOD['description_fr'] and cleaned['cas_usage'] == GOOD['cas_usage']
 
 
 def test_fc3_nested_objects_of_an_answer_still_ignored(load_gn):
@@ -255,7 +266,7 @@ def test_fc4_trailing_template_example_does_not_win(load_gn):
 @pytest.mark.parametrize('braces', [25, 300])
 def test_fc4_valid_draft_before_many_braces_never_wins(load_gn, braces):
     gn = load_gn()
-    draft = dict(GOOD, description_fr='BROUILLON', score=2)
+    draft = dict(GOOD, description_fr='BROUILLON', potentiel_futur=0)
     noise = ' '.join('{x}' for _ in range(braces))
     raw = (json.dumps(draft, ensure_ascii=False) + '\nRéflexion : ' + noise
            + '\nRéponse finale :\n' + GOOD_TEXT)
@@ -264,10 +275,11 @@ def test_fc4_valid_draft_before_many_braces_never_wins(load_gn, braces):
 
 def test_fc4_complete_answer_beats_later_partial_and_s4_kept(load_gn):
     gn = load_gn()
-    partial = dict(GOOD, description_fr='Partielle', score='beaucoup')
+    partial = dict(GOOD, description_fr='Partielle', interet='beaucoup')
     assert gn._parse_llm_json(GOOD_TEXT + ' puis ' + json.dumps(partial, ensure_ascii=False)) == GOOD
     # Sans score demandé (traduction seule), la plus tardive des réponses valides l'emporte
-    assert gn._parse_llm_json(GOOD_TEXT + ' ' + json.dumps(partial), need_score=False)['description_fr'] == 'Partielle'
+    translated = json.dumps(dict(GOOD, use_cases_fr='• a')) + ' ' + json.dumps(dict(partial, use_cases_fr='• b'))
+    assert gn._parse_llm_json(translated, need_score=False)['description_fr'] == 'Partielle'
     # S4 : brouillon <think> ignoré même s'il est valide
     think = '<think>' + json.dumps(dict(GOOD, description_fr='brouillon')) + '</think>' + GOOD_TEXT
     assert gn._parse_llm_json(think) == GOOD
@@ -655,4 +667,4 @@ def test_good_llm_fixture_still_valid(load_gn):
     """Témoin : la réponse nominale des autres tests reste acceptée telle quelle."""
     gn = load_gn()
     cleaned, why = gn._validate_llm_payload(dict(GOOD_LLM), True)
-    assert why == '' and cleaned['use_cases_fr'] == GOOD_LLM['use_cases_fr']
+    assert why == '' and cleaned['cas_usage'] == GOOD_LLM['cas_usage'] and cleaned['judgements'] is not None

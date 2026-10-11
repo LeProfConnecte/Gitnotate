@@ -207,7 +207,7 @@ def test_mistral_request_parameters(llm2):
     assert body['response_format'] == {'type': 'json_object'}
     assert body['reasoning_effort'] == 'none'
     assert headers['Authorization'] == f'Bearer {MISTRAL_KEY}'
-    assert model == MISTRAL_SERVED and json.loads(text)['score'] == 7
+    assert model == MISTRAL_SERVED and json.loads(text) == GOOD_LLM
 
 
 @pytest.mark.parametrize('env,expected', [
@@ -256,8 +256,12 @@ def test_openrouter_response_format_options(llm2):
     rf = api.llm_bodies('openrouter')[-1]['response_format']
     assert rf['type'] == 'json_schema' and rf['json_schema']['strict'] is True
     schema = rf['json_schema']['schema']
-    assert schema['required'] == ['description_fr', 'use_cases_fr', 'score', 'reasoning']
-    assert schema['properties']['score']['type'] == 'integer'
+    # v7.3 : schéma de la réponse v2 (jugements entiers, catégorie et type en énumération)
+    assert schema['required'] == ['description_fr', 'cas_usage', 'categorie', 'type_reutilisation', 'brique_pour',
+                                  'utilite_immediate', 'potentiel_futur', 'interet', 'integration',
+                                  'compatibilite', 'justification']
+    assert schema['properties']['potentiel_futur']['type'] == 'integer'
+    assert schema['properties']['type_reutilisation']['enum'] == list(gn.REUSE_TYPES)
     assert schema['additionalProperties'] is False
 
 
@@ -455,7 +459,8 @@ def test_justification_prefixed_with_served_model_and_profile(world2, capsys):
     (page,) = pages_posted(api)
     text = justification(page)
     profile_hash = gn.compute_profile_hash()
-    assert text == f"[LLM {OR_SERVED} · profil {profile_hash}] pertinent pour le profil"
+    # v7.3 : version du profil et détail des sept critères (maturité et licence non vérifiées ici)
+    assert text == f"[LLM {OR_SERVED} · profil v1/{profile_hash}] U0·P2·T2·I1·C2·M?·L? = 7 — pertinent pour le profil"
     assert f"(empreinte {profile_hash})" in capsys.readouterr().out
     assert history(gn)[-1]['profile_hash'] == profile_hash
 
@@ -466,7 +471,7 @@ def test_lexical_justification_prefix_when_require_llm_false(world2):
     api.route('POST', r'openrouter\.ai/api/v1/chat', lambda u, p: make_response(200, chat('safe')))
     assert gn.main([]) == 0
     (page,) = pages_posted(api)
-    assert justification(page) == f"[LEXICAL · profil {gn.compute_profile_hash()}]"
+    assert justification(page) == f"[LEXICAL · profil v1/{gn.compute_profile_hash()}]"
 
 
 def test_stats_models_used_and_console_summary(world2, capsys):
@@ -505,10 +510,11 @@ S_SCENARIOS = [
     ('S6 200 avec corps error', make_response(200, {'error': {'code': 502, 'message': 'Provider error'}}),
      'openrouter', OR_SERVED, 1),
     ('S7 429 répété', make_response(429, {'message': 'rate limited'}), 'openrouter', OR_SERVED, 2),
-    ('S8 score chaîne "7"', make_response(200, chat(json.dumps(dict(GOOD_LLM, score='7')), model=MISTRAL_SERVED)),
+    ('S8 score chaîne "7"', make_response(200, chat(json.dumps(dict(GOOD_LLM, potentiel_futur='2')),
+                                                    model=MISTRAL_SERVED)),
      'mistral', MISTRAL_SERVED, 1),
     ('JSON complet mais length', make_response(200, chat(GOOD_JSON, finish='length')), 'openrouter', OR_SERVED, 1),
-    ('score booléen refusé', make_response(200, chat(json.dumps(dict(GOOD_LLM, score=True)))),
+    ('score booléen refusé', make_response(200, chat(json.dumps(dict(GOOD_LLM, interet=True)))),
      'openrouter', OR_SERVED, 1),
     ('5xx répété', make_response(502, {'message': 'Bad gateway'}), 'openrouter', OR_SERVED, 2),
     ('timeout', requests.exceptions.ReadTimeout('lent'), 'openrouter', OR_SERVED, 1),
@@ -535,7 +541,7 @@ def test_s5_openrouter_router_model_is_traced(llm2):
     props = gn.build_page_properties(REPO, 'https://github.com/o/demo', gn.analyze_repo_for_usage(REPO),
                                      result, True)
     assert props['Justification']['rich_text'][0]['text']['content'].startswith(
-        f"[LLM qwen/qwen3-coder:free · profil {result['profile_hash']}]")
+        f"[LLM qwen/qwen3-coder:free · profil v1/{result['profile_hash']}]")
 
 
 def test_s9_truncated_json_without_fallback_is_deferred(world2, capsys):
@@ -569,7 +575,7 @@ def test_no_page_when_no_llm_answers(world2, capsys):
 
 def test_partial_llm_answer_is_deferred_not_degraded(world2):
     gn, api = world2(OPENROUTER_API_KEY=None)
-    bad_score = json.dumps(dict(GOOD_LLM, score='beaucoup'))
+    bad_score = json.dumps(dict(GOOD_LLM, interet='beaucoup'))
     api.route('POST', r'api\.mistral\.ai',
               lambda u, p: make_response(200, chat('{}')) if p['max_tokens'] == 16 else make_response(200, chat(bad_score)))
     assert gn.main([]) == 0
