@@ -47,6 +47,23 @@ def _isolated_env(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
 
 
+# Tests du lot 1 qui créent volontairement une fiche SANS LLM disponible (comportement
+# historique : fiche au score lexical). Depuis le lot 2, le mode reprise (REQUIRE_LLM=true
+# par défaut) interdit ces fiches ; ces tests tournent donc avec REQUIRE_LLM=false.
+_LEGACY_LEXICAL_TESTS = {
+    ('test_gitnotate_lot1', 'test_null_fields_through_full_run'),
+    ('test_gitnotate_lot1', 'test_same_repo_via_two_urls_creates_one_page'),
+    ('test_gitnotate_lot1', 'test_reservation_released_when_creation_fails'),
+}
+
+
+@pytest.fixture(autouse=True)
+def _legacy_lexical_mode(request, monkeypatch, _isolated_env):
+    module = request.module.__name__.rsplit('.', 1)[-1]
+    if (module, request.node.originalname) in _LEGACY_LEXICAL_TESTS:
+        monkeypatch.setenv('REQUIRE_LLM', 'false')
+
+
 @pytest.fixture
 def load_gn(monkeypatch):
     """Recharge gitnotate avec les variables d'environnement données.
