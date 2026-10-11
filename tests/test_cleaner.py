@@ -256,7 +256,7 @@ def test_invalid_max_delete_exit_1(monkeypatch, value):
 
 
 def test_page_id_as_url_rejected(monkeypatch):
-    monkeypatch.setenv('PARENT_PAGE_ID', 'https://www.notion.so/Ma-Page-1cab36ca5523800292cad5f59ab1fc0c')
+    monkeypatch.setenv('PARENT_PAGE_ID', 'https://www.notion.so/Ma-Page-0123456789abcdef0123456789abcdef')
     f = FakeNotion()
     assert run(f) == 1
     assert f.calls == []

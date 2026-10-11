@@ -649,8 +649,9 @@ def test_root_page_not_shared_message(world, capsys):
     gn, api = world()
     api.route('GET', r'/blocks/page-1/children',
               lambda u, p: make_response(404, {'message': 'Could not find block'}))
-    assert gn.main([]) == 2
+    assert gn.main([]) == 1                       # erreur de configuration (README : code 1)
     assert "page source introuvable ou non partagée avec l'intégration" in capsys.readouterr().err
+    assert api.count('POST', r'/v1/pages') == 0
 
 # =============================================================================
 # 8. VALIDATION DES JETONS
@@ -1052,14 +1053,35 @@ def test_same_repo_via_two_urls_creates_one_page(world):
 
 
 def test_reservation_released_when_creation_fails(world):
+    """Refus CERTAIN de Notion (400) : la réservation est rendue, le dépôt peut être recréé."""
     gn, api = world()
-    api.route('POST', r'/v1/pages$', lambda u, p: make_response(500, {'message': 'oops'}))
-    existing, keys, in_progress = set(), set(), set()
-    r = gn.process_single_repo('https://github.com/owner/repo', 'db-1', existing, True, 1, 1, keys, in_progress)
-    assert r['error'] and in_progress == set() and existing == set()
+    api.route('POST', r'/v1/pages$', lambda u, p: make_response(400, {'message': 'validation'}))
+    existing, keys, in_progress, uncertain = set(), set(), set(), set()
+    r = gn.process_single_repo('https://github.com/owner/repo', 'db-1', existing, True, 1, 1, keys,
+                               in_progress, uncertain)
+    assert r['error'] and in_progress == set() and existing == set() and uncertain == set()
     api.routes.pop(0)
-    r = gn.process_single_repo('https://github.com/owner/repo', 'db-1', existing, True, 1, 1, keys, in_progress)
+    r = gn.process_single_repo('https://github.com/owner/repo', 'db-1', existing, True, 1, 1, keys,
+                               in_progress, uncertain)
     assert r['success'] and existing == {'https://github.com/owner/repo'}
+
+
+@pytest.mark.parametrize('failure', [make_response(500, {'message': 'oops'}),
+                                     requests.exceptions.ReadTimeout('lent')])
+def test_uncertain_creation_keeps_key_reserved_for_the_run(world, failure):
+    """Issue incertaine (5xx, pas de réponse) : la clé reste bloquée jusqu'à la fin du run."""
+    gn, api = world()
+    gn.TRANSLATION_PROVIDER = 'mistral'                 # réponse LLM valide (FakeAPI)
+    api.route('POST', r'/v1/pages$', lambda u, p: failure)
+    existing, keys, in_progress, uncertain = set(), set(), set(), set()
+    r = gn.process_single_repo('https://github.com/owner/repo', 'db-1', existing, True, 1, 1, keys,
+                               in_progress, uncertain)
+    assert r['error'] and in_progress == set() and existing == set() and uncertain == {'owner/repo'}
+    api.routes.pop(0)
+    r = gn.process_single_repo('https://github.com/owner/repo', 'db-1', existing, True, 1, 1, keys,
+                               in_progress, uncertain)
+    assert r['skipped'] and not r.get('created')
+    assert api.count('POST', r'/v1/pages$') == 1
 
 
 def test_main_two_urls_same_repo_one_page(world):
@@ -1183,11 +1205,13 @@ def test_cli_max_repos_overrides_invalid_env(world):
 
 
 @pytest.mark.parametrize('argv', [['--inconnu'], ['--max-repos', '-1'], ['--log-level', 'debug']])
-def test_cli_invalid_arguments(load_gn, argv):
+def test_cli_invalid_arguments(load_gn, argv, capsys):
     gn = load_gn()
     with pytest.raises(SystemExit) as exc:
         gn.main(argv)
-    assert exc.value.code == 2
+    assert exc.value.code == 1                    # configuration (épilogue de --help), pas « erreurs »
+    err = capsys.readouterr().err
+    assert 'usage: gitnotate' in err and '❌' in err
 
 # =============================================================================
 # 18. CACHE GITHUB ET STATISTIQUES

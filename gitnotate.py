@@ -7,12 +7,14 @@ Nouveautés v7.2 (stabilisation — aucune donnée n'est jamais supprimée dans 
   ✅ Jamais de création implicite de base : DATABASE_ID illisible → arrêt avec le code HTTP ;
      création seulement avec CREATE_DATABASE=true (hors DRY_RUN), id mémorisé dans .gitnotate_state.json
   ✅ Noms ET types des colonnes vérifiés avant toute écriture
-  ✅ Lecture complète ou arrêt : aucune création après une lecture partielle (base ou page source)
+  ✅ Lecture complète ou arrêt : aucune création après une lecture partielle (base ou page source) ;
+     seul un sous-bloc de la page source refusé par Notion (400/403/404) est ignoré (code 2)
   ✅ Codes de sortie : 0 succès · 1 configuration/erreur fatale · 2 erreurs ou lecture partielle · 130 Ctrl-C
   ✅ Niveau de log 'error' toujours affiché (stderr) ; bilan avec la liste des URL en erreur
   ✅ Réponses LLM validées dans la cascade (contenu liste/null, JSON tolérant, score borné 0-10)
   ✅ Repli lexical robuste (language/topics/README absents), langage comparé par égalité
-  ✅ Créations Notion jamais réessayées après un timeout (pas de doublon) ; attentes plafonnées
+  ✅ Créations Notion jamais réessayées après un timeout ou un 5xx (pas de doublon, même via un autre
+     lien du même dépôt pendant le run) ; attentes plafonnées
   ✅ Extraction stricte des liens (hôte exact, pages non-dépôt ignorées, tous les blocs texte et tableaux)
   ✅ Cache GitHub par entrée (cached_at), écritures atomiques, fichiers dans le dossier du script
   ✅ DRY_RUN sans aucune écriture Notion, MAX_REPOS, options --dry-run --max-repos --log-level --version
@@ -66,13 +68,20 @@ __version__ = "7.2.0"
 # Tous les fichiers d'état sont relatifs au dossier du script (ou à GITNOTATE_DATA_DIR),
 # jamais au répertoire courant.
 BASE_DIR = Path(os.environ.get('GITNOTATE_DATA_DIR') or Path(__file__).resolve().parent)
+ENV_FILE = BASE_DIR / '.env'
 
-if 'GITNOTATE_NO_DOTENV' not in os.environ:
+# GITNOTATE_NO_DOTENV : même règle que le nettoyeur (une valeur « vraie » empêche la lecture du .env ;
+# vide, 0, false, no, non ou off ne l'empêchent pas)
+_NO_DOTENV_FALSE = ('', '0', 'false', 'no', 'non', 'off')
+if os.environ.get('GITNOTATE_NO_DOTENV', '').strip().lower() in _NO_DOTENV_FALSE:
     try:
         from dotenv import load_dotenv
-        load_dotenv(BASE_DIR / '.env')
+        load_dotenv(ENV_FILE)
+        DOTENV_STATUS = 'trouvé' if ENV_FILE.is_file() else 'absent'
     except ImportError:
-        pass
+        DOTENV_STATUS = "non lu : python-dotenv n'est pas installé"
+else:
+    DOTENV_STATUS = 'non lu : GITNOTATE_NO_DOTENV'
 
 PROFILE_FILE = BASE_DIR / 'user_profile.json'
 CACHE_FILE   = BASE_DIR / '.gitnotate_cache.json'
@@ -103,8 +112,20 @@ def _env_str(name: str, default: str = '') -> str:
     return os.environ.get(name, '').strip() or default
 
 
+_BOOL_TRUE  = ('true', '1', 'yes', 'oui', 'vrai', 'on')
+_BOOL_FALSE = ('false', '0', 'no', 'non', 'faux', 'off', '')
+
+
 def _env_bool(name: str, default: str) -> bool:
-    return os.environ.get(name, default).strip().lower() == 'true'
+    """Interrupteur : true/1/yes/oui/vrai/on ou false/0/no/non/faux/off (vide = false).
+    Valeur inconnue → erreur de configuration collectée (DRY_RUN=peut-être n'écrit jamais)."""
+    value = os.environ.get(name, default).strip().lower()
+    if value in _BOOL_TRUE:
+        return True
+    if value not in _BOOL_FALSE:
+        CONFIG_ERRORS[name] = (f"{name}='{value[:30]}' invalide (valeurs possibles : true ou false)")
+        return default.strip().lower() in _BOOL_TRUE
+    return False
 
 
 def _env_int(name: str, default: int, min_value: int = 0) -> int:
@@ -181,7 +202,13 @@ GITHUB_SECONDARY_RATE_LIMIT_WAIT = 60
 # --- Fournisseurs LLM ---
 # Ordre d'essai (le premier disponible est primaire, le suivant sert de secours).
 LLM_PROVIDERS    = _env_providers('LLM_PROVIDERS', 'mistral,openrouter')
-MISTRAL_MODEL    = _env_str('MISTRAL_MODEL', 'mistral-small-2603')
+MISTRAL_MODEL_DEFAULT = 'mistral-small-2603'
+MISTRAL_MODEL    = _env_str('MISTRAL_MODEL', MISTRAL_MODEL_DEFAULT)
+# Valeurs des .env de la v7.1 : elles resteraient prioritaires sur le modèle validé, sans le dire
+_MISTRAL_MODELS_V71 = ('mistral-small-2503', 'mistral-small-latest')
+if MISTRAL_MODEL.lower() in _MISTRAL_MODELS_V71:
+    CONFIG_WARNINGS.append(f"MISTRAL_MODEL={MISTRAL_MODEL} vient d'un .env v7.1 : le modèle recommandé est "
+                           f"{MISTRAL_MODEL_DEFAULT} (supprimez la ligne MISTRAL_MODEL pour l'utiliser)")
 # OPENROUTER_MODEL, sinon l'ancienne variable TRANSLATION_MODEL (compatibilité), sinon le routeur gratuit
 OPENROUTER_MODEL = _env_str('OPENROUTER_MODEL') or _env_str('TRANSLATION_MODEL') or 'openrouter/free'
 if not _env_str('OPENROUTER_MODEL') and _env_str('TRANSLATION_MODEL'):
@@ -198,6 +225,9 @@ MAX_NEW_PER_RUN       = _env_int('MAX_NEW_PER_RUN', 0, 0)        # 0 = illimité
 
 # Mode reprise : seule la valeur explicite 'false' revient au comportement historique (fiche lexicale)
 REQUIRE_LLM = os.environ.get('REQUIRE_LLM', 'true').strip().lower() != 'false'
+if os.environ.get('REQUIRE_LLM', 'true').strip().lower() not in ('true', 'false', ''):
+    CONFIG_WARNINGS.append(f"REQUIRE_LLM='{os.environ['REQUIRE_LLM'].strip()[:20]}' non reconnu : seule la "
+                           "valeur false désactive le mode reprise (mode reprise conservé)")
 
 MISTRAL_RESPONSE_FORMAT = _env_choice('MISTRAL_RESPONSE_FORMAT', 'json_object', ('json_object', 'none'))
 # Variable absente → 'none' ; variable vide → paramètre non envoyé
@@ -242,6 +272,13 @@ SYSTEM_PROMPT_TRANSLATE = (
     '"use_cases_fr": "traduction des cas d\'usage avec puces • "} '
     "Aucun texte avant ou après le JSON."
 )
+
+# Textes des gabarits JSON des prompts (combiné et traduction seule) : un petit modèle peut les
+# recopier tels quels. Une réponse qui les contient n'est pas une réponse valide (mode reprise).
+# Le test test_template_markers_match_prompts vérifie qu'ils figurent bien dans les prompts.
+_TEMPLATE_DESCRIPTIONS = ("traduction française de la description", "traduction de la description")
+_TEMPLATE_USE_CASES    = ("cas d'usage 1", "traduction des cas d'usage")
+_TEMPLATE_REASONING    = "justification du score en 40 mots"
 
 # =============================================================================
 # PROFIL UTILISATEUR
@@ -740,6 +777,7 @@ def save_execution_stats(run_stats: Dict) -> None:
         'dry_run':               DRY_RUN,
         'max_repos':             MAX_REPOS,
         'interrupted':           run_stats.get('interrupted', False),
+        'skipped_source_blocks': run_stats.get('skipped_source_blocks', 0),
         'exit_code':             run_stats.get('exit_code'),
     })
     history = history[-STATS_HISTORY_MAX:]
@@ -851,8 +889,9 @@ def http_request_with_retry(
             log(f"   ⚠️  {method} {url[:80]} — {kind}", 'verbose')
             return None
         except Exception as e:
+            # Type seulement : le message (ex. InvalidHeader) peut recopier un jeton en clair
             _set_last_http_error(type(e).__name__)
-            _warn(f"http_request_with_retry({url[:60]})", e)
+            log(f"⚠️  [http_request_with_retry({url[:60]})] {type(e).__name__}", 'error')
             return None
 
         status = response.status_code
@@ -969,6 +1008,7 @@ OPENROUTER_KEY_URL = 'https://openrouter.ai/api/v1/key'   # lecture de la clé :
 _PROVIDER_NAMES    = {'mistral': 'Mistral AI', 'openrouter': 'OpenRouter'}
 _PROVIDER_KEY_VARS = {'mistral': 'MISTRAL_API_KEY', 'openrouter': 'OPENROUTER_API_KEY'}
 _OPENROUTER_DAILY_QUOTA_MARKERS = ('per-day', 'per day', 'daily')
+_BUDGET_EXHAUSTED = "quota gratuit du jour épuisé (budget lu au démarrage)"
 
 
 class LLMProviderState:
@@ -987,15 +1027,32 @@ class LLMProviderState:
 
     @property
     def available(self) -> bool:
+        """Utilisable pour une NOUVELLE requête : non désactivé et budget non épuisé."""
         with self._lock:
-            return self.disabled_reason is None
+            return self.disabled_reason is None and (self.budget is None or self.budget > 0)
+
+    @property
+    def is_disabled(self) -> bool:
+        """Désactivé par le coupe-circuit (une requête déjà réservée sur le budget reste valable)."""
+        with self._lock:
+            return self.disabled_reason is not None
+
+    def unavailable_reason(self) -> Optional[str]:
+        """Raison pour laquelle le fournisseur n'est plus utilisable (bilan et statistiques)."""
+        with self._lock:
+            if self.disabled_reason is not None:
+                return self.disabled_reason
+            if self.budget is not None and self.budget <= 0:
+                return _BUDGET_EXHAUSTED
+            return None
 
     def disable(self, reason: str) -> None:
         with self._lock:
             if self.disabled_reason is not None:
                 return
             self.disabled_reason = reason
-        log(f"   ⛔ {_provider_label(self.name)} désactivé pour la suite du run : {reason}")
+        # Niveau 'error' : la cause reste visible avec LOG_LEVEL=quiet
+        log(f"   ⛔ {_provider_label(self.name)} désactivé pour la suite du run : {reason}", 'error')
 
     def record_success(self) -> None:
         with self._lock:
@@ -1018,7 +1075,7 @@ class LLMProviderState:
             if self.budget > 0:
                 self.budget -= 1
                 return True
-        self.disable("quota gratuit du jour épuisé (budget lu au démarrage)")
+        self.disable(_BUDGET_EXHAUSTED)
         return False
 
     def wait_turn(self) -> None:
@@ -1034,28 +1091,52 @@ class LLMProviderState:
 
 
 class NewRepoBudget:
-    """MAX_NEW_PER_RUN : une place est réservée AVANT l'appel GitHub et rendue si aucune
-    fiche n'est finalement écrite (déjà présent, filtré, erreur, reporté)."""
+    """MAX_NEW_PER_RUN : une place est réservée AVANT l'appel GitHub, puis soit confirmée
+    (commit : fiche écrite ou simulée), soit rendue (release : déjà présent, filtré, erreur,
+    reporté).
+
+    Un dépôt n'est refusé (False) que si la limite est atteinte par des fiches réellement
+    écrites. Si toutes les places sont seulement réservées, il attend l'issue de l'une d'elles :
+    un dépôt en échec en tête de liste ne fait plus reporter tous les autres (workers parallèles).
+    """
 
     def __init__(self, limit: int):
-        self.limit = limit
-        self.used  = 0
-        self._lock = Lock()
+        self.limit     = limit
+        self.reserved  = 0
+        self.committed = 0
+        self._cond     = threading.Condition(Lock())
+
+    @property
+    def used(self) -> int:
+        with self._cond:
+            return self.reserved + self.committed
 
     def acquire(self) -> bool:
         if self.limit <= 0:
             return True
-        with self._lock:
-            if self.used >= self.limit:
-                return False
-            self.used += 1
-            return True
+        with self._cond:
+            while True:
+                if self.committed >= self.limit or _STOP_EVENT.is_set():
+                    return False
+                if self.committed + self.reserved < self.limit:
+                    self.reserved += 1
+                    return True
+                self._cond.wait(0.5)       # délai : Ctrl-C reste pris en compte
+
+    def commit(self) -> None:
+        if self.limit <= 0:
+            return
+        with self._cond:
+            self.reserved  = max(0, self.reserved - 1)
+            self.committed += 1
+            self._cond.notify_all()
 
     def release(self) -> None:
         if self.limit <= 0:
             return
-        with self._lock:
-            self.used = max(0, self.used - 1)
+        with self._cond:
+            self.reserved = max(0, self.reserved - 1)
+            self._cond.notify_all()
 
 
 def _new_llm_states() -> Dict[str, LLMProviderState]:
@@ -1204,14 +1285,31 @@ _PROBE_MESSAGES  = [{'role': 'user', 'content': 'Réponds uniquement par ce JSON
 PROBE_MAX_TOKENS = 16
 
 
+def _probe_send(name: str, send) -> requests.Response:
+    """Envoie la requête de test ; une seule nouvelle tentative (après BACKOFF_FACTOR s) sur
+    timeout, coupure ou 5xx, pour qu'un incident passager n'écarte pas le fournisseur du run.
+    Lève l'exception de la seconde tentative si elle échoue aussi."""
+    try:
+        response = send()
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+        kind = 'timeout' if isinstance(e, requests.exceptions.Timeout) else 'connexion impossible'
+    else:
+        if not 500 <= response.status_code < 600:
+            return response
+        kind = f"HTTP {response.status_code}"
+    log(f"   ⏳ {name} — test de démarrage sans réponse exploitable ({kind}) : "
+        f"nouvel essai dans {BACKOFF_FACTOR}s", 'verbose')
+    time.sleep(BACKOFF_FACTOR)
+    return send()
+
+
 def _probe_openrouter() -> Tuple[bool, str]:
     """GET /api/v1/key : validité de la clé et quota gratuit du jour, sans consommer de quota."""
     name  = _provider_label('openrouter')
     state = _provider_state('openrouter')
     try:
-        response = get_session().get(OPENROUTER_KEY_URL,
-                                     headers={'Authorization': f'Bearer {OPENROUTER_API_KEY}'},
-                                     timeout=15)
+        response = _probe_send(name, lambda: get_session().get(
+            OPENROUTER_KEY_URL, headers={'Authorization': f'Bearer {OPENROUTER_API_KEY}'}, timeout=15))
     except requests.exceptions.Timeout:
         return False, f"⚠️  {name} — injoignable (timeout) : ignoré pour ce run"
     except requests.exceptions.ConnectionError:
@@ -1250,10 +1348,13 @@ def _probe_mistral() -> Tuple[bool, str]:
     state = _provider_state('mistral')
     for _ in range(3):
         body = build_llm_body('mistral', _PROBE_MESSAGES, 0.1, PROBE_MAX_TOKENS)
-        state.wait_turn()
+
+        def send(body=body):
+            state.wait_turn()
+            return get_session().post(LLM_ENDPOINTS['mistral'], headers=MISTRAL_HEADERS,
+                                      json=body, timeout=min(LLM_TIMEOUT, 30))
         try:
-            response = get_session().post(LLM_ENDPOINTS['mistral'], headers=MISTRAL_HEADERS,
-                                          json=body, timeout=min(LLM_TIMEOUT, 30))
+            response = _probe_send(name, send)
         except requests.exceptions.Timeout:
             return False, f"⚠️  {name} — indisponible (timeout) : ignoré pour ce run"
         except requests.exceptions.ConnectionError:
@@ -1305,7 +1406,8 @@ def init_translation_providers() -> Tuple[Optional[str], Optional[str]]:
             log(f"   ℹ️  {_provider_label(provider)} ignoré : {_PROVIDER_KEY_VARS[provider]} absente")
             continue
         ok, msg = _probe_mistral() if provider == 'mistral' else _probe_openrouter()
-        log(f"   {msg}", 'error' if msg.startswith('❌') else 'normal')
+        # Fournisseur écarté : cause toujours affichée (même avec LOG_LEVEL=quiet)
+        log(f"   {msg}", 'normal' if ok else 'error')
         if ok:
             active.append(provider)
 
@@ -1345,12 +1447,22 @@ def _normalize_llm_content(content: Any) -> str:
     return ''
 
 
+def _ratelimit_reset_wait(response) -> Optional[int]:
+    """Attente jusqu'à X-RateLimit-Reset quand X-RateLimit-Remaining vaut 0, sinon None."""
+    headers = response.headers or {}
+    if headers.get('X-RateLimit-Remaining') == '0' and headers.get('X-RateLimit-Reset'):
+        return _reset_wait(headers.get('X-RateLimit-Reset'))
+    return None
+
+
 def _openrouter_quota_exhausted(response) -> bool:
-    """429 d'OpenRouter dû au quota (X-RateLimit-Remaining à 0 ou message de quota journalier)."""
-    if (response.headers or {}).get('X-RateLimit-Remaining') == '0':
-        return True
+    """429 d'OpenRouter dû au quota DU JOUR : message de quota journalier, ou Remaining à 0 avec
+    une remise à zéro lointaine. Un 429 « par minute » (Reset proche) n'est pas un quota épuisé."""
     text = f"{_api_error_message(response, 500)} {_response_text(response)[:1000]}".lower()
-    return any(marker in text for marker in _OPENROUTER_DAILY_QUOTA_MARKERS)
+    if any(marker in text for marker in _OPENROUTER_DAILY_QUOTA_MARKERS):
+        return True
+    wait_s = _ratelimit_reset_wait(response)
+    return wait_s is not None and wait_s > LLM_RETRY_WAIT_MAX
 
 
 def _call_translation_api(provider: str, messages: List[Dict],
@@ -1358,6 +1470,7 @@ def _call_translation_api(provider: str, messages: List[Dict],
     """Un appel LLM avec le timeout LLM_TIMEOUT. Pas de nouvelle tentative sur timeout ou
     coupure (fournisseur suivant) ; au plus une sur 429 ou 5xx, après une attente ≤ 60 s.
     Chaque échec est signalé au coupe-circuit du fournisseur."""
+    thread_local.llm_request_sent = False    # lu par translate_and_score (requête vraiment envoyée ?)
     if provider not in LLM_ENDPOINTS:
         return None
     state     = _provider_state(provider)
@@ -1369,8 +1482,10 @@ def _call_translation_api(provider: str, messages: List[Dict],
             if _STOP_EVENT.is_set() or not state.try_consume():
                 return None
             state.wait_turn()
-            if _STOP_EVENT.is_set():          # Ctrl-C pendant l'attente du limiteur
+            # Ctrl-C, ou fournisseur désactivé par un autre thread pendant l'attente du limiteur
+            if _STOP_EVENT.is_set() or state.is_disabled:
                 return None
+            thread_local.llm_request_sent = True
             try:
                 response = get_session().post(LLM_ENDPOINTS[provider], headers=_provider_headers(provider),
                                               json=body, timeout=LLM_TIMEOUT)
@@ -1395,6 +1510,8 @@ def _call_translation_api(provider: str, messages: List[Dict],
                 wait_s = BACKOFF_FACTOR
                 if status == 429:
                     retry_after = _parse_retry_after((response.headers or {}).get('Retry-After'))
+                    if retry_after is None:
+                        retry_after = _ratelimit_reset_wait(response)
                     wait_s = BACKOFF_FACTOR if retry_after is None else retry_after
                 cap = min(LLM_RETRY_WAIT_MAX, MAX_WAIT_SECONDS)
                 if wait_s <= cap:
@@ -1428,7 +1545,8 @@ def _call_translation_api(provider: str, messages: List[Dict],
         model  = served.strip() if isinstance(served, str) and served.strip() else requested
         return text, model
     except Exception as e:
-        _warn(f"_call_translation_api/{provider}", e)
+        # Type seulement : le message d'une exception inattendue peut contenir un en-tête (clé)
+        log(f"⚠️  [_call_translation_api/{provider}] {type(e).__name__}", 'error')
         state.record_failure(type(e).__name__)
         return None
 
@@ -1436,33 +1554,40 @@ def _call_translation_api(provider: str, messages: List[Dict],
 # RÉPONSE LLM — parsing tolérant et validation
 # =============================================================================
 _JSON_FENCE_RE = re.compile(r'```(?:json)?\s*(.*?)```', re.IGNORECASE | re.DOTALL)
+_THINK_BLOCK_RE = re.compile(r'<(think|thinking)>.*?</\1>', re.IGNORECASE | re.DOTALL)
 
 
 def _parse_llm_json(raw_text: str) -> Optional[Dict]:
     """Extrait l'objet JSON d'une réponse : bloc ```json, texte autour, sauts de ligne
-    littéraux dans les chaînes (strict=False)."""
+    littéraux dans les chaînes (strict=False).
+
+    Le raisonnement écrit en ligne (<think>…</think>, <thinking>…</thinking>) est retiré, et
+    c'est le DERNIER objet contenant description_fr qui est retenu : un brouillon placé avant
+    la réponse finale n'est jamais pris pour elle."""
     if not isinstance(raw_text, str):
         return None
-    text = raw_text.strip()
+    text = _THINK_BLOCK_RE.sub(' ', raw_text).strip()
     candidates = [m.group(1) for m in _JSON_FENCE_RE.finditer(text)] + [text]
     decoder = json.JSONDecoder(strict=False)
     first_dict: Optional[Dict] = None
+    last_answer: Optional[Dict] = None
     for candidate in candidates:
         start = candidate.find('{')
         tries = 0
         while start != -1 and tries < 20:
             tries += 1
             try:
-                obj, _ = decoder.raw_decode(candidate, start)
+                obj, end = decoder.raw_decode(candidate, start)
             except ValueError:
-                obj = None
+                obj, end = None, start + 1
             if isinstance(obj, dict):
                 if 'description_fr' in obj:
-                    return obj
-                if first_dict is None:
+                    last_answer = obj
+                elif first_dict is None:
                     first_dict = obj
-            start = candidate.find('{', start + 1)
-    return first_dict
+            # Après un objet décodé, on reprend APRÈS lui (ses objets imbriqués sont ignorés)
+            start = candidate.find('{', end)
+    return last_answer if last_answer is not None else first_dict
 
 
 def _coerce_score(value: Any) -> Optional[int]:
@@ -1498,29 +1623,54 @@ def _clean_use_cases(value: Any) -> Optional[str]:
     return None
 
 
+def _normalized_text(value: str) -> str:
+    """Minuscules, espaces normalisés, apostrophes typographiques ramenées à « ' »."""
+    return ' '.join(value.replace('’', "'").lower().split())
+
+
 def _validate_llm_payload(parsed: Any, need_score: bool) -> Tuple[Optional[Dict], str]:
-    """Renvoie (champs nettoyés, '') ou (None, raison). Un score invalide n'invalide pas
-    la traduction : il est renvoyé à None."""
+    """Renvoie (champs nettoyés, '') pour une réponse complète, ou (None, raison) pour une réponse
+    invalide : description absente, vide ou recopiée du gabarit du prompt ; cas d'usage absents,
+    vides ou recopiés du gabarit.
+
+    Un score inutilisable n'invalide pas la traduction : (champs nettoyés avec score à None,
+    raison) — score invalide, justification absente, vide, non textuelle ou recopiée du gabarit.
+    En mode reprise, une telle réponse « partielle » n'est jamais écrite."""
     if not isinstance(parsed, dict):
         return None, "pas d'objet JSON"
     description = parsed.get('description_fr')
     if not isinstance(description, str) or not description.strip():
         return None, "description_fr absente ou vide"
+    if _normalized_text(description).strip(' .') in _TEMPLATE_DESCRIPTIONS:
+        return None, "description_fr recopiée du gabarit du prompt"
     use_cases = _clean_use_cases(parsed.get('use_cases_fr'))
     if use_cases is None:
         return None, "use_cases_fr ni chaîne ni liste"
+    if not use_cases:
+        return None, "use_cases_fr vide"
+    if any(marker in _normalized_text(use_cases) for marker in _TEMPLATE_USE_CASES):
+        return None, "use_cases_fr recopiés du gabarit du prompt"
     cleaned: Dict[str, Any] = {
         'description_fr': description.strip(),
         'use_cases_fr':   use_cases,
         'score':          None,
         'reasoning':      '',
     }
+    why = ''
     if need_score:
         reasoning = parsed.get('reasoning')
-        if reasoning is None or isinstance(reasoning, str):
+        if not isinstance(reasoning, str):
+            why = "reasoning absent" if reasoning is None else "reasoning non textuel"
+        elif not reasoning.strip():
+            why = "reasoning vide"
+        elif reasoning.strip().startswith('<') or _TEMPLATE_REASONING in _normalized_text(reasoning):
+            why = "reasoning recopié du gabarit du prompt"
+        else:
             cleaned['score']     = _coerce_score(parsed.get('score'))
-            cleaned['reasoning'] = (reasoning or '').strip()[:REASONING_MAX_CHARS]
-    return cleaned, ''
+            cleaned['reasoning'] = reasoning.strip()[:REASONING_MAX_CHARS]
+            if cleaned['score'] is None:
+                why = f"score invalide ('{str(parsed.get('score'))[:20]}')"
+    return cleaned, why
 
 # =============================================================================
 # DÉTECTION LANGUE
@@ -1731,8 +1881,12 @@ def translate_and_score(
         if not state.available:
             log(f"   ⏭️  [{repo_name}] {provider} désactivé pour ce run — ignoré", 'verbose')
             continue
-        attempted = True
+        thread_local.llm_request_sent = None
         answer = _call_translation_api(provider, messages, temperature)
+        # 'failed' seulement si une requête est vraiment partie (pas pour un budget épuisé entre-temps,
+        # un fournisseur désactivé pendant l'attente ou Ctrl-C) ; None = appel sans indicateur
+        if getattr(thread_local, 'llm_request_sent', None) is not False:
+            attempted = True
         if isinstance(answer, tuple) and len(answer) == 2:
             raw_text, model = answer
         else:                                   # texte seul (compatibilité)
@@ -1749,9 +1903,9 @@ def translate_and_score(
             state.record_failure(f"réponse invalide ({why})")
             continue
         if LLM_SCORING_ENABLED and cleaned['score'] is None:
-            log(f"   ⚠️  [{repo_name}] {provider} ({model}) : score LLM invalide "
-                f"('{str(parsed.get('score'))[:20]}') — basculement fallback", 'verbose')
-            state.record_failure("score invalide")
+            log(f"   ⚠️  [{repo_name}] {provider} ({model}) : score LLM inutilisable "
+                f"({why or 'score invalide'}) — basculement fallback", 'verbose')
+            state.record_failure(why or "score invalide")
             if partial is None:
                 partial, partial_provider, partial_model = cleaned, provider, model
             continue
@@ -1767,12 +1921,13 @@ def translate_and_score(
     else:
         result['llm_status'] = 'failed' if attempted else 'unavailable'
 
-    # Fallback total : aucune réponse exploitable
+    # Fallback total : aucune réponse exploitable (un arrêt Ctrl-C n'est pas un échec du LLM)
     if chosen is None:
-        stats.inc('translation_failed')
         result['score']          = calculate_relevance_score(repo_info)
         result['scoring_method'] = 'lexical'
-        stats.inc('llm_score_fallback')
+        if not _STOP_EVENT.is_set():
+            stats.inc('translation_failed')
+            stats.inc('llm_score_fallback')
         return result
 
     result['description_fr'] = chosen['description_fr']
@@ -1804,15 +1959,26 @@ class PartialReadError(Exception):
     """Lecture Notion incomplète : le run s'arrête sans rien créer."""
 
 
+class SourcePageError(PartialReadError):
+    """Page source introuvable, non partagée ou identifiant invalide : erreur de configuration."""
+
+
 def get_all_blocks_recursive(
-    block_id: str, blocks: Optional[List] = None, depth: int = 0, max_depth: int = 50
+    block_id: str, blocks: Optional[List] = None, depth: int = 0, max_depth: int = 50,
+    skipped: Optional[List[str]] = None, block_type: str = '',
 ) -> List[Dict]:
     """Lit tous les blocs de la page (sous-blocs compris).
-    Tout échec (racine, curseur, sous-bloc) lève PartialReadError."""
+
+    Page racine illisible (400/403/404) → SourcePageError (configuration). Sous-bloc dont les
+    enfants sont refusés de façon permanente (400/403/404, ex. copie synchronisée d'une page non
+    partagée) : si `skipped` est fourni, ce sous-arbre est ignoré (description ajoutée à
+    `skipped`, avertissement affiché) et la lecture continue — on crée seulement moins de fiches.
+    Tout autre échec (réseau, 5xx, pagination, profondeur) lève PartialReadError."""
     if blocks is None:
         blocks = []
+    where = f"bloc {block_type + ' ' if block_type else ''}{block_id}"
     if depth >= max_depth:
-        raise PartialReadError(f"profondeur maximale ({max_depth}) atteinte sous le bloc {block_id[:8]}")
+        raise PartialReadError(f"profondeur maximale ({max_depth}) atteinte sous le {where}")
     url          = f"https://api.notion.com/v1/blocks/{block_id}/children"
     start_cursor = None
     first_page   = True
@@ -1821,27 +1987,40 @@ def get_all_blocks_recursive(
         if start_cursor:
             params['start_cursor'] = start_cursor
         response = http_request_with_retry('GET', url, NOTION_HEADERS, params=params)
-        if response is not None and response.status_code in (403, 404) and depth == 0 and first_page:
-            raise PartialReadError(
+        status = response.status_code if response is not None else None
+        if depth == 0 and first_page and status in (403, 404):
+            raise SourcePageError(
                 f"page source introuvable ou non partagée avec l'intégration "
-                f"(HTTP {response.status_code}) — dans Notion : page source → ••• → Connexions → "
+                f"(HTTP {status}) — dans Notion : page source → ••• → Connexions → "
                 f"ajoutez votre intégration ; vérifiez aussi PARENT_PAGE_ID")
-        if response is None or response.status_code not in (200, 201):
-            raise PartialReadError(f"bloc {block_id[:8]} : {_describe_failure(response)}")
+        if depth == 0 and first_page and status == 400:
+            raise SourcePageError(
+                f"page source refusée par Notion ({_describe_failure(response)}) — vérifiez "
+                f"PARENT_PAGE_ID (identifiant de 32 caractères de la page, pas son URL)")
+        if depth > 0 and first_page and status in (400, 403, 404) and skipped is not None:
+            reason = _describe_failure(response).split('\n')[0]
+            skipped.append(f"{where} : {reason}")
+            log(f"⚠️  Sous-bloc illisible ignoré ({where} : {reason}) — liens de ce bloc non importés ; "
+                "partagez la page d'origine (bloc synchronisé) avec l'intégration ou retirez ce bloc",
+                'error')
+            return blocks
+        if response is None or status not in (200, 201):
+            raise PartialReadError(f"{where} : {_describe_failure(response)}")
         data = _json_dict(response)
         if data is None:
-            raise PartialReadError(f"bloc {block_id[:8]} : réponse Notion illisible")
+            raise PartialReadError(f"{where} : réponse Notion illisible")
         for block in data.get('results') or []:
             if not isinstance(block, dict):
                 continue
             blocks.append(block)
             if block.get('has_children', False) and block.get('id'):
-                get_all_blocks_recursive(block['id'], blocks, depth + 1, max_depth)
+                get_all_blocks_recursive(block['id'], blocks, depth + 1, max_depth,
+                                         skipped, str(block.get('type') or ''))
         if not data.get('has_more', False):
             break
         start_cursor = data.get('next_cursor')
         if not start_cursor:
-            raise PartialReadError(f"bloc {block_id[:8]} : has_more sans next_cursor")
+            raise PartialReadError(f"{where} : has_more sans next_cursor")
         first_page = False
     return blocks
 
@@ -1893,7 +2072,11 @@ def extract_github_info(url: str) -> Optional[Dict[str, str]]:
 
 
 def normalize_github_url(url: str) -> str:
-    """Clé de dédoublonnage 'owner/repo' en minuscules (ou l'URL en minuscules)."""
+    """Clé de dédoublonnage 'owner/repo' en minuscules (ou l'URL en minuscules).
+    Une URL saisie sans schéma dans Notion (« github.com/owner/repo ») est reconnue."""
+    raw = (url or '').strip()
+    if '://' not in raw and raw.lower().startswith(('github.com/', 'www.github.com/')):
+        url = 'https://' + raw
     info = extract_github_info(url)
     if info:
         return f"{info['owner'].lower()}/{info['repo'].lower()}"
@@ -2410,6 +2593,9 @@ def build_page_properties(
     return properties
 
 
+# Clés 'owner/repo' dont la création Notion a eu une issue incertaine pendant le run en cours
+UNCERTAIN_KEYS: Set[str] = set()
+
 DEFER_LLM_FAILED = "aucune réponse LLM valide"
 DEFER_NO_LLM     = "aucun fournisseur LLM disponible"
 DEFER_BUDGET     = "MAX_NEW_PER_RUN atteint"
@@ -2438,10 +2624,15 @@ def process_single_repo(
     total:             int,
     existing_keys:     Optional[Set[str]] = None,
     in_progress:       Optional[Set[str]] = None,
+    uncertain_keys:    Optional[Set[str]] = None,
 ) -> Dict:
+    """uncertain_keys : clés des dépôts dont la création Notion a eu une issue incertaine
+    (timeout, 5xx) pendant ce run ; un autre lien vers le même dépôt n'est pas recréé.
+    Par défaut, l'ensemble du run en cours (UNCERTAIN_KEYS, vidé au début de chaque run)."""
     result: Dict[str, Any] = {'url': url, 'success': False, 'error': None}
-    existing_keys = existing_keys if existing_keys is not None else set()
-    in_progress   = in_progress if in_progress is not None else set()
+    existing_keys  = existing_keys if existing_keys is not None else set()
+    in_progress    = in_progress if in_progress is not None else set()
+    uncertain_keys = uncertain_keys if uncertain_keys is not None else UNCERTAIN_KEYS
 
     if _STOP_EVENT.is_set():
         result['interrupted'] = True
@@ -2458,14 +2649,18 @@ def process_single_repo(
     label       = f"{owner}/{repo}"
 
     # Pré-contrôle sans appel réseau : clé owner/repo de l'URL source déjà en base
+    source_key = f"{owner.lower()}/{repo.lower()}"
     with existing_urls_lock:
-        already_present = f"{owner.lower()}/{repo.lower()}" in existing_keys or url in existing_urls
+        already_present = source_key in existing_keys or url in existing_urls
+        uncertain       = source_key in uncertain_keys
     if already_present:
         result['success'] = True
         result['skipped'] = True
         stats.inc('already_present')
         log(f"[{idx}/{total}] ⏭️  {label} — Déjà présent")
         return result
+    if uncertain:
+        return _skip_uncertain(result, idx, total, label)
 
     # Mode reprise : plus aucun fournisseur LLM utilisable → report immédiat, sans appel GitHub
     if llm_required() and not llm_available():
@@ -2476,8 +2671,12 @@ def process_single_repo(
             log(f"[{idx}/{total}] ⏸️  {label} — reporté ({DEFER_NO_LLM})", 'verbose')
         return result
 
-    # Budget MAX_NEW_PER_RUN : place réservée avant l'appel GitHub, rendue si rien n'est écrit
+    # Budget MAX_NEW_PER_RUN : place réservée avant l'appel GitHub, confirmée si une fiche est
+    # écrite (ou simulée), rendue sinon
     if not NEW_REPO_BUDGET.acquire():
+        if _STOP_EVENT.is_set():
+            result['interrupted'] = True
+            return result
         _mark_deferred(result, DEFER_BUDGET)
         if not _announce_once('budget', f"⏸️  MAX_NEW_PER_RUN={MAX_NEW_PER_RUN} atteint : les dépôts "
                                         "restants sont reportés au prochain run (aucun appel GitHub)"):
@@ -2486,10 +2685,21 @@ def process_single_repo(
 
     try:
         return _process_repo(result, owner, repo, database_id, existing_urls, has_justification,
-                             idx, total, existing_keys, in_progress)
+                             idx, total, existing_keys, in_progress, uncertain_keys)
     finally:
-        if not result.get('created'):
+        if result.get('created'):
+            NEW_REPO_BUDGET.commit()
+        else:
             NEW_REPO_BUDGET.release()
+
+
+def _skip_uncertain(result: Dict[str, Any], idx: int, total: int, label: str) -> Dict:
+    """Même dépôt qu'une création à l'issue incertaine dans ce run : pas de seconde création."""
+    result['skipped'] = True
+    stats.inc('duplicates')
+    log(f"[{idx}/{total}] ⏭️  {label} — Même dépôt qu'une création à l'issue incertaine : vérifiez "
+        "dans Notion (reprise au prochain run si la fiche est absente)")
+    return result
 
 
 def _process_repo(
@@ -2503,9 +2713,11 @@ def _process_repo(
     total:             int,
     existing_keys:     Set[str],
     in_progress:       Set[str],
+    uncertain_keys:    Optional[Set[str]] = None,
 ) -> Dict:
     """Suite du traitement après les pré-contrôles : GitHub, LLM, puis création de la fiche.
     result['created'] passe à True quand une fiche est écrite (ou simulée en DRY_RUN)."""
+    uncertain_keys = uncertain_keys if uncertain_keys is not None else UNCERTAIN_KEYS
     url   = result['url']
     label = f"{owner}/{repo}"
 
@@ -2546,14 +2758,25 @@ def _process_repo(
             stats.inc('duplicates')
             log(f"[{idx}/{total}] ⏭️  {label} — Même dépôt qu'une autre URL en cours de traitement")
             return result
-        in_progress.add(key)
+        after_uncertain = key in uncertain_keys
+        if not after_uncertain:
+            in_progress.add(key)
+    if after_uncertain:
+        return _skip_uncertain(result, idx, total, label)
 
-    created = False
+    created   = False
+    uncertain = False      # création envoyée sans issue certaine (pas de réponse, 408, 5xx)
     try:
         analysis   = analyze_repo_for_usage(repo_info)
         llm_result = translate_and_score(
             analysis['description'], analysis['use_cases_text'], repo_info, label
         )
+
+        # Ctrl-C pendant le traitement : ni fiche ni report imputé au LLM
+        if _STOP_EVENT.is_set() and llm_result.get('llm_status') not in ('ok', 'not_requested'):
+            result['interrupted'] = True
+            log(f"[{idx}/{total}] ⏹️  {label} — interrompu avant création")
+            return result
 
         # Mode reprise : aucune fiche dégradée (pas de réponse LLM valide → reporté)
         if llm_required() and llm_result.get('llm_status') not in ('ok', 'not_requested'):
@@ -2612,6 +2835,16 @@ def _process_repo(
             log(f"[{idx}/{total}] ✅ {label} "
                 f"({repo_info.get('stars') or 0} ⭐ | {score_icon} {relevance_score}/10) "
                 f"{trans_icon}{reasoning_preview}")
+        elif response is not None and (response.status_code == 408 or 500 <= response.status_code < 600):
+            # Notion a peut-être créé la fiche malgré l'erreur : jamais de seconde création dans ce run
+            uncertain = True
+            msg    = _api_error_message(response)
+            reason = (f"Notion HTTP {response.status_code}" + (f" — {msg}" if msg else "")
+                      + " — issue incertaine, création non réessayée pour éviter un doublon ; "
+                        "vérifiez dans Notion (reprise au prochain run si absente)")
+            result['error'] = reason
+            stats.add_error(url, reason, f"Notion HTTP {response.status_code}")
+            log(f"[{idx}/{total}] ❌ {label} — {reason}", 'error')
         elif response is not None:
             msg    = _api_error_message(response)
             reason = f"Notion HTTP {response.status_code}" + (f" — {msg}" if msg else "")
@@ -2619,6 +2852,7 @@ def _process_repo(
             stats.add_error(url, reason, f"Notion HTTP {response.status_code}")
             log(f"[{idx}/{total}] ❌ {label} — création Notion refusée ({reason})", 'error')
         else:
+            uncertain = True
             reason = (f"Notion sans réponse ({last_http_error()}) — création non réessayée pour "
                       "éviter un doublon ; sera reprise au prochain run si absente")
             result['error'] = reason
@@ -2631,6 +2865,9 @@ def _process_repo(
             if created:
                 existing_urls.add(html_url)
                 existing_keys.add(key)
+            elif uncertain:
+                # Clé gardée pour tout le run : un autre lien vers ce dépôt ne recrée rien
+                uncertain_keys.add(key)
 
 # =============================================================================
 # LIGNE DE COMMANDE
@@ -2645,8 +2882,17 @@ def _non_negative_int(value: str) -> int:
     return number
 
 
+class _Parser(argparse.ArgumentParser):
+    """Option invalide : code 1 (configuration), comme annoncé dans --help, et non 2 (« erreurs »)."""
+
+    def error(self, message):
+        self.print_usage(sys.stderr)
+        print(f"❌ {message}", file=sys.stderr)
+        raise SystemExit(EXIT_CONFIG)
+
+
 def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
+    parser = _Parser(
         prog='gitnotate',
         description="Analyse les liens GitHub d'une page Notion et crée une fiche par dépôt "
                     "dans une base Notion.",
@@ -2682,7 +2928,18 @@ def check_config() -> List[str]:
         errors.append("PARENT_PAGE_ID non défini — ajoutez PARENT_PAGE_ID=<id de la page source Notion> dans .env")
     if not NOTION_TOKEN:
         errors.append("NOTION_TOKEN manquant — ajoutez NOTION_TOKEN=<jeton d'intégration Notion> dans .env")
+    # Jeton coupé (collage, retour à la ligne de l'éditeur) : refusé avant tout appel réseau,
+    # sans jamais afficher sa valeur (requests la recopierait en clair dans son message d'erreur)
+    for name, value in (('NOTION_TOKEN', NOTION_TOKEN), ('GITHUB_TOKEN', GITHUB_TOKEN),
+                        ('MISTRAL_API_KEY', MISTRAL_API_KEY), ('OPENROUTER_API_KEY', OPENROUTER_API_KEY)):
+        if _has_blank_or_control(value):
+            errors.append(f"{name} contient un espace ou un saut de ligne — recopiez-le sur une seule "
+                          "ligne dans .env")
     return errors
+
+
+def _has_blank_or_control(value: str) -> bool:
+    return any(c.isspace() or ord(c) < 32 or ord(c) == 127 for c in value or '')
 
 
 def print_configuration() -> None:
@@ -2776,8 +3033,10 @@ def print_summary(elapsed: float, total: int, interrupted: bool) -> None:
     if stats.models_used:
         log(f"   • Modèles LLM:     {_format_counts(stats.models_used, ' ×')}  (modèles réellement servis)")
     for provider, state in LLM_STATES.items():
-        if state.disabled_reason:
-            log(f"   • ⛔ {_provider_label(provider)} désactivé : {state.disabled_reason}")
+        reason = state.unavailable_reason()
+        if reason:
+            # Niveau 'error' : visible avec LOG_LEVEL=quiet (clé à remplacer, quota épuisé...)
+            log(f"   • ⛔ {_provider_label(provider)} désactivé : {reason}", 'error')
 
     if elapsed > 0 and total:
         log(f"   • Vitesse:         {total / elapsed:.1f} dépôts/sec")
@@ -2828,6 +3087,7 @@ def _run() -> int:
         for error in errors:
             log(f"   • {error}", 'error')
         log("   → Corrigez le fichier .env (voir env.example) puis relancez.", 'error')
+        log(f"   → Fichier .env attendu : {ENV_FILE} ({DOTENV_STATUS})", 'error')
         return EXIT_CONFIG
 
     USER_PROFILE, USER_PROFILE_SOURCE = load_user_profile()
@@ -2870,8 +3130,13 @@ def _run() -> int:
     existing_urls, existing_keys = existing
 
     log("🔍 Extraction URLs (pagination complète)...")
+    skipped_blocks: List[str] = []      # sous-blocs illisibles ignorés (lecture partielle : code 2)
     try:
-        blocks = get_all_blocks_recursive(PARENT_PAGE_ID)
+        blocks = get_all_blocks_recursive(PARENT_PAGE_ID, skipped=skipped_blocks)
+    except SourcePageError as e:
+        log(f"❌ Lecture de la page source impossible : {e}", 'error')
+        log(f"   → Arrêt sans aucune création ({URLS_FILE.name} n'est pas modifié).", 'error')
+        return EXIT_CONFIG
     except PartialReadError as e:
         log(f"❌ Lecture de la page source incomplète : {e}", 'error')
         log(f"   → Arrêt sans aucune création ({URLS_FILE.name} n'est pas modifié).", 'error')
@@ -2898,12 +3163,16 @@ def _run() -> int:
     unique_urls      = dedup_result['unique_urls']
     stats.duplicates = dedup_result['stats']['duplicates']
 
-    try:
-        with open(URLS_FILE, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(unique_urls) + '\n')
-        log(f"💾 URLs uniques → {URLS_FILE.name}")
-    except OSError as e:
-        _warn("save_extracted_urls", e)
+    if skipped_blocks:
+        log(f"⚠️  Lecture partielle de la page source : {len(skipped_blocks)} sous-bloc(s) illisible(s) "
+            f"ignoré(s) — {URLS_FILE.name} n'est pas modifié, code de sortie 2 en fin de run", 'error')
+    else:
+        try:
+            with open(URLS_FILE, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(unique_urls) + '\n')
+            log(f"💾 URLs uniques → {URLS_FILE.name}")
+        except OSError as e:
+            _warn("save_extracted_urls", e)
 
     if MAX_REPOS > 0 and len(unique_urls) > MAX_REPOS:
         log(f"✂️  MAX_REPOS={MAX_REPOS} : traitement limité aux {MAX_REPOS} premiers dépôts "
@@ -2920,6 +3189,7 @@ def _run() -> int:
     start_time    = time.time()
     show_progress = _progress_enabled()
     in_progress: Set[str] = set()
+    UNCERTAIN_KEYS.clear()
     interrupted   = False
     executor      = ThreadPoolExecutor(max_workers=MAX_WORKERS)
     try:
@@ -2927,7 +3197,7 @@ def _run() -> int:
             executor.submit(
                 process_single_repo,
                 url, db_id, existing_urls, has_justification_col, idx, total,
-                existing_keys, in_progress,
+                existing_keys, in_progress, UNCERTAIN_KEYS,
             ): url
             for idx, url in enumerate(unique_urls, 1)
         }
@@ -2963,12 +3233,17 @@ def _run() -> int:
 
     if interrupted:
         exit_code = EXIT_INTERRUPTED
-    elif stats.errors:
+    elif stats.errors or skipped_blocks:
         exit_code = EXIT_INCOMPLETE
     else:
         exit_code = EXIT_OK
 
     print_summary(elapsed, total, interrupted)
+    if skipped_blocks:
+        log(f"⚠️  Page source lue en partie : {len(skipped_blocks)} sous-bloc(s) ignoré(s) "
+            "(leurs liens n'ont pas été traités) :", 'error')
+        for description in skipped_blocks[:ERRORS_DISPLAY_MAX]:
+            log(f"   • {description}", 'error')
 
     save_execution_stats({
         'duration':                 int(elapsed),
@@ -2984,7 +3259,9 @@ def _run() -> int:
         'deferred_by_reason':       dict(stats.deferred_by_reason),
         'models_used':              dict(stats.models_used),
         'providers_used':           dict(stats.providers_used),
-        'llm_disabled':             {p: s.disabled_reason for p, s in LLM_STATES.items() if s.disabled_reason},
+        'llm_disabled':             {p: s.unavailable_reason() for p, s in LLM_STATES.items()
+                                     if s.unavailable_reason()},
+        'skipped_source_blocks':    len(skipped_blocks),
         'profile_hash':             profile_hash,
         'translation_success_rate': stats.translation_rate,
         'llm_score_rate':           stats.llm_score_rate,

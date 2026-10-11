@@ -191,6 +191,10 @@ def read_config(require_page: bool = True) -> Config:
     if not token:
         raise ConfigError("Jeton Notion manquant : définissez NOTION_CLEANER_TOKEN (recommandé) "
                           "ou NOTION_TOKEN dans le .env")
+    if any(c.isspace() or ord(c) < 32 or ord(c) == 127 for c in token):
+        # Valeur jamais affichée : requests la recopierait en clair dans son message d'erreur
+        raise ConfigError(f"{source} contient un espace ou un saut de ligne : recopiez-le sur une "
+                          "seule ligne dans le .env")
 
     page_id = os.environ.get('PARENT_PAGE_ID', '').strip()
     if require_page:
@@ -260,7 +264,8 @@ class NotionClient:
                 self.sleep(self._retry_delay(attempt, response))
         if response is not None:
             return response
-        raise NetworkError(f"{method} {path} : {type(last_error).__name__} : {last_error}")
+        # Type seulement : le message (ex. InvalidHeader) peut recopier le jeton en clair
+        raise NetworkError(f"{method} {path} : {type(last_error).__name__}")
 
     # --- lectures : réponse 200 complète ou PartialRead ----------------------------------
     def get_json(self, path: str, params: Optional[Dict] = None) -> Dict:

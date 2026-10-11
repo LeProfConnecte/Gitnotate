@@ -45,7 +45,8 @@ par défaut. Le profil qui sert à noter les dépôts se règle dans `user_profi
 ## Premier lancement
 
 1. `python scripts/check_llm.py` vérifie les clés LLM sans consommer de quota de génération
-   (code 0 : clés valides et modèle Mistral disponible ; le quota gratuit OpenRouter est affiché).
+   (code 0 : au moins une clé, et toutes les clés présentes sont valides ; le modèle Mistral est
+   vérifié si `MISTRAL_API_KEY` est renseignée ; le quota gratuit OpenRouter est affiché).
 2. Pas encore de base ? Avec `CREATE_DATABASE=true`, `python gitnotate.py` crée « Ressources GitHub »
    (avec toutes les colonnes) dans la page source, affiche son ID (noté aussi dans `.gitnotate_state.json`)
    et s'arrête sans rien importer. Recopiez l'ID dans `DATABASE_ID` et remettez `CREATE_DATABASE=false`.
@@ -73,7 +74,7 @@ erreur ; l'historique des 50 derniers runs est dans `gitnotate_stats.json`.
 | Code | `gitnotate.py` | `clean_page_duplicates.py` | `scripts/check_llm.py` |
 |------|----------------|----------------------------|------------------------|
 | 0 | succès, même avec des dépôts reportés | terminé sans problème | clés utilisables |
-| 1 | configuration ou erreur fatale, aucune fiche créée | configuration, page ou journal introuvable | clé absente ou refusée, modèle absent, réseau |
+| 1 | configuration (option invalide, page source introuvable…) ou erreur fatale, aucune fiche créée | configuration, page ou journal introuvable | aucune clé, clé refusée, modèle absent, réseau |
 | 2 | au moins une erreur, ou lecture partielle | abandon, lecture partielle ou échec | — |
 | 130 | interruption (Ctrl-C) | — | — |
 
@@ -85,8 +86,14 @@ erreur ; l'historique des 50 derniers runs est dans `gitnotate_stats.json`.
   HTTP et une piste. `CREATE_DATABASE=true` ne crée qu'une base, jamais en simulation ; une seconde
   création est refusée tant que `.gitnotate_state.json` garde l'ID.
 - **Lecture complète ou rien** : si la base ou la page source n'est lue qu'en partie, le run s'arrête
-  sans créer de fiche (code 2). Une création restée sans réponse (timeout) n'est jamais renvoyée,
-  pour éviter un doublon ; si elle n'a pas abouti, le dépôt sera repris au run suivant.
+  sans créer de fiche (code 2). Seule exception : un sous-bloc de la page source dont Notion refuse
+  durablement le contenu (HTTP 400/403/404, par exemple une copie synchronisée d'une page non partagée
+  avec l'intégration) est ignoré avec un avertissement (type et identifiant du bloc) ; les autres liens
+  sont traités, `extracted_urls_unique.txt` n'est pas réécrit et le run se termine en code 2.
+- **Pas de doublon après une erreur réseau** : une création restée sans réponse (timeout) ou en
+  erreur serveur (5xx) n'est jamais renvoyée ; pendant le reste du run, un autre lien vers le même
+  dépôt (dépôt renommé ou transféré) n'est pas recréé non plus. Vérifiez dans Notion : si la fiche
+  n'existe pas, le dépôt sera repris au run suivant.
 - **Le nettoyeur `clean_page_duplicates.py` ne touche que la page source** : il met à la corbeille
   Notion les blocs lien (signet, aperçu, intégration) qui répètent un lien GitHub déjà présent.
   Il simule par défaut ; `--apply` exige de taper exactement « SUPPRIMER n » et il abandonne sans rien
@@ -94,6 +101,11 @@ erreur ; l'historique des 50 derniers runs est dans `gitnotate_stats.json`.
   **avant** chaque suppression : `--restore <journal>` montre ce qui serait restauré, et
   `--restore <journal> --apply` le remet en place (phrase « RESTAURER n »). Donnez-lui sa propre
   intégration (`NOTION_CLEANER_TOKEN`, capacités Read + Update content).
+- **Limites connues** : deux runs lancés en même temps (double lancement, tâche planifiée qui
+  chevauche un run manuel) peuvent créer chacun la fiche d'un même dépôt : lancez un seul run à la
+  fois. Un dépôt importé sous son ancien nom, puis ajouté à la page sous son nouveau nom, reçoit une
+  seconde fiche (la base ne garde pas l'identifiant GitHub du dépôt). Ces doublons se suppriment à la
+  main dans Notion.
 - **Triez sans supprimer** : pour écarter un dépôt, ajoutez une option « Écarté » à la colonne
   `Statut` (gardez le type Sélection) plutôt que de supprimer la fiche. Une fiche supprimée serait
   recréée au run suivant si son lien est encore sur la page source.
@@ -111,7 +123,8 @@ erreur ; l'historique des 50 derniers runs est dans `gitnotate_stats.json`.
   statistiques. Quotas gratuits : 20 requêtes/min et 50 requêtes/jour tant que moins de 10 $ de
   crédits ont été achetés (remise à zéro à minuit UTC) ; GitNotate se limite à 18 requêtes/min.
 - **Mode reprise** (`REQUIRE_LLM=true`, par défaut), aucune fiche dégradée : sans réponse LLM valide
-  (traduction et note), le dépôt est **reporté**, rien n'est écrit, et comme il reste absent de la
+  (traduction, cas d'usage, note et justification non vides, sans recopie du modèle de réponse du
+  prompt), le dépôt est **reporté**, rien n'est écrit, et comme il reste absent de la
   base il est repris automatiquement au run suivant. Si aucun fournisseur n'est disponible au
   démarrage, le run s'arrête (code 1) avant tout appel GitHub. `REQUIRE_LLM=false` rétablit l'ancien
   comportement (fiche avec un score lexical calculé localement).
@@ -133,7 +146,8 @@ erreur ; l'historique des 50 derniers runs est dans `gitnotate_stats.json`.
 - `gitnotate_v7.1.py` devient `gitnotate.py` ; `scripts/check_llm.py` remplace `test_key.py`.
 - Repartez de `env.example` et recopiez-y vos jetons et ID : un ancien `MISTRAL_MODEL=mistral-small-2503`
   (retiré par Mistral) ou `TRANSLATION_MODEL` resterait prioritaire sur les nouveaux défauts
-  (`TRANSLATION_MODEL` est remplacée par `OPENROUTER_MODEL`, encore lue avec un avertissement).
+  (`TRANSLATION_MODEL` est remplacée par `OPENROUTER_MODEL`, encore lue avec un avertissement ;
+  un ancien `MISTRAL_MODEL` de la v7.1 est lui aussi signalé au démarrage).
 - `DATABASE_ID` est **obligatoire** : la v7.1 créait une nouvelle base quand il était vide ou
   illisible, la v7.2 s'arrête (code 1). `CREATE_DATABASE=true` ne sert qu'à la première installation.
 - Nouveaux défauts LLM : Mistral `mistral-small-2603` puis OpenRouter `openrouter/free`, mode reprise

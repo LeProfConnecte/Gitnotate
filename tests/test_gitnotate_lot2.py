@@ -9,6 +9,7 @@ import json
 import os
 import re
 import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -293,8 +294,8 @@ def test_openrouter_probe_remaining_zero_disables_for_run(world2, capsys):
     api.or_quota = {'used': 50, 'limit': 50, 'remaining': 0}
     api.route('POST', r'api\.mistral\.ai', lambda u, p: make_response(200, chat('safe')))
     assert gn.main([]) == 0
-    out = capsys.readouterr().out
-    assert 'quota gratuit : 0/50' in out and 'OpenRouter désactivé pour ce run' in out
+    err = capsys.readouterr().err               # fournisseur écarté : cause sur stderr (visible en quiet)
+    assert 'quota gratuit : 0/50' in err and 'OpenRouter désactivé pour ce run' in err
     assert gn.TRANSLATION_FALLBACK is None
     assert api.entries('POST', r'openrouter\.ai') == []
     assert pages_posted(api) == [] and history(gn)[-1]['deferred_count'] == 1
@@ -334,7 +335,7 @@ def test_openrouter_budget_decrements_then_disables(llm2, capsys):
     assert len(api.llm_bodies('openrouter')) == 2
     state = gn._provider_state('openrouter')
     assert state.available is False and 'quota gratuit du jour épuisé' in state.disabled_reason
-    assert 'désactivé pour la suite du run' in capsys.readouterr().out
+    assert 'désactivé pour la suite du run' in capsys.readouterr().err
 
 
 def test_mistral_probe_uses_production_parameters(world2):
@@ -405,7 +406,9 @@ def test_mistral_probe_outcomes(world2, response, ok, fragment):
     if not ok:
         assert '✅' not in msg and ' OK' not in msg
     assert MISTRAL_KEY not in msg
-    assert len(api.entries('POST', r'api\.mistral\.ai')) == 1       # pas de nouvel essai
+    # un seul nouvel essai, et seulement sur incident passager (5xx, timeout, coupure)
+    transient = isinstance(response, requests.exceptions.RequestException) or response.status_code >= 500
+    assert len(api.entries('POST', r'api\.mistral\.ai')) == (2 if transient else 1)
 
 
 def test_mistral_probe_failure_is_logged_as_error(world2, capsys):
@@ -646,7 +649,8 @@ def test_breaker_disables_on_401_402(llm2, capsys, provider, status):
 
 
 @pytest.mark.parametrize('response', [
-    make_response(429, {'error': {'code': 429, 'message': 'Rate limit exceeded'}}, {'X-RateLimit-Remaining': '0'}),
+    make_response(429, {'error': {'code': 429, 'message': 'Rate limit exceeded'}},
+                  {'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': str(int((time.time() + 5 * 3600) * 1000))}),
     make_response(429, {'error': {'code': 429, 'message': 'Rate limit exceeded: free-models-per-day. '
                                                          'Add 10 credits to unlock 1000 free model requests per day'}}),
 ])
@@ -705,14 +709,16 @@ def test_breaker_is_thread_safe(load_gn, capsys):
     for t in threads:
         t.join(5)
     assert state.consecutive_failures == 16 and not state.available
-    assert capsys.readouterr().out.count('désactivé pour la suite du run') == 1
+    assert capsys.readouterr().err.count('désactivé pour la suite du run') == 1
 
 
 def test_all_providers_disabled_defers_remaining_without_github(world2, capsys):
     gn, api = world2(LLM_PROVIDERS='openrouter', MISTRAL_API_KEY=None)
     api.set_page_urls([f'https://github.com/owner/r{i}' for i in range(4)])
+    far_reset = str(int((time.time() + 5 * 3600) * 1000))             # quota du jour : remise à zéro lointaine
     api.route('POST', r'openrouter\.ai/api/v1/chat', lambda u, p: make_response(
-        429, {'error': {'message': 'Rate limit exceeded'}}, {'X-RateLimit-Remaining': '0'}))
+        429, {'error': {'message': 'Rate limit exceeded'}},
+        {'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': far_reset}))
     assert gn.main([]) == 0
     assert len(api.entries('GET', r'/repos/owner/r0')) == 2               # métadonnées + README
     assert api.entries('GET', r'/repos/owner/r[123]') == []                # aucun appel GitHub ensuite
@@ -786,16 +792,51 @@ def test_new_repo_budget_thread_safe(load_gn):
 
     def take():
         barrier.wait()
-        results.append(budget.acquire())
-    threads = [threading.Thread(target=take) for _ in range(20)]
+        ok = budget.acquire()
+        results.append(ok)
+        if ok:
+            budget.commit()                    # fiche écrite : la place est définitivement utilisée
+    threads = [threading.Thread(target=take, daemon=True) for _ in range(20)]
     for t in threads:
         t.start()
     for t in threads:
         t.join(5)
-    assert results.count(True) == 5
-    budget.release()
-    assert budget.acquire() is True and budget.acquire() is False
+    assert results.count(True) == 5 and results.count(False) == 15
+    assert (budget.committed, budget.reserved) == (5, 0)
+    assert budget.acquire() is False
     assert gn.NewRepoBudget(0).acquire() is True
+
+
+def test_new_repo_budget_waits_for_reserved_slot(load_gn):
+    """Places seulement réservées : le dépôt suivant attend leur issue au lieu d'être reporté."""
+    gn = load_gn()
+    budget = gn.NewRepoBudget(1)
+    assert budget.acquire() is True
+    got = []
+    waiter = threading.Thread(target=lambda: got.append(budget.acquire()), daemon=True)
+    waiter.start()
+    waiter.join(0.2)
+    assert waiter.is_alive() and got == []        # en attente, pas refusé
+    budget.release()                              # 1er dépôt sans fiche : place rendue
+    waiter.join(5)
+    assert got == [True]
+    budget.commit()                               # 2e dépôt : fiche écrite
+    assert budget.acquire() is False              # limite atteinte par des fiches écrites
+
+
+def test_new_repo_budget_wait_stops_on_ctrl_c(load_gn):
+    gn = load_gn()
+    budget = gn.NewRepoBudget(1)
+    assert budget.acquire() is True
+    got = []
+    waiter = threading.Thread(target=lambda: got.append(budget.acquire()), daemon=True)
+    waiter.start()
+    gn._STOP_EVENT.set()
+    try:
+        waiter.join(5)
+        assert got == [False]
+    finally:
+        gn._STOP_EVENT.clear()
 
 # =============================================================================
 # 8. TIMEOUT, NOUVELLES TENTATIVES, LIMITEUR DE DÉBIT

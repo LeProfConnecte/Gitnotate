@@ -37,8 +37,9 @@ TIMEOUT             = 15
 
 
 def load_env() -> None:
-    """Charge BASE_DIR/.env (sauf si GITNOTATE_NO_DOTENV est défini), comme gitnotate.py."""
-    if 'GITNOTATE_NO_DOTENV' in os.environ:
+    """Charge BASE_DIR/.env, comme gitnotate.py : sauf si GITNOTATE_NO_DOTENV a une valeur « vraie »
+    (vide, 0, false, no, non ou off n'empêchent pas la lecture)."""
+    if os.environ.get('GITNOTATE_NO_DOTENV', '').strip().lower() not in ('', '0', 'false', 'no', 'non', 'off'):
         return
     try:
         from dotenv import load_dotenv
