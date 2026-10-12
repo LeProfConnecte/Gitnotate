@@ -903,6 +903,6 @@ def test_ligne_de_commande(banc, capsys):
     assert f"redecouverte {banc.rd.__version__} (gitnotate {banc.gn.__version__})" in _sorties(capsys)
     assert banc.lancer('sync', '--option-inconnue') == 1
     assert banc.lancer('etat', '--format', 'xml') == 1
-    assert banc.lancer('cherche', 'extraire des données de PDF') == 1
-    assert 'Commande cherche non disponible' in _sorties(capsys)
+    assert banc.lancer('cherche', 'extraire des données de PDF') == 1      # aucun index : rien n'est créé
+    assert "Index absent : lancez d'abord python redecouverte.py sync" in _sorties(capsys)
     assert banc.notion.journal == []

@@ -1,0 +1,1032 @@
+{
+ "version": 1,
+ "description": "Requêtes de référence du moteur de redécouverte (spécification du lot 4, § 23.2) : 15 requêtes de référence, 10 hors échantillon et une requête anglaise (amendement 4, mêmes jugements que Q01). Clés de dépôt de l'index du corpus synthétique (corpus.json) : « page:<id> » pour une fiche sans adresse, « url:<adresse> » pour une adresse hors GitHub. Gain 2 « en tête », 1 « acceptable » ; « à exclure » = intrus. Q10 et Q14 portent des filtres (options).",
+ "requetes": [
+  {
+   "id": "Q01",
+   "jeu": "reference",
+   "requete": "Quels outils déjà enregistrés pourrais-je utiliser pour extraire des données de PDF techniques ?",
+   "options": {},
+   "en_tete": [
+    "docling-project/docling",
+    "paddlepaddle/paddleocr",
+    "allenai/olmocr",
+    "bytedance/dolphin",
+    "deepseek-ai/deepseek-ocr",
+    "rdumasia303/deepseek_ocr_app"
+   ],
+   "acceptables": [
+    "vectifyai/pageindex",
+    "infiniflow/ragflow",
+    "oschwartz10612/poppler-windows",
+    "tesseract-ocr/tesseract",
+    "ub-mannheim/tesseract",
+    "page:00a48042ef20523f97b1111c38fa6a1f"
+   ],
+   "a_exclure": [
+    "microsoft/omniparser",
+    "unclecode/crawl4ai",
+    "browser-use/browser-use",
+    "datagouv/datagouv-mcp",
+    "public-apis/public-apis",
+    "microsoft/generative-ai-for-beginners",
+    "awesome-selfhosted/awesome-selfhosted"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A01",
+     "A02",
+     "C02",
+     "B01",
+     "A08",
+     "C01",
+     "A03",
+     "A11",
+     "A09",
+     "A10"
+    ],
+    "acceptables": [
+     "A12",
+     "A13",
+     "A07",
+     "A04",
+     "A05",
+     "A06",
+     "B03"
+    ],
+    "a_exclure": [
+     "A14",
+     "A30",
+     "B02",
+     "A31",
+     "A33",
+     "A35",
+     "A38",
+     "A36"
+    ]
+   }
+  },
+  {
+   "id": "Q02",
+   "jeu": "reference",
+   "requete": "Quels dépôts seraient réutilisables dans une application FastAPI de traitement documentaire ?",
+   "options": {},
+   "en_tete": [
+    "rdumasia303/deepseek_ocr_app",
+    "docling-project/docling",
+    "neuml/txtai",
+    "paddlepaddle/paddleocr"
+   ],
+   "acceptables": [
+    "allenai/olmocr",
+    "bytedance/dolphin",
+    "vectifyai/pageindex",
+    "deepseek-ai/deepseek-ocr",
+    "infiniflow/ragflow",
+    "tesseract-ocr/tesseract"
+   ],
+   "a_exclure": [
+    "jlowin/fastmcp",
+    "gyoridavid/short-video-maker",
+    "remotion-dev/remotion",
+    "awesome-selfhosted/awesome-selfhosted",
+    "public-apis/public-apis"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A10",
+     "C02",
+     "A02",
+     "A15",
+     "A08",
+     "C01"
+    ],
+    "acceptables": [
+     "A01",
+     "B01",
+     "A03",
+     "A11",
+     "A12",
+     "A09",
+     "A13",
+     "A04"
+    ],
+    "a_exclure": [
+     "A16",
+     "A41",
+     "A42",
+     "A36",
+     "A35"
+    ]
+   }
+  },
+  {
+   "id": "Q03",
+   "jeu": "reference",
+   "requete": "Ai-je déjà enregistré un projet intéressant pour automatiser une veille financière ?",
+   "options": {},
+   "en_tete": [
+    "virattt/dexter",
+    "assafelovic/gpt-researcher",
+    "huginn/huginn",
+    "ai4finance-foundation/finrobot"
+   ],
+   "acceptables": [
+    "virattt/ai-hedge-fund",
+    "invest-composer/composer-trade-mcp",
+    "luckyone7777/chatgpt-micro-cap-experiment",
+    "rssnext/folo",
+    "public-apis/public-apis"
+   ],
+   "a_exclure": [
+    "firefly-iii/firefly-iii",
+    "evidentlyai/evidently",
+    "browser-use/browser-use",
+    "infiniflow/ragflow",
+    "all-hands-ai/openhands",
+    "openhands/openhands"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A18",
+     "C03",
+     "A25",
+     "C04",
+     "A21",
+     "B04",
+     "A19"
+    ],
+    "acceptables": [
+     "A17",
+     "A24",
+     "A20",
+     "A22",
+     "A35"
+    ],
+    "a_exclure": [
+     "A23",
+     "A46",
+     "A31",
+     "A13",
+     "A26",
+     "A27"
+    ]
+   }
+  },
+  {
+   "id": "Q04",
+   "jeu": "reference",
+   "requete": "Un moteur OCR qui fonctionne sous Windows pour des plans scannés ?",
+   "options": {},
+   "en_tete": [
+    "ub-mannheim/tesseract",
+    "paddlepaddle/paddleocr",
+    "tesseract-ocr/tesseract",
+    "oschwartz10612/poppler-windows"
+   ],
+   "acceptables": [
+    "bytedance/dolphin",
+    "deepseek-ai/deepseek-ocr",
+    "docling-project/docling"
+   ],
+   "a_exclure": [
+    "dockur/windows",
+    "infiniflow/ragflow",
+    "bidingcc/buildingai"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A05",
+     "A06",
+     "A08",
+     "A04",
+     "A07"
+    ],
+    "acceptables": [
+     "A11",
+     "C01",
+     "A09",
+     "A01",
+     "A02",
+     "C02"
+    ],
+    "a_exclure": [
+     "A48",
+     "A13",
+     "A47"
+    ]
+   }
+  },
+  {
+   "id": "Q05",
+   "jeu": "reference",
+   "requete": "Ai-je quelque chose pour le métré ou la lecture de plans de bâtiment (BIM, IFC) ?",
+   "options": {},
+   "en_tete": [],
+   "acceptables": [
+    "lfnovo/open-notebook",
+    "paddlepaddle/paddleocr",
+    "page:00a48042ef20523f97b1111c38fa6a1f"
+   ],
+   "a_exclure": [
+    "bidingcc/buildingai",
+    "evidentlyai/evidently",
+    "virattt/dexter",
+    "vectifyai/pageindex"
+   ],
+   "aucun_fort": true,
+   "ids_corpus": {
+    "en_tete": [],
+    "acceptables": [
+     "A40",
+     "A08",
+     "B03"
+    ],
+    "a_exclure": [
+     "A47",
+     "A46",
+     "C03",
+     "A12"
+    ]
+   }
+  },
+  {
+   "id": "Q06",
+   "jeu": "reference",
+   "requete": "Quel outil pour transformer un site web en données exploitables par un LLM ?",
+   "options": {},
+   "en_tete": [
+    "unclecode/crawl4ai",
+    "browser-use/browser-use"
+   ],
+   "acceptables": [
+    "huginn/huginn",
+    "assafelovic/gpt-researcher",
+    "docling-project/docling"
+   ],
+   "a_exclure": [
+    "microsoft/omniparser",
+    "remotion-dev/remotion",
+    "awesome-selfhosted/awesome-selfhosted",
+    "bidingcc/buildingai"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A30",
+     "B02",
+     "A31"
+    ],
+    "acceptables": [
+     "C04",
+     "A25",
+     "C02"
+    ],
+    "a_exclure": [
+     "A14",
+     "A42",
+     "A36",
+     "A47"
+    ]
+   }
+  },
+  {
+   "id": "Q07",
+   "jeu": "reference",
+   "requete": "Une synthèse vocale locale en français pour des vidéos pédagogiques ?",
+   "options": {},
+   "en_tete": [
+    "ohf-voice/piper1-gpl",
+    "resemble-ai/chatterbox"
+   ],
+   "acceptables": [
+    "remotion-dev/remotion",
+    "gyoridavid/short-video-maker"
+   ],
+   "a_exclure": [
+    "microsoft/generative-ai-for-beginners",
+    "virattt/dexter",
+    "caviraoss/pagelm"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A43",
+     "A44"
+    ],
+    "acceptables": [
+     "A42",
+     "A41"
+    ],
+    "a_exclure": [
+     "A38",
+     "C03",
+     "A39"
+    ]
+   }
+  },
+  {
+   "id": "Q08",
+   "jeu": "reference",
+   "requete": "Un serveur MCP pour connecter mes données ou Notion à un agent ?",
+   "options": {},
+   "en_tete": [
+    "modelcontextprotocol/servers",
+    "datagouv/datagouv-mcp",
+    "punkpeye/awesome-mcp-servers",
+    "jlowin/fastmcp"
+   ],
+   "acceptables": [
+    "invest-composer/composer-trade-mcp",
+    "gyoridavid/short-video-maker"
+   ],
+   "a_exclure": [
+    "public-apis/public-apis",
+    "all-hands-ai/openhands",
+    "openhands/openhands",
+    "infiniflow/ragflow"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A32",
+     "A33",
+     "A34",
+     "A16"
+    ],
+    "acceptables": [
+     "A24",
+     "A41"
+    ],
+    "a_exclure": [
+     "A35",
+     "A26",
+     "A27",
+     "A13"
+    ]
+   }
+  },
+  {
+   "id": "Q09",
+   "jeu": "reference",
+   "requete": "Une base vectorielle ou un RAG pour interroger mes supports de cours ?",
+   "options": {},
+   "en_tete": [
+    "infiniflow/ragflow",
+    "neuml/txtai",
+    "lfnovo/open-notebook",
+    "caviraoss/pagelm"
+   ],
+   "acceptables": [
+    "vectifyai/pageindex",
+    "docling-project/docling",
+    "paddlepaddle/paddleocr",
+    "assafelovic/gpt-researcher"
+   ],
+   "a_exclure": [
+    "microsoft/generative-ai-for-beginners",
+    "thealgorithms/python"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A13",
+     "A15",
+     "A40",
+     "A39"
+    ],
+    "acceptables": [
+     "A12",
+     "C02",
+     "A01",
+     "A02",
+     "C01",
+     "A25"
+    ],
+    "a_exclure": [
+     "A38",
+     "A37"
+    ]
+   }
+  },
+  {
+   "id": "Q10",
+   "jeu": "reference",
+   "requete": "Quels dépôts sous licence MIT pourrais-je intégrer dans un produit commercial ?",
+   "options": {
+    "licence": [
+     "MIT"
+    ]
+   },
+   "en_tete": [
+    "bytedance/dolphin",
+    "vectifyai/pageindex",
+    "ggml-org/llama.cpp",
+    "docling-project/docling",
+    "huginn/huginn"
+   ],
+   "acceptables": [
+    "evidentlyai/evidently",
+    "paddlepaddle/paddleocr"
+   ],
+   "a_exclure": [
+    "remotion-dev/remotion",
+    "jlowin/fastmcp",
+    "ohf-voice/piper1-gpl"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A11",
+     "A12",
+     "A49",
+     "C02",
+     "C04"
+    ],
+    "acceptables": [
+     "A46",
+     "C01"
+    ],
+    "a_exclure": [
+     "A42",
+     "A16",
+     "A43"
+    ]
+   }
+  },
+  {
+   "id": "Q11",
+   "jeu": "reference",
+   "requete": "Un agent de code open source auto-hébergeable, alternative à Claude Code ?",
+   "options": {},
+   "en_tete": [
+    "all-hands-ai/openhands",
+    "openhands/openhands",
+    "anomalyco/opencode"
+   ],
+   "acceptables": [],
+   "a_exclure": [
+    "davila7/claude-code-templates",
+    "browser-use/browser-use",
+    "bidingcc/buildingai",
+    "punkpeye/awesome-mcp-servers",
+    "awesome-selfhosted/awesome-selfhosted"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A26",
+     "A27",
+     "A28"
+    ],
+    "acceptables": [],
+    "a_exclure": [
+     "A29",
+     "A31",
+     "A47",
+     "A34",
+     "A36"
+    ]
+   }
+  },
+  {
+   "id": "Q12",
+   "jeu": "reference",
+   "requete": "Des outils pour générer des QCM ou des exercices pour mes étudiants ?",
+   "options": {},
+   "en_tete": [
+    "caviraoss/pagelm"
+   ],
+   "acceptables": [
+    "lfnovo/open-notebook"
+   ],
+   "a_exclure": [
+    "thealgorithms/python",
+    "microsoft/generative-ai-for-beginners"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A39"
+    ],
+    "acceptables": [
+     "A40"
+    ],
+    "a_exclure": [
+     "A37",
+     "A38"
+    ]
+   }
+  },
+  {
+   "id": "Q13",
+   "jeu": "reference",
+   "requete": "Des outils pour générer automatiquement des vidéos courtes (TikTok, Shorts) ?",
+   "options": {},
+   "en_tete": [
+    "gyoridavid/short-video-maker",
+    "remotion-dev/remotion"
+   ],
+   "acceptables": [
+    "ohf-voice/piper1-gpl",
+    "resemble-ai/chatterbox"
+   ],
+   "a_exclure": [
+    "microsoft/generative-ai-for-beginners",
+    "caviraoss/pagelm",
+    "infiniflow/ragflow"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A41",
+     "A42"
+    ],
+    "acceptables": [
+     "A43",
+     "A44"
+    ],
+    "a_exclure": [
+     "A38",
+     "A39",
+     "A13"
+    ]
+   }
+  },
+  {
+   "id": "Q14",
+   "jeu": "reference",
+   "requete": "",
+   "options": {
+    "statut": [
+     "En test",
+     "Utilisé"
+    ]
+   },
+   "en_tete": [
+    "docling-project/docling",
+    "ub-mannheim/tesseract",
+    "paddlepaddle/paddleocr",
+    "jlowin/fastmcp",
+    "all-hands-ai/openhands",
+    "anomalyco/opencode",
+    "huginn/huginn"
+   ],
+   "acceptables": [
+    "openhands/openhands"
+   ],
+   "a_exclure": [
+    "ai4finance-foundation/finrobot",
+    "virattt/ai-hedge-fund",
+    "browser-use/browser-use"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A01",
+     "A05",
+     "A06",
+     "A08",
+     "A16",
+     "A26",
+     "A28",
+     "B01",
+     "B04"
+    ],
+    "acceptables": [
+     "A02",
+     "A27"
+    ],
+    "a_exclure": [
+     "A19",
+     "A17",
+     "A52"
+    ]
+   },
+   "commentaire": "Quels dépôts ai-je marqués « En test » ou « Utilisé » ?"
+  },
+  {
+   "id": "Q15",
+   "jeu": "reference",
+   "requete": "Un outil pour faire un tableau de bord de données en Python sans écrire de front-end ?",
+   "options": {},
+   "en_tete": [
+    "marimo-team/marimo"
+   ],
+   "acceptables": [
+    "evidentlyai/evidently"
+   ],
+   "a_exclure": [
+    "docling-project/docling",
+    "paddlepaddle/paddleocr",
+    "remotion-dev/remotion",
+    "vectifyai/pageindex"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A45"
+    ],
+    "acceptables": [
+     "A46"
+    ],
+    "a_exclure": [
+     "A01",
+     "A02",
+     "C02",
+     "A08",
+     "C01",
+     "A42",
+     "A12"
+    ]
+   }
+  },
+  {
+   "id": "H01",
+   "jeu": "hors_echantillon",
+   "requete": "Comment convertir des fichiers Word ou PDF en Markdown ?",
+   "options": {},
+   "en_tete": [
+    "docling-project/docling"
+   ],
+   "acceptables": [
+    "bytedance/dolphin",
+    "deepseek-ai/deepseek-ocr",
+    "rdumasia303/deepseek_ocr_app",
+    "paddlepaddle/paddleocr",
+    "allenai/olmocr"
+   ],
+   "a_exclure": [
+    "remotion-dev/remotion",
+    "thealgorithms/python"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "C02",
+     "A02"
+    ],
+    "acceptables": [
+     "A11",
+     "A09",
+     "A10",
+     "C01",
+     "A03"
+    ],
+    "a_exclure": [
+     "A42",
+     "A37"
+    ]
+   }
+  },
+  {
+   "id": "H02",
+   "jeu": "hors_echantillon",
+   "requete": "un robot qui surveille des flux RSS et m'envoie des alertes",
+   "options": {},
+   "en_tete": [
+    "huginn/huginn"
+   ],
+   "acceptables": [
+    "rssnext/folo"
+   ],
+   "a_exclure": [
+    "evidentlyai/evidently",
+    "unclecode/crawl4ai"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "C04",
+     "A21"
+    ],
+    "acceptables": [
+     "A22",
+     "B04"
+    ],
+    "a_exclure": [
+     "A46",
+     "A30"
+    ]
+   }
+  },
+  {
+   "id": "H03",
+   "jeu": "hors_echantillon",
+   "requete": "agent qui navigue sur le web à ma place",
+   "options": {},
+   "en_tete": [
+    "browser-use/browser-use"
+   ],
+   "acceptables": [
+    "microsoft/omniparser",
+    "huginn/huginn",
+    "assafelovic/gpt-researcher",
+    "unclecode/crawl4ai"
+   ],
+   "a_exclure": [
+    "remotion-dev/remotion",
+    "caviraoss/pagelm"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A31"
+    ],
+    "acceptables": [
+     "A14",
+     "C04",
+     "A25",
+     "A30"
+    ],
+    "a_exclure": [
+     "A42",
+     "A39"
+    ]
+   }
+  },
+  {
+   "id": "H04",
+   "jeu": "hors_echantillon",
+   "requete": "faire tourner un modèle de langage en local sur mon PC",
+   "options": {},
+   "en_tete": [
+    "ggml-org/llama.cpp"
+   ],
+   "acceptables": [
+    "neuml/txtai",
+    "infiniflow/ragflow"
+   ],
+   "a_exclure": [
+    "microsoft/generative-ai-for-beginners",
+    "thealgorithms/python"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A49"
+    ],
+    "acceptables": [
+     "A15",
+     "A13"
+    ],
+    "a_exclure": [
+     "A38",
+     "A37"
+    ]
+   }
+  },
+  {
+   "id": "H05",
+   "jeu": "hors_echantillon",
+   "requete": "backtesting ou trading algorithmique",
+   "options": {},
+   "en_tete": [
+    "invest-composer/composer-trade-mcp"
+   ],
+   "acceptables": [
+    "virattt/ai-hedge-fund",
+    "luckyone7777/chatgpt-micro-cap-experiment",
+    "ai4finance-foundation/finrobot"
+   ],
+   "a_exclure": [
+    "firefly-iii/firefly-iii"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A24"
+    ],
+    "acceptables": [
+     "A17",
+     "A20",
+     "A19"
+    ],
+    "a_exclure": [
+     "A23"
+    ]
+   }
+  },
+  {
+   "id": "H06",
+   "jeu": "hors_echantillon",
+   "requete": "installer Windows dans un conteneur Docker",
+   "options": {},
+   "en_tete": [
+    "dockur/windows"
+   ],
+   "acceptables": [
+    "ub-mannheim/tesseract",
+    "oschwartz10612/poppler-windows"
+   ],
+   "a_exclure": [
+    "caviraoss/pagelm"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A48"
+    ],
+    "acceptables": [
+     "A05",
+     "A07"
+    ],
+    "a_exclure": [
+     "A39"
+    ]
+   }
+  },
+  {
+   "id": "H07",
+   "jeu": "hors_echantillon",
+   "requete": "un cours pour apprendre l'IA générative",
+   "options": {},
+   "en_tete": [
+    "microsoft/generative-ai-for-beginners"
+   ],
+   "acceptables": [],
+   "a_exclure": [
+    "thealgorithms/python",
+    "bidingcc/buildingai"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A38"
+    ],
+    "acceptables": [],
+    "a_exclure": [
+     "A37",
+     "A47"
+    ]
+   }
+  },
+  {
+   "id": "H08",
+   "jeu": "hors_echantillon",
+   "requete": "voix off automatique pour mes vidéos",
+   "options": {},
+   "en_tete": [
+    "ohf-voice/piper1-gpl",
+    "resemble-ai/chatterbox"
+   ],
+   "acceptables": [
+    "gyoridavid/short-video-maker",
+    "remotion-dev/remotion"
+   ],
+   "a_exclure": [
+    "microsoft/generative-ai-for-beginners"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A43",
+     "A44"
+    ],
+    "acceptables": [
+     "A41",
+     "A42"
+    ],
+    "a_exclure": [
+     "A38"
+    ]
+   }
+  },
+  {
+   "id": "H09",
+   "jeu": "hors_echantillon",
+   "requete": "reconnaissance de texte dans des images scannées",
+   "options": {},
+   "en_tete": [
+    "tesseract-ocr/tesseract",
+    "ub-mannheim/tesseract",
+    "paddlepaddle/paddleocr",
+    "bytedance/dolphin"
+   ],
+   "acceptables": [
+    "deepseek-ai/deepseek-ocr",
+    "rdumasia303/deepseek_ocr_app",
+    "docling-project/docling"
+   ],
+   "a_exclure": [
+    "microsoft/omniparser",
+    "remotion-dev/remotion"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A04",
+     "A05",
+     "A08",
+     "C01",
+     "A11"
+    ],
+    "acceptables": [
+     "A09",
+     "A10",
+     "A06",
+     "C02"
+    ],
+    "a_exclure": [
+     "A14",
+     "A42"
+    ]
+   }
+  },
+  {
+   "id": "H10",
+   "jeu": "hors_echantillon",
+   "requete": "gestion de budget personnel auto-hébergée",
+   "options": {},
+   "en_tete": [
+    "firefly-iii/firefly-iii"
+   ],
+   "acceptables": [],
+   "a_exclure": [
+    "virattt/dexter",
+    "virattt/ai-hedge-fund"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A23"
+    ],
+    "acceptables": [],
+    "a_exclure": [
+     "A18",
+     "A17"
+    ]
+   }
+  },
+  {
+   "id": "E01",
+   "jeu": "anglais",
+   "requete": "Which saved tools could extract data from technical PDFs?",
+   "options": {},
+   "en_tete": [
+    "docling-project/docling",
+    "paddlepaddle/paddleocr",
+    "allenai/olmocr",
+    "bytedance/dolphin",
+    "deepseek-ai/deepseek-ocr",
+    "rdumasia303/deepseek_ocr_app"
+   ],
+   "acceptables": [
+    "vectifyai/pageindex",
+    "infiniflow/ragflow",
+    "oschwartz10612/poppler-windows",
+    "tesseract-ocr/tesseract",
+    "ub-mannheim/tesseract",
+    "page:00a48042ef20523f97b1111c38fa6a1f"
+   ],
+   "a_exclure": [
+    "microsoft/omniparser",
+    "unclecode/crawl4ai",
+    "browser-use/browser-use",
+    "datagouv/datagouv-mcp",
+    "public-apis/public-apis",
+    "microsoft/generative-ai-for-beginners",
+    "awesome-selfhosted/awesome-selfhosted"
+   ],
+   "aucun_fort": false,
+   "ids_corpus": {
+    "en_tete": [
+     "A01",
+     "A02",
+     "C02",
+     "B01",
+     "A08",
+     "C01",
+     "A03",
+     "A11",
+     "A09",
+     "A10"
+    ],
+    "acceptables": [
+     "A12",
+     "A13",
+     "A07",
+     "A04",
+     "A05",
+     "A06",
+     "B03"
+    ],
+    "a_exclure": [
+     "A14",
+     "A30",
+     "B02",
+     "A31",
+     "A33",
+     "A35",
+     "A38",
+     "A36"
+    ]
+   },
+   "meme_que": "Q01"
+  }
+ ]
+}
