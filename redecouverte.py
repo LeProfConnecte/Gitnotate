@@ -47,7 +47,7 @@ import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path, PurePath
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, FrozenSet, Iterable, Iterator, List, Optional, Set, Tuple
 
 import gitnotate as gn
 import redecouverte_lexique as lexique
@@ -66,7 +66,7 @@ __version__ = "1.0.0"
 # =============================================================================
 # CONSTANTES (aucune variable d'environnement)
 # =============================================================================
-FORMAT_INDEX = 1                     # PRAGMA user_version et meta['format_index']
+FORMAT_INDEX = 2                     # PRAGMA user_version et meta['format_index'] (2 : valeurs personnelles seules)
 FORMAT_CAPTURE = 'gitnotate-capture/1'
 NOTION_VERSION = '2022-06-28'        # doit égaler gn.NOTION_HEADERS['Notion-Version']
 NOTION_API = 'https://api.notion.com'
@@ -110,6 +110,9 @@ LLM_BESOIN_MAX = 500
 LLM_RAISON_MAX = 300
 MARQUE_DEBUT = chr(0xE000)           # zone privée : retirée de tout texte de fiche par normaliser()
 MARQUE_FIN = chr(0xE001)
+# Entre deux valeurs de la colonne FTS notes : jeton de la zone privée (retiré de tout texte par normaliser()),
+# qu'aucune requête ne peut contenir ; une expression de plusieurs mots ne franchit donc jamais deux valeurs
+SEPARATEUR_NOTES = '\n' + chr(0xE002) + '\n'
 
 # =============================================================================
 # ERREURS
@@ -447,6 +450,7 @@ _TABLE_CONTROLES: Dict[int, Optional[str]] = {
 _TABLE_NORMALISATION: Dict[int, Optional[str]] = {
     0x00A0: ' ', 0x202F: ' ', 0x2009: ' ', 0x2011: '-', 0x2010: '-', 0x2019: "'",
     0xE000: ' ', 0xE001: ' ',        # marqueurs de surlignage du moteur (MARQUE_DEBUT, MARQUE_FIN)
+    0xE002: ' ',                     # séparateur des valeurs personnelles indexées (SEPARATEUR_NOTES)
     **_TABLE_CONTROLES}
 TYPES_CONSERVES = frozenset({'title', 'rich_text', 'select', 'status', 'multi_select', 'url', 'number',
                              'date', 'formula'})
@@ -1289,8 +1293,20 @@ def texte_nom_indexe(titre: str, cle: str) -> str:
     return ' '.join(morceaux)
 
 
+def entrees_notes(autres: Dict[str, str], justification: Optional[str]) -> List[Tuple[str, str]]:
+    """(colonne personnelle, valeur) indexées dans la colonne FTS notes, dans l'ordre ; justification : texte
+    d'une Justification réécrite par l'utilisateur (None sinon)."""
+    entrees = list(autres.items())
+    if justification is not None:
+        entrees.append(('Justification', justification))
+    return entrees
+
+
 def contenu_fts(fiche: Fiche) -> Dict[str, str]:
-    """Texte de chaque colonne FTS : le texte stocké du champ (sauf nom et notes), champs indexables seuls."""
+    """Texte de chaque colonne FTS : le texte stocké du champ (sauf nom et notes), champs indexables seuls.
+    Colonne notes : les seules valeurs des colonnes personnelles, séparées par SEPARATEUR_NOTES ; le nom de
+    la colonne n'est jamais indexé (« notes » ou « tags » ne trouvent pas toute fiche annotée), il est
+    retrouvé pour l'affichage par la position de la valeur (_segments_notes)."""
     contenu = {colonne: '' for colonne in COLONNES_FTS}
     contenu['nom'] = texte_nom_indexe(fiche.champs['Nom'].texte, fiche.cle_depot)
     for champ, colonne in CHAMP_FTS.items():
@@ -1302,11 +1318,9 @@ def contenu_fts(fiche: Fiche) -> Dict[str, str]:
         contenu[colonne] = ch.texte
     if gn._fold(contenu['langage']).startswith('autre'):
         contenu['langage'] = ''
-    lignes = [f"{nom} : {valeur}" for nom, valeur in fiche.autres.items()]
     justification = fiche.champs.get('Justification')
-    if justification is not None and justification.fiabilite == 'utilisateur':
-        lignes.append(f"Justification : {justification.texte}")
-    contenu['notes'] = '\n'.join(lignes)
+    reecrite = justification.texte if justification is not None and justification.fiabilite == 'utilisateur' else None
+    contenu['notes'] = SEPARATEUR_NOTES.join(valeur for _, valeur in entrees_notes(fiche.autres, reecrite))
     return contenu
 
 
@@ -2221,7 +2235,7 @@ POIDS_BM25 = {'nom': 3.0, 'description': 2.0, 'cas_usage': 2.0, 'categorie': 1.5
 FACTEUR = {'nom': 1.0, 'description': 1.0, 'cas_usage': 1.0, 'categorie': 0.75, 'brique_pour': 0.75,
            'type': 0.5, 'langage': 0.5, 'licence': 0.5, 'installation': 0.5, 'exemple': 0.5, 'prerequis': 0.5,
            'notes': 1.0, 'justification': FACTEUR_JUSTIFICATION}
-CLASSES = {'essentiel': 1.0, 'faible': 0.3, 'libre': 0.5}
+CLASSES = {'essentiel': 1.0, 'faible': 0.3, 'libre': 0.5, 'contrainte': 0.5}
 ROLES = {'normal': 1.0, 'contexte': 0.5, 'reference': 0.25}
 # Ordre de préférence des colonnes pour expliquer une correspondance (§ 17.2)
 ORDRE_EXPLICATION = ('notes', 'cas_usage', 'description', 'categorie', 'brique_pour', 'type', 'installation',
@@ -2229,6 +2243,7 @@ ORDRE_EXPLICATION = ('notes', 'cas_usage', 'description', 'categorie', 'brique_p
 CHAMP_DE_COLONNE = {colonne: champ for champ, colonne in CHAMP_FTS.items()}
 CHAMP_DE_COLONNE.update({'nom': 'Nom', 'notes': 'Notes'})
 _BORNES = re.compile(r"[.;:!?()\[\]{}|•—–\n,]| - ")
+_REFERENCE = '<référence>'              # unité de la requête : expression de comparaison (EXPRESSIONS_REFERENCE)
 _MOT_RE = re.compile(r'\w+')
 
 
@@ -2277,6 +2292,20 @@ def masculin(t: str) -> str:
     return t
 
 
+def feminin(t: str) -> str:
+    """Forme féminine d'un mot masculin au singulier de 4 lettres ou plus, sans chiffre : if/ive, ier/ière,
+    ien/ienne, el/elle, eur/euse, sinon « e » final après une consonne (« interactif » -> « interactive »,
+    « local » -> « locale ») ; le mot lui-même sinon (déjà en « e », voyelle finale, infinitif en « er »)."""
+    if len(t) < 4 or any(c.isdigit() for c in t) or not t.isalpha():
+        return t
+    for fin, remplacement in (('if', 'ive'), ('ier', 'iere'), ('ien', 'ienne'), ('el', 'elle'), ('eur', 'euse')):
+        if t.endswith(fin):
+            return t[:-len(fin)] + remplacement
+    if t[-1] in 'aeiouy' or t.endswith('er'):
+        return t
+    return t + 'e'
+
+
 @dataclass(frozen=True)
 class LexiqueCompile:
     formes: Dict[Tuple[str, ...], str]                  # séquence de jetons -> concept
@@ -2284,6 +2313,7 @@ class LexiqueCompile:
     classes: Dict[str, str]
     voisins: Dict[str, Tuple[str, ...]]                 # relation rendue symétrique
     longueur_max: int
+    references: FrozenSet[Tuple[str, ...]] = frozenset()   # expressions de comparaison (« plus simple que »)
 
 
 @functools.lru_cache(maxsize=1)
@@ -2307,13 +2337,15 @@ def lexique_compile() -> LexiqueCompile:
         for v in list(voisins[cid]):
             if cid not in voisins[v]:
                 voisins[v].append(cid)
+    references = frozenset(seq for seq in (tuple(jetons(e)) for e in lexique.EXPRESSIONS_REFERENCE) if seq)
     return LexiqueCompile(formes, sequences, classes, {c: tuple(v) for c, v in voisins.items()},
-                          max((len(s) for s in formes), default=1))
+                          max((len(s) for s in [*formes, *references]), default=1), references)
 
 
-def _termes_mot(mot: str) -> List[str]:
+def _termes_mot(mot: str, libre: bool = False) -> List[str]:
     """Termes FTS d'un mot de l'utilisateur : exact, singulier, masculin, et préfixe de la racine si elle
-    fait 5 lettres ou plus (« plans » -> "plans" OR "plan", jamais « planifie »)."""
+    fait 5 lettres ou plus (« plans » -> "plans" OR "plan", jamais « planifie »). Mot libre (hors lexique) :
+    aussi le féminin et le féminin pluriel exacts (« interactifs » -> "interactive" OR "interactives")."""
     if len(mot) <= 3 or any(c.isdigit() for c in mot):
         return [f'"{mot}"']
     s = singulier(mot)
@@ -2321,7 +2353,10 @@ def _termes_mot(mot: str) -> List[str]:
     termes = list(dict.fromkeys((f'"{mot}"', f'"{s}"', f'"{m}"')))
     if len(m) >= 5:
         termes.append(f'"{m}"*')
-    return termes
+    f = feminin(m)
+    if libre and f != m:
+        termes += [f'"{f}"', f'"{f}s"']
+    return list(dict.fromkeys(termes))
 
 
 def _termes_formes(sequences: Iterable[Tuple[str, ...]]) -> List[str]:
@@ -2341,7 +2376,7 @@ class Concept:
     lexique: Optional[str]      # id du concept, None pour un mot libre
     surface: List[str]          # jetons de l'utilisateur (repliés), un élément par unité
     mots: List[str]             # mêmes unités, telles que tapées (affichage)
-    classe: str                 # 'essentiel' | 'faible' | 'libre'
+    classe: str                 # 'essentiel' | 'faible' | 'contrainte' | 'libre'
     role: str                   # 'normal' | 'contexte' | 'reference'
     expr: str = ''
     expr_voisine: str = ''
@@ -2351,6 +2386,7 @@ class Concept:
     idf: float = 0.0
     poids: float = 0.0
     mentionne: bool = True      # au moins une fiche porte une forme du concept (preuve principale)
+    par_voisin: bool = False    # aucune fiche ne le mentionne, mais un concept voisin est trouvé
     retire: bool = False        # introuvable et libre ou faible : hors du calcul
 
     @property
@@ -2395,7 +2431,7 @@ def expressions_fts(concept: Concept, presents: Iterable[str] = ()) -> Tuple[str
         termes += _termes_formes(lex.sequences[concept.lexique])
     for unite in concept.surface:
         if ' ' not in unite:
-            termes += _termes_mot(unite)
+            termes += _termes_mot(unite, concept.lexique is None)
     termes = list(dict.fromkeys(termes))
     voisins: List[str] = []
     if concept.lexique:
@@ -2410,6 +2446,33 @@ def expressions_fts(concept: Concept, presents: Iterable[str] = ()) -> Tuple[str
     return ' OR '.join(termes), ' OR '.join(voisins)
 
 
+def _segments_requete(texte: str) -> Iterator[Tuple[int, str]]:
+    """(position dans le texte, segment) : découpage de _BORNES.split, avec la position de chaque segment."""
+    debut = 0
+    for m in _BORNES.finditer(texte):
+        yield debut, texte[debut:m.start()]
+        debut = m.end()
+    yield debut, texte[debut:]
+
+
+def _forme_saisie(texte: str, debut: int, original: str) -> str:
+    """Mot tel que tapé, sans la majuscule du seul début de phrase (« Gérer les notes » -> « gérer »), pour un
+    affichage homogène ; sigles, noms en casse mixte et majuscules en cours de phrase gardés (« BIM »,
+    « PaddleOCR », « sous Windows »)."""
+    avant = texte[:debut].rstrip() if debut >= 0 else None
+    if avant is None or (avant and avant[-1] not in '.!?…'):
+        return original
+    if len(original) > 1 and original[0].isupper() and original[1:] == original[1:].lower():
+        return original[0].lower() + original[1:]
+    return original
+
+
+def nombre_isole(mot: str) -> bool:
+    """Nombre d'un ou deux chiffres hors expression du lexique (« Eurocode 2 ») : ignoré, jamais un concept
+    (il trouverait « Apache-2.0 » ou « v2 » dans n'importe quelle fiche)."""
+    return mot.isdigit() and len(mot) <= 2
+
+
 def analyser_requete(texte: str) -> Requete:
     """Concepts de la requête (§ 15.2) : expressions d'abord, puis négation, contexte, référence, mots
     vides du cadre de question ; au plus MAX_CONCEPTS concepts."""
@@ -2419,7 +2482,7 @@ def analyser_requete(texte: str) -> Requete:
     ignores: List[str] = []
     nies: List[str] = []
     vides = lexique.MOTS_VIDES | lexique.MOTS_VIDES_REQUETE
-    for segment in _BORNES.split(texte):
+    for decalage, segment in _segments_requete(texte):
         paires = _mots_du_segment(segment)
         gardees = []
         for i, p in enumerate(paires):          # « Ai-je », « j'ai » ; ailleurs « ai » = IA
@@ -2433,18 +2496,25 @@ def analyser_requete(texte: str) -> Requete:
         while i < len(gardees):
             trouve = 0
             for n in range(min(lex.longueur_max, len(gardees) - i), 1, -1):
-                if tuple(p[0] for p in gardees[i:i + n]) in lex.formes:
+                seq = tuple(p[0] for p in gardees[i:i + n])
+                if seq in lex.references or seq in lex.formes:
                     trouve = n
                     break
+            debut = decalage + gardees[i][2] if gardees[i][2] >= 0 else -1
             if trouve:
                 seq = tuple(p[0] for p in gardees[i:i + trouve])
-                unites.append((seq, _original(segment, gardees[i:i + trouve]), lex.formes[seq]))
+                cid = _REFERENCE if seq in lex.references else lex.formes[seq]
+                unites.append((seq, _forme_saisie(texte, debut, _original(segment, gardees[i:i + trouve])), cid))
                 i += trouve
             else:
-                unites.append(((gardees[i][0],), gardees[i][1], None))
+                unites.append(((gardees[i][0],), _forme_saisie(texte, debut, gardees[i][1]), None))
                 i += 1
         negation = contexte = reference = 0
-        for seq, original, cid in unites:
+        for k, (seq, original, cid) in enumerate(unites):
+            if cid == _REFERENCE:                   # « plus simple que », « rather than »
+                reference = PORTEE_REFERENCE
+                ignores.extend(seq)
+                continue
             mot = seq[0] if cid is None else ''
             if mot:
                 if mot in lexique.NEGATIONS:
@@ -2455,12 +2525,18 @@ def analyser_requete(texte: str) -> Requete:
                     ignores.append(mot)
                     continue
                 if mot in lexique.POSSESSIFS:
-                    contexte = PORTEE_CONTEXTE
+                    suivant = unites[k + 1] if k + 1 < len(unites) else None
+                    if not (suivant and suivant[2] is None and suivant[0][0] in lexique.PROPRE):
+                        contexte = PORTEE_CONTEXTE
+                    continue
+                if mot in lexique.PROPRE and k > 0 and unites[k - 1][2] is None \
+                        and unites[k - 1][0][0] in lexique.POSSESSIFS:
+                    ignores.append(mot)         # « mon propre serveur » : l'objet à créer, pas un contexte
                     continue
                 if mot in lexique.REFERENCES:
                     reference = PORTEE_REFERENCE
                     continue
-                if mot in vides or (len(mot) == 1 and not mot.isdigit()):
+                if mot in vides or (len(mot) == 1 and not mot.isdigit()) or nombre_isole(mot):
                     ignores.append(mot)
                     continue
             if negation:
@@ -2559,12 +2635,13 @@ class Reponse:
     faibles: List[Resultat]             # affichés avec --tout seulement
     sans_depot: List[Resultat]          # fiches sans dépôt GitHub (SANS_DEPOT_MAX au plus)
     non_affiches: Dict[str, int]
-    absents: List[str]                  # concepts qu'aucune fiche ne mentionne
+    absents: List[str]                  # concepts qu'aucune fiche ne mentionne, même par un concept voisin
     alertes: List[str] = field(default_factory=list)
     astuce: bool = False
     llm: Dict[str, Any] = field(default_factory=lambda: {'demande': False})
     avis_texte: str = ''                # bloc « Avis du LLM » (affiché à part)
     genere_le: str = ''
+    par_voisin: List[str] = field(default_factory=list)   # mentionnés par aucune fiche, voisin trouvé
 
     @property
     def affiches(self) -> List[Resultat]:
@@ -2673,7 +2750,8 @@ def _passe_filtres(fiches: List[Dict[str, Any]], filtres: Dict[str, List[str]]) 
 def ensembles_niveau(actifs: List[Concept]) -> Tuple[List[Concept], List[Concept], List[Concept]]:
     """(essentiels, couverts, exiges) pour le niveau d'un dépôt (§ 16.4-16.5, revue du lot 4).
     - essentiels : classe non faible et rôle normal (à défaut, tous les concepts actifs) ; « forte » exige
-      que l'un d'eux soit trouvé directement.
+      que l'un d'eux soit trouvé directement, et qu'il ne soit pas une contrainte quand le besoin nomme
+      aussi son objet (objets_du_besoin).
     - couverts : base de la couverture ; les essentiels, et aussi, quand un seul concept est essentiel, les
       concepts de rôle contexte (poids déjà divisé par deux) : « gérer mes commits git depuis le
       terminal » n'est pas couvert par « terminal » seul.
@@ -2688,6 +2766,34 @@ def ensembles_niveau(actifs: List[Concept]) -> Tuple[List[Concept], List[Concept
     couverts = [c for c in actifs if c.classe != 'faible' and c.role in ('normal', 'contexte')]
     exiges = [c for c in actifs if c.classe == 'faible' and c.role == 'normal']
     return essentiels, couverts, exiges
+
+
+def _poids_contraintes(actifs: List[Concept]) -> None:
+    """Poids d'une contrainte (système, plateforme, langage, déploiement) : la moitié (CLASSES) du poids de la
+    notion la plus lourde de l'objet du besoin (essentielle ou mot libre, rôle normal), multipliée par son
+    rôle, quelle que soit sa rareté : « Windows » (3 fiches) ne pèse plus plus que « OCR » (11 fiches), et
+    « Python » (33 fiches) départage encore deux serveurs MCP. Sans objet nommé : rareté, comme les autres."""
+    objets = [c.poids for c in actifs if c.classe not in ('contrainte', 'faible') and c.role == 'normal']
+    if not objets:
+        return
+    reference = max(objets)
+    for c in actifs:
+        if c.classe == 'contrainte':
+            c.poids = CLASSES['contrainte'] * ROLES[c.role] * reference
+
+
+def objets_du_besoin(actifs: List[Concept], essentiels: List[Concept]) -> List[Concept]:
+    """Notions dont l'une doit être trouvée directement pour « forte » (une contrainte n'y suffit jamais
+    seule : « un OCR pour Windows » n'est pas couvert par « Windows ») :
+    - les essentiels qui ne sont pas des contraintes ;
+    - s'ils sont tous des contraintes, les notions du lexique non contraintes de rôle contexte (« en Python
+      pour mes vidéos ») ;
+    - à défaut, les essentiels eux-mêmes : le besoin n'est fait que de contraintes (« Windows dans un
+      conteneur Docker »), ou son objet est une notion faible déjà exigée (« un LLM en local »)."""
+    objets = [c for c in essentiels if c.classe != 'contrainte']
+    if not objets:
+        objets = [c for c in actifs if c.classe == 'essentiel' and c.role == 'contexte']
+    return objets or list(essentiels)
 
 
 def _cle_tri(r: Resultat) -> Tuple[Any, ...]:
@@ -2746,6 +2852,7 @@ def rechercher(con: sqlite3.Connection, requete: Requete, filtres: Optional[Dict
             p.contribution = p.facteur * (ALPHA + (1 - ALPHA) * min(max(s, 0.0), 1.0))
         c.df = sum(1 for p in preuves.values() if p.mode == 'direct' and p.factuelle)
         c.mentionne = mentionne
+        c.par_voisin = not mentionne and bool(preuves)
         c.retire = not preuves and c.classe in ('libre', 'faible')
         if c.retire:
             continue
@@ -2757,8 +2864,10 @@ def rechercher(con: sqlite3.Connection, requete: Requete, filtres: Optional[Dict
         actifs.append(c)
         preuves_par_concept[c.cle] = preuves
         niees_par_concept[c.cle] = niees
+    _poids_contraintes(actifs)
     total = sum(c.poids for c in actifs)
     essentiels, couverts, exiges = ensembles_niveau(actifs)
+    objets = objets_du_besoin(actifs, essentiels)
     total_couverts = sum(c.poids for c in couverts)
     resultats: Dict[str, Resultat] = {}
     for c in actifs:
@@ -2791,7 +2900,7 @@ def rechercher(con: sqlite3.Connection, requete: Requete, filtres: Optional[Dict
             r.score = sum(r.contributions.values()) / total if total else 0.0
             r.couverture = (sum(c.poids * r.m.get(c.cle, 0.0) for c in couverts) / total_couverts
                             if total_couverts else 0.0)
-            direct = any(r.m.get(c.cle, 0.0) >= 1.0 for c in essentiels)
+            direct = any(r.m.get(c.cle, 0.0) >= 1.0 for c in objets)
             objet = all(r.m.get(c.cle, 0.0) >= FACTEUR_VOISIN for c in exiges)
             partiel = any(r.m.get(c.cle, 0.0) >= FACTEUR_VOISIN for c in essentiels)
             if r.couverture >= SEUIL_FORTE and direct and objet:
@@ -2823,7 +2932,8 @@ def rechercher(con: sqlite3.Connection, requete: Requete, filtres: Optional[Dict
         r.rang = rang
     reponse = Reponse(requete, filtres, limite, tout, dict(meta or {}), montres, faibles,
                       sans_depot_tous[:SANS_DEPOT_MAX], non_affiches,
-                      [c.nom for c in requete.concepts if not c.mentionne])
+                      [c.nom for c in requete.concepts if not c.mentionne and not c.par_voisin])
+    reponse.par_voisin = [c.nom for c in requete.concepts if c.par_voisin]
     reponse.astuce = any(t in ('licence', 'license', 'statut') for t in jetons(requete.texte))
     return reponse
 
@@ -2949,18 +3059,17 @@ def _court(texte: str, a: int, b: int) -> str:
 
 
 def _segments_notes(fiche: Dict[str, Any], texte_fts: str) -> List[Tuple[str, int, int, str]]:
-    """(colonne personnelle, début, fin, valeur) dans la colonne FTS notes (construction de contenu_fts)."""
-    entrees = list(fiche['autres'].items())
+    """(colonne personnelle, début, fin, valeur) dans la colonne FTS notes (construction de contenu_fts) ;
+    [] si le texte indexé ne correspond pas aux valeurs stockées (aucune occurrence n'y sera alors citée)."""
     justification = fiche['champs'].get('Justification') or {}
-    if justification.get('fiabilite') == 'utilisateur':
-        entrees.append(('Justification', justification.get('texte', '')))
-    if '\n'.join(f"{nom} : {valeur}" for nom, valeur in entrees) != texte_fts:
+    reecrite = justification.get('texte', '') if justification.get('fiabilite') == 'utilisateur' else None
+    entrees = entrees_notes(fiche['autres'], reecrite)
+    if SEPARATEUR_NOTES.join(valeur for _, valeur in entrees) != texte_fts:
         return []
     segments, position = [], 0
     for nom, valeur in entrees:
-        debut = position + len(nom) + 3
-        segments.append((nom, debut, debut + len(valeur), valeur))
-        position = debut + len(valeur) + 1
+        segments.append((nom, position, position + len(valeur), valeur))
+        position += len(valeur) + len(SEPARATEUR_NOTES)
     return segments
 
 
@@ -3028,8 +3137,11 @@ class _Contexte:
             self.zones[cle] = _Zone(rowid, colonne, champ, texte)
         return self.zones[cle]
 
-    def zones_de(self, rowid: int, colonne: str) -> List[_Zone]:
-        return [z for (r, c, _), z in self.zones.items() if r == rowid and c == colonne]
+    def zones_de(self, rowid: int, colonne: str, concept: Optional[str] = None) -> List[_Zone]:
+        """Zones d'une colonne d'une fiche ; avec concept : celles qui portent une occurrence de ce concept
+        (une colonne personnelle n'est citée que si sa propre valeur contient l'occurrence)."""
+        return [z for (r, c, _), z in self.zones.items()
+                if r == rowid and c == colonne and (concept is None or concept in z.intervalles)]
 
     def niveau(self, zone: _Zone) -> str:
         if zone.colonne == 'notes':
@@ -3086,14 +3198,20 @@ def _guillemets(mots: Iterable[str]) -> str:
     return ', '.join(f"« {m} »" for m in mots)
 
 
-def _noms_colonnes(ctx: _Contexte, p: Preuve, colonnes: List[str]) -> List[str]:
-    noms: List[str] = []
+def _noms_colonnes(ctx: _Contexte, p: Preuve, colonnes: List[str], concept: str) -> List[str]:
+    """Champs cités pour un concept : seulement ceux dont le texte stocké contient une de ses occurrences."""
+    return list(dict.fromkeys(z.champ for colonne in colonnes for z in ctx.zones_de(p.rowid, colonne, concept)))
+
+
+def _occurrences_citees(ctx: _Contexte, p: Preuve, colonnes: List[str], concept: str) -> List[Dict[str, Any]]:
+    """Première occurrence du concept dans chaque champ cité : texte == texte stocké du champ[debut:fin]
+    (pour le Nom : nom indexé, titre de la fiche suivi de son découpage et de propriétaire/dépôt)."""
+    citees = []
     for colonne in colonnes:
-        if colonne == 'notes':
-            noms += [z.champ for z in ctx.zones_de(p.rowid, 'notes')] or ['Notes']
-        else:
-            noms.append(CHAMP_DE_COLONNE[colonne])
-    return list(dict.fromkeys(noms))
+        for z in ctx.zones_de(p.rowid, colonne, concept):
+            a, b = min(z.intervalles[concept])
+            citees.append({'champ': z.champ, 'colonne': colonne, 'debut': a, 'fin': b, 'texte': z.texte[a:b]})
+    return citees
 
 
 def _colonnes_affichees(p: Preuve) -> List[str]:
@@ -3123,9 +3241,9 @@ def _repond_a(ctx: _Contexte, concepts: List[Concept], essentiels: List[Concept]
         p = _meilleure(ctx, r.preuves[c.cle])
         f = ctx.fiches[p.rowid]
         colonnes = _colonnes_affichees(p)
-        noms = _noms_colonnes(ctx, p, colonnes)
+        noms = _noms_colonnes(ctx, p, colonnes, c.cle)
         entree = {'concept': c.cle, 'nom': c.nom, 'm': round(m, 3), 'mode': p.mode, 'champs': noms,
-                  'page_id': f['page_id'], 'via': []}
+                  'page_id': f['page_id'], 'occurrences': _occurrences_citees(ctx, p, colonnes, c.cle), 'via': []}
         if m < FACTEUR_VOISIN:
             voisin = _mots_marques(ctx, p, colonnes, c, False) if p.mode == 'voisin' else []
             entree['texte'] = (f"{c.nom} — " + (f"concept voisin {_guillemets(voisin)} " if voisin else '')
@@ -3142,7 +3260,7 @@ def _repond_a(ctx: _Contexte, concepts: List[Concept], essentiels: List[Concept]
             autres = []
             for q in r.preuves[c.cle].values():
                 if q.rowid != p.rowid and q.m >= 1.0 and len(autres) < 2:
-                    autres.append(f"{', '.join(_noms_colonnes(ctx, q, _colonnes_affichees(q)))} · "
+                    autres.append(f"{', '.join(_noms_colonnes(ctx, q, _colonnes_affichees(q), c.cle))} · "
                                   f"{_libelle(ctx.fiches[q.rowid])}")
             entree['texte'] = (f"{c.nom} ({', '.join(noms)} · {_libelle(f)}"
                                + (f" ; via {_guillemets(via)}" if via else '')
@@ -3161,7 +3279,7 @@ def _extraits(ctx: _Contexte, concepts: List[Concept]) -> None:
         zones: List[_Zone] = []
         for colonne in _colonnes_affichees(p):
             if colonne != 'nom':
-                zones += ctx.zones_de(p.rowid, colonne)
+                zones += ctx.zones_de(p.rowid, colonne, c.cle)
         listes.append(zones)
     for passe in (0, 1):                     # d'abord une zone par concept, puis les autres
         for zones in listes:
@@ -3447,11 +3565,19 @@ def texte_concept(c: Concept) -> str:
             texte += f" (+ {', '.join(autres[:4])}{'…' if len(autres) > 4 else ''})"
     else:
         texte += ' (hors lexique)'
+    if c.classe == 'contrainte':
+        texte += ' [contrainte]'
     if c.role == 'contexte':
         texte += ' [contexte]'
     elif c.role == 'reference':
         texte += ' [référence]'
     return texte
+
+
+def _texte_par_voisin(rep: Reponse) -> str:
+    """« élèves (trouvé seulement par un concept voisin) »."""
+    suite = 'trouvé' if len(rep.par_voisin) == 1 else 'trouvés'
+    return f"{', '.join(rep.par_voisin)} ({suite} seulement par un concept voisin)"
 
 
 def _texte_filtres(filtres: Dict[str, List[str]]) -> str:
@@ -3488,6 +3614,8 @@ def _lignes_entete(rep: Reponse, details: bool) -> List[str]:
         lignes += _envelopper(f"Au-delà de {MAX_CONCEPTS} concepts, ignorés : ", ', '.join(q.tronques), 12)
     if rep.absents:
         lignes += _envelopper('Aucune fiche ne mentionne : ', ', '.join(rep.absents), 12)
+    if rep.par_voisin:
+        lignes += _envelopper('Aucune fiche ne mentionne directement : ', _texte_par_voisin(rep), 12)
     if any(rep.filtres.values()):
         lignes += _envelopper('Filtres   : ', _texte_filtres(rep.filtres), 12)
     lignes += _envelopper('Index     : ', _ligne_index(rep.meta), 12)
@@ -3725,9 +3853,11 @@ _MD_SPECIAUX = re.compile(r'([\\`*_\[\]<>|#])')
 # Règle exacte du niveau (rechercher, ensembles_niveau), sans syntaxe Markdown à échapper
 LEGENDE_MARKDOWN = (
     f"Niveaux : **forte** = au moins {round(SEUIL_FORTE * 100)} % du poids des notions essentielles du besoin, "
-    "dont une trouvée directement (pas seulement par un concept voisin ni par l'avis du LLM) ; quand le besoin "
-    "n'a qu'une notion essentielle, ses notions de contexte comptent aussi et ses notions secondaires doivent "
-    "être présentes ; **partielle** = une partie seulement (un concept voisin compte pour moitié) ; les "
+    "dont une trouvée directement (pas seulement par un concept voisin ni par l'avis du LLM) ; une "
+    "contrainte (système, langage, déploiement : Windows, Python, Docker, en local…) pèse la moitié de la "
+    "notion principale et ne suffit jamais seule quand le besoin nomme aussi son objet ; quand le besoin n'a "
+    "qu'une notion essentielle, ses notions de contexte comptent aussi et ses notions secondaires doivent être "
+    "présentes ; **partielle** = une partie seulement (un concept voisin compte pour moitié) ; les "
     "correspondances faibles (notions trouvées seulement dans l'avis du LLM, ou seulement des notions "
     "secondaires) sont masquées, sauf avec --tout. Chaque extrait est cité mot pour mot (apostrophes, espaces "
     "et caractères de contrôle normalisés) avec son champ et sa fiabilité.")
@@ -3754,6 +3884,8 @@ def en_markdown(rep: Reponse) -> str:
         lignes.append(f"Non pris en compte (négation) : {_md(', '.join(q.nies))}")
     if rep.absents:
         lignes.append(f"Aucune fiche ne mentionne : {_md(', '.join(rep.absents))}")
+    if rep.par_voisin:
+        lignes.append(f"Aucune fiche ne mentionne directement : {_md(_texte_par_voisin(rep))}")
     if any(rep.filtres.values()):
         lignes.append(f"Filtres : {_md(_texte_filtres(rep.filtres))}")
     for alerte in rep.alertes:
@@ -3885,6 +4017,7 @@ def en_json(rep: Reponse) -> Dict[str, Any]:
                           'introuvable': not c.mentionne, 'retire': c.retire, 'termes': c.termes,
                           'termes_voisins': c.termes_voisins} for c in q.concepts],
             'ignores': q.ignores, 'nies': q.nies, 'tronques': q.tronques, 'absents_partout': rep.absents,
+            'trouves_par_voisin': rep.par_voisin,
             'filtres': rep.filtres, 'limite': rep.limite, 'tout': rep.tout},
         'index': {'synchronise_le': m.get('sync_fin_utc', ''), 'source': m.get('source', ''),
                   'fiches': int(m.get('nb_fiches', '0') or 0), 'depots': int(m.get('nb_depots', '0') or 0),

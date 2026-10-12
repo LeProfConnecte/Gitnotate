@@ -234,12 +234,13 @@ def test_lexique_coherent(banc):
     lexique = rd.lexique
     assert len(lexique.CONCEPTS) >= 100          # 116 livrés ; VALIDATION H.10 permet d'en ajouter
     vides = lexique.MOTS_VIDES | lexique.MOTS_VIDES_REQUETE
-    declencheurs = lexique.NEGATIONS | lexique.FIN_NEGATION | lexique.POSSESSIFS | lexique.REFERENCES
+    declencheurs = (lexique.NEGATIONS | lexique.FIN_NEGATION | lexique.POSSESSIFS | lexique.REFERENCES
+                    | lexique.PROPRE)
     for mot in vides | declencheurs | lexique.INVARIABLES | lexique.NEGATION_ANNULEE:
         assert mot == gn._fold(mot) and re.fullmatch(r'[a-z0-9]+', mot), mot
     sequences = {}
     for cid, (classe, formes, voisins) in lexique.CONCEPTS.items():
-        assert classe in ('essentiel', 'faible') and formes
+        assert classe in ('essentiel', 'faible', 'contrainte') and formes      # contrainte : affinage du lot 4
         for voisin in voisins:
             assert voisin in lexique.CONCEPTS and voisin != cid, (cid, voisin)
         for forme in formes:
@@ -251,6 +252,10 @@ def test_lexique_coherent(banc):
                 assert seq[0] not in vides and seq[0] not in declencheurs, (cid, forme)
                 assert seq[0] not in lexique.FAUX_AMIS.get(cid, set()), (cid, forme)
     compile = rd.lexique_compile()
+    for expression in lexique.EXPRESSIONS_REFERENCE:                    # « plus simple que » : jamais un concept
+        expression.encode('cp1252')
+        seq = tuple(rd.jetons(expression))
+        assert len(seq) >= 2 and seq in compile.references and seq not in sequences, expression
     for cid, voisins in compile.voisins.items():
         for voisin in voisins:
             assert cid in compile.voisins[voisin]                         # relation symétrique
@@ -352,7 +357,8 @@ def test_negation_dans_fiche_ne_compte_pas(corpus):
     assert negation[0]['texte'].startswith('La fiche précise (Description · fiche v7.3+) : « ')
     btp = _chercher(rd, 'BTP')
     assert 'bidingcc/buildingai' not in [r.cle for r in btp.affiches]                  # « aucun lien avec le BTP »
-    assert btp.absents == ['BTP']
+    # affinage : aucune fiche ne mentionne le BTP (mention niée), mais le voisin « métré » est trouvé
+    assert btp.absents == [] and btp.par_voisin == ['BTP']
 
 
 def test_concept_absent_signale(corpus, capsys):
@@ -378,6 +384,9 @@ def test_niveaux(corpus, capsys):
         couverts = [c for c in actifs if c.classe != 'faible' and c.role in ('normal', 'contexte')] if seule \
             else essentiels
         exiges = [c for c in actifs if c.classe == 'faible' and c.role == 'normal'] if seule else []
+        # Affinage : une contrainte ne suffit jamais seule quand le besoin nomme aussi son objet
+        objets = ([c for c in essentiels if c.classe != 'contrainte']
+                  or [c for c in actifs if c.classe == 'essentiel' and c.role == 'contexte'] or essentiels)
         for r in reponse.resultats + reponse.faibles + reponse.sans_depot:
             vus.add(r.niveau)
             if r.niveau == 'filtre':
@@ -386,7 +395,8 @@ def test_niveaux(corpus, capsys):
             couverture = sum(c.poids * r.m.get(c.cle, 0) for c in couverts) / sum(c.poids for c in couverts)
             assert abs(r.couverture - couverture) < 1e-9, (q['id'], r.cle)
             objet = all(r.m.get(c.cle, 0) >= 0.5 for c in exiges)
-            forte = r.couverture >= rd.SEUIL_FORTE and max(m, default=0) >= 1.0 and objet
+            direct = max((r.m.get(c.cle, 0) for c in objets), default=0) >= 1.0
+            forte = r.couverture >= rd.SEUIL_FORTE and direct and objet
             partielle = max(m, default=0) >= 0.5 or r.couverture >= rd.SEUIL_PARTIELLE
             attendu = 'forte' if forte else ('partielle' if partielle else 'faible')
             assert r.niveau == attendu, (q['id'], r.cle)
@@ -435,9 +445,11 @@ def test_recherche_sans_resultat(corpus, capsys):
 
 
 def test_requetes_reference(corpus):
-    """Seuils du § 23.3, figés après mise en œuvre. Mesures de cette version : référence nDCG@10 0,8350 (prototype
-    0,8344 : seuil = mesure - 0,05), MRR 0,917 (= prototype : seuil de la spécification 0,85) ; hors échantillon
-    nDCG@10 0,893 (= prototype : seuil 0,85) ; premier résultat « en tête » 10/12 (Q09, Q15 : un acceptable)."""
+    """Seuils du § 23.3, figés après mise en œuvre (jamais abaissés depuis). Mesures à la mise en œuvre : référence
+    nDCG@10 0,8350 (prototype 0,8344 : seuil = mesure - 0,05), MRR 0,917 (= prototype : seuil de la spécification
+    0,85) ; hors échantillon nDCG@10 0,893 (= prototype : seuil 0,85) ; premier résultat « en tête » 10/12 (Q09,
+    Q15 : un acceptable). Après l'affinage : référence nDCG@10 0,8364, MRR 0,917 ; hors échantillon 0,920 ; 10/12.
+    Les requêtes nouvelles ont leurs propres seuils (test_redecouverte_affinage)."""
     rd = corpus.rd
     ev = _evaluateur()
     mesures = {}
@@ -458,8 +470,9 @@ def test_requetes_reference(corpus):
     premiers = [q['id'] for q in TEXTUELLES if q['id'] != 'Q05'
                 and mesures[q['id']][1].resultats and mesures[q['id']][1].resultats[0].cle in q['en_tete']]
     assert len(premiers) >= 10, premiers
-    for q in REQUETES:
-        assert mesures[q['id']][0]['intrus3'] == 0, q['id']
+    for q in REQUETES:                         # jeux de référence (les requêtes nouvelles : test_redecouverte_affinage)
+        if q['jeu'] != 'nouvelles':
+            assert mesures[q['id']][0]['intrus3'] == 0, q['id']
     q05 = mesures['Q05'][1]
     assert not any(r.niveau == 'forte' for r in q05.resultats)
     absents = {corpus.gn._fold(a) for a in q05.absents}

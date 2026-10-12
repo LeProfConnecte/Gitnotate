@@ -2,14 +2,18 @@
 """Données du moteur de redécouverte (redecouverte.py) : aucune fonction, aucune entrée-sortie.
 
 Spécification du lot 4, annexes A à C :
-  - CONCEPTS : lexique FR <-> EN de la recherche. id -> (classe, formes, voisins). Classe E (essentiel)
-    ou F (faible, poids 0,3). Les formes sont écrites naturellement (accents, mots ou expressions) et
-    découpées par le tokenizer de l'index lui-même ; aucune forme par préfixe (pas de faux amis). Les
-    voisins donnent une correspondance partielle (facteur 0,5), rendue symétrique par le moteur.
+  - CONCEPTS : lexique FR <-> EN de la recherche. id -> (classe, formes, voisins). Classe E (essentiel),
+    F (faible, poids 0,3) ou C (contrainte : système, plateforme, langage de programmation, déploiement ;
+    poids 0,5, jamais suffisante seule pour une correspondance forte quand le besoin nomme aussi son
+    objet : « un OCR pour Windows » est d'abord un OCR). Les formes sont écrites naturellement (accents,
+    mots ou expressions) et découpées par le tokenizer de l'index lui-même ; aucune forme par préfixe (pas
+    de faux amis). Les voisins donnent une correspondance partielle (facteur 0,5), rendue symétrique par
+    le moteur.
   - Mots vides (formes repliées, sans accents) : MOTS_VIDES (texte courant, aussi utilisés pour la
     négation dans les fiches) et MOTS_VIDES_REQUETE (cadre de question, en français et en anglais).
-  - Déclencheurs de la requête : NEGATIONS (et FIN_NEGATION, NEGATION_ANNULEE), POSSESSIFS (contexte),
-    REFERENCES (« alternative à … ») ; ils sont testés avant les mots vides.
+  - Déclencheurs de la requête : NEGATIONS (et FIN_NEGATION, NEGATION_ANNULEE), POSSESSIFS (contexte,
+    sauf suivis de PROPRE : « mon propre serveur » désigne l'objet à créer), REFERENCES et
+    EXPRESSIONS_REFERENCE (« alternative à … », « plus simple que … ») ; ils sont testés avant les mots vides.
   - INVARIABLES (jamais mis au singulier) et FAUX_AMIS (formes interdites dans un concept, vérifiées
     par les tests).
   - Gabarits de cas d'usage des versions 7.2 et antérieures (annexe C) : textes de remplissage que ces
@@ -23,7 +27,7 @@ le texte des fiches. Exception : les gabarits GABARITS_CAS_USAGE_EN et GABARITS_
 « python redecouverte.py sync » (ou « sync --depuis » une capture).
 """
 
-E, F = 'essentiel', 'faible'
+E, F, C = 'essentiel', 'faible', 'contrainte'
 
 CONCEPTS = {
     'pdf': (E, ['pdf', 'fichier pdf', 'pdfs'], ['document']),
@@ -57,7 +61,8 @@ CONCEPTS = {
     'metre': (E, ['métré', 'métrés', 'avant-métré', 'quantity takeoff', 'takeoff', 'dpgf', 'dqe',
         'bordereau de prix', 'devis quantitatif'], ['btp']),
     'cctp': (E, ['cctp', 'ccap', 'dce', 'cahier des charges', 'pièces écrites'], ['document']),
-    'structure': (E, ['calcul de structure', 'calculs de structure', 'résistance des matériaux', 'rdm',
+    'structure': (E, ['calcul de structure', 'calculs de structure', 'calcul de structures', 'calculs de structures',
+        'calcul des structures', 'résistance des matériaux', 'rdm',
         'éléments finis', 'finite element', 'eurocode', 'eurocodes', 'béton armé'], ['btp']),
     'topographie': (E, ['topographie', 'géomètre', 'lidar', 'nuage de points', 'point cloud',
         'photogrammétrie', 'photogrammetry'], ['3d']),
@@ -79,6 +84,10 @@ CONCEPTS = {
         'homework', 'corrigé', 'corrigés'], ['qcm']),
     'lms': (E, ['moodle', 'lms', "plateforme d'apprentissage", 'learning management', 'e-learning'],
         ['enseignement']),
+    # Gestion de la classe (absences, notes, bulletins) : sans voisin, ce n'est pas un outil pédagogique
+    'vie_scolaire': (E, ['vie scolaire', 'absences', 'absentéisme', 'assiduité', 'feuille de présence',
+        'feuilles de présence', "feuille d'appel", 'attendance', 'carnet de notes', 'bulletin de notes',
+        'bulletins de notes', 'relevé de notes', 'relevés de notes', 'gradebook', 'pronote'], []),
     'tts': (E, ['synthèse vocale', 'tts', 'text to speech', 'speech synthesis', 'voix off', 'voice over',
         'voiceover', 'lecture vocale', 'voice cloning', 'clonage de voix'], ['voix']),
     'voix': (E, ['voix', 'voice', 'voices', 'vocal', 'vocale', 'vocales', 'speech', 'parole'], ['tts', 'stt']),
@@ -158,21 +167,24 @@ CONCEPTS = {
     'frontend': (E, ['frontend', 'front-end', 'front end', 'interface utilisateur', 'user interface', 'ui',
         'gui', 'interface graphique', 'react', 'nextjs', 'vuejs', 'svelte'], ['appli_web']),
     'backend': (E, ['backend', 'back-end', 'back end'], ['api']),
-    'python': (E, ['python'], []),
-    'javascript': (E, ['javascript', 'nodejs', 'typescript'], []),
-    'docker': (E, ['docker', 'conteneur', 'conteneurs', 'container', 'containers', 'docker compose',
+    'python': (C, ['python'], []),
+    'javascript': (C, ['javascript', 'nodejs', 'typescript'], []),
+    'docker': (C, ['docker', 'conteneur', 'conteneurs', 'container', 'containers', 'docker compose',
         'dockerfile', 'kubernetes'], ['auto_heberge']),
     'auto_heberge': (E, ['auto-hébergé', 'auto-hébergée', 'auto-hébergés', 'auto-hébergées',
         'auto-hébergeable', 'auto-hébergeables', 'auto-hébergement', 'self-hosted', 'self-host',
         'self-hostable', 'selfhosted', 'self hosting', 'on-premise', 'vps'], ['docker', 'local']),
-    'local': (E, ['local', 'locale', 'locaux', 'localement', 'en local', 'hors ligne', 'hors-ligne', 'offline',
+    'local': (C, ['local', 'locale', 'locaux', 'localement', 'en local', 'hors ligne', 'hors-ligne', 'offline',
         'on-device'], ['auto_heberge']),
-    'windows': (E, ['windows'], []),
-    'linux': (E, ['linux', 'ubuntu', 'debian'], []),
-    'gpu': (E, ['gpu', 'gpus', 'cuda', 'vram', 'nvidia', 'carte graphique'], []),
-    'cli': (E, ['cli', 'ligne de commande', 'lignes de commande', 'command line', 'command-line', 'terminal'],
+    'windows': (C, ['windows'], []),
+    'linux': (C, ['linux', 'ubuntu', 'debian'], []),
+    'macos': (C, ['macos', 'mac os', 'osx'], []),
+    'gpu': (C, ['gpu', 'gpus', 'cuda', 'vram', 'nvidia', 'carte graphique'], []),
+    'cli': (C, ['cli', 'ligne de commande', 'lignes de commande', 'command line', 'command-line', 'terminal'],
         []),
-    'mobile': (E, ['mobile', 'android', 'ios', 'smartphone'], []),
+    'mobile': (E, ['mobile', 'smartphone', 'application mobile', 'applications mobiles', 'mobile app'],
+        ['systeme_mobile']),
+    'systeme_mobile': (C, ['android', 'ios'], ['mobile']),
     'auth': (E, ['authentification', 'authentication', 'oauth', 'sso', 'login'], []),
     'notion': (E, ['notion'], []),
     'mcp': (E, ['mcp', 'model context protocol'], []),
@@ -272,9 +284,17 @@ NEGATIONS = frozenset({'sans', 'aucun', 'aucune', 'pas', 'ni', 'non', 'no', 'not
 FIN_NEGATION = frozenset({'pour', 'avec', 'et', 'ou', 'mais', 'afin', 'qui', 'dans', 'sur', 'for', 'with', 'and',
                           'or', 'but', 'in', 'on'})
 NEGATION_ANNULEE = frozenset({'seulement', 'uniquement', 'only', 'just'})
-POSSESSIFS = frozenset({'mes', 'mon', 'ma', 'my', 'nos', 'notre'})
+POSSESSIFS = frozenset({'mes', 'mon', 'ma', 'my', 'nos', 'notre', 'our'})
+# Après un possessif : « mon propre serveur », « my own server » (objet à créer, pas un contexte)
+PROPRE = frozenset({'propre', 'propres', 'own'})
 REFERENCES = frozenset({'alternative', 'alternatives', 'remplacant', 'remplacante', 'equivalent', 'equivalente',
                         'equivalents', 'similaire', 'similaires'})
+# Expressions de comparaison (écrites naturellement, découpées par le tokenizer de l'index) : ce qui suit est
+# la référence à dépasser, pas l'objet cherché (« plus simple que la ligne de commande »)
+EXPRESSIONS_REFERENCE = ('plus simple que', "plus simple qu'", 'plus facile que', "plus facile qu'", 'plutôt que',
+                         "plutôt qu'", 'au lieu de', "au lieu d'", 'au lieu du', 'au lieu des', 'à la place de',
+                         "à la place d'", 'à la place du', 'à la place des', 'mieux que', "mieux qu'",
+                         'instead of', 'rather than', 'simpler than', 'easier than', 'better than')
 INVARIABLES = frozenset({'cours', 'news', 'series', 'corpus', 'status', 'process', 'access', 'analysis', 'windows',
                          'pandas', 'kubernetes', 'ollama', 'ios', 'gis', 'aws', 'docs', 'sous', 'plus', 'tous',
                          'mais'})

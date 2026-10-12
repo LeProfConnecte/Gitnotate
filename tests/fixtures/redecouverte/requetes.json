@@ -1,6 +1,6 @@
 {
  "version": 1,
- "description": "Requêtes de référence du moteur de redécouverte (spécification du lot 4, § 23.2) : 15 requêtes de référence, 10 hors échantillon et une requête anglaise (amendement 4, mêmes jugements que Q01). Clés de dépôt de l'index du corpus synthétique (corpus.json) : « page:<id> » pour une fiche sans adresse, « url:<adresse> » pour une adresse hors GitHub. Gain 2 « en tête », 1 « acceptable » ; « à exclure » = intrus. Q10 et Q14 portent des filtres (options).",
+ "description": "Requêtes de référence du moteur de redécouverte (spécification du lot 4, § 23.2) : 15 requêtes de référence, 10 hors échantillon, une requête anglaise (amendement 4, mêmes jugements que Q01) et 8 requêtes « nouvelles » (N01-N08) écrites avant tout résultat, attendus tirés du seul contenu des fiches (mesures du lot 4, empreinte prise avant la construction de l'index) et inchangés depuis. Clés de dépôt de l'index du corpus synthétique (corpus.json) : « page:<id> » pour une fiche sans adresse, « url:<adresse> » pour une adresse hors GitHub. Gain 2 « en tête », 1 « acceptable » ; « à exclure » = intrus. Q10 et Q14 portent des filtres (options).",
  "requetes": [
   {
    "id": "Q01",
@@ -1027,6 +1027,174 @@
     ]
    },
    "meme_que": "Q01"
+  },
+  {
+   "id": "N01",
+   "jeu": "nouvelles",
+   "theme": "BTP",
+   "requete": "Je dois récupérer les quantités d'un DPGF en PDF pour les reprendre dans un tableur : quel outil ai-je déjà ?",
+   "options": {},
+   "en_tete": [
+    "docling-project/docling",
+    "paddlepaddle/paddleocr"
+   ],
+   "acceptables": [
+    "page:00a48042ef20523f97b1111c38fa6a1f",
+    "bytedance/dolphin",
+    "allenai/olmocr",
+    "deepseek-ai/deepseek-ocr",
+    "rdumasia303/deepseek_ocr_app",
+    "oschwartz10612/poppler-windows",
+    "tesseract-ocr/tesseract",
+    "ub-mannheim/tesseract"
+   ],
+   "a_exclure": [
+    "bidingcc/buildingai",
+    "evidentlyai/evidently",
+    "marimo-team/marimo",
+    "public-apis/public-apis"
+   ],
+   "aucun_fort": false,
+   "raisons": "A01 Notes : « Testé pour extraire les tableaux des DPGF (PDF texte) : OK » ; C02 « Extraire les tableaux de documents PDF » ; C01 « Extraire le texte et les tableaux de PDF scannés » ; B03 (idée sans dépôt) « extraire les tableaux des DPGF et des CCTP en PDF ». Pièges : « tableaux de bord » (evidently, marimo), « Building » (BuildingAI)."
+  },
+  {
+   "id": "N02",
+   "jeu": "nouvelles",
+   "theme": "anglais",
+   "requete": "offline text-to-speech to narrate my course videos",
+   "options": {},
+   "en_tete": [
+    "ohf-voice/piper1-gpl",
+    "resemble-ai/chatterbox"
+   ],
+   "acceptables": [
+    "gyoridavid/short-video-maker",
+    "remotion-dev/remotion"
+   ],
+   "a_exclure": [
+    "microsoft/generative-ai-for-beginners",
+    "caviraoss/pagelm"
+   ],
+   "aucun_fort": false,
+   "raisons": "A43 « Moteur de synthèse vocale (text-to-speech) neuronal, rapide et local » / « Générer des voix off hors ligne pour des vidéos » ; A44 « SoTA open-source TTS » (fiche pauvre). Pièges : « course » (cours Microsoft, PageLM)."
+  },
+  {
+   "id": "N03",
+   "jeu": "nouvelles",
+   "theme": "anglais",
+   "requete": "Which saved repos help me write my own MCP server in Python?",
+   "options": {},
+   "en_tete": [
+    "jlowin/fastmcp"
+   ],
+   "acceptables": [
+    "modelcontextprotocol/servers",
+    "punkpeye/awesome-mcp-servers",
+    "datagouv/datagouv-mcp",
+    "invest-composer/composer-trade-mcp",
+    "gyoridavid/short-video-maker"
+   ],
+   "a_exclure": [
+    "thealgorithms/python",
+    "public-apis/public-apis",
+    "microsoft/generative-ai-for-beginners"
+   ],
+   "aucun_fort": false,
+   "raisons": "A16 « La façon rapide et pythonique de créer des serveurs et des clients MCP » (Python) ; A32 serveurs MCP de référence ; A33/A24 serveurs MCP en Python. Piège : le dépôt nommé « Python » (TheAlgorithms)."
+  },
+  {
+   "id": "N04",
+   "jeu": "nouvelles",
+   "theme": "négation",
+   "requete": "Un OCR qui ne nécessite pas de GPU, pour les PC Windows de la salle informatique",
+   "options": {},
+   "en_tete": [
+    "ub-mannheim/tesseract",
+    "tesseract-ocr/tesseract"
+   ],
+   "acceptables": [
+    "paddlepaddle/paddleocr",
+    "oschwartz10612/poppler-windows",
+    "docling-project/docling"
+   ],
+   "a_exclure": [
+    "allenai/olmocr",
+    "deepseek-ai/deepseek-ocr",
+    "rdumasia303/deepseek_ocr_app",
+    "dockur/windows"
+   ],
+   "aucun_fort": false,
+   "raisons": "A05 « Version Windows de Tesseract » ; A06 (manuelle) « Installé ... sur le PC de la salle B12 » ; A04 moteur OCR Tesseract. À écarter : A03 « exige un GPU NVIDIA », A09 « demande un GPU CUDA puissant », A10 « NVIDIA GPU with CUDA support », A48 Windows dans Docker. Dolphin (« GPU conseillé ») laissé neutre."
+  },
+  {
+   "id": "N05",
+   "jeu": "nouvelles",
+   "theme": "sans résultat (BTP)",
+   "requete": "Un logiciel de calcul de structures en béton armé selon l'Eurocode 2",
+   "options": {},
+   "en_tete": [],
+   "acceptables": [],
+   "a_exclure": [
+    "bidingcc/buildingai",
+    "thealgorithms/python"
+   ],
+   "aucun_fort": true,
+   "raisons": "Aucune fiche ne parle de calcul de structures, de béton ou d'Eurocode. Pièges : BuildingAI (nom), TheAlgorithms (« algorithmes »)."
+  },
+  {
+   "id": "N06",
+   "jeu": "nouvelles",
+   "theme": "sans résultat",
+   "requete": "Gérer les notes et les absences de mes élèves",
+   "options": {},
+   "en_tete": [],
+   "acceptables": [],
+   "a_exclure": [
+    "caviraoss/pagelm",
+    "lfnovo/open-notebook",
+    "marimo-team/marimo",
+    "microsoft/generative-ai-for-beginners"
+   ],
+   "aucun_fort": true,
+   "raisons": "Aucune fiche ne gère des notes d'élèves ni des absences. Pièges : « notes structurées » (PageLM), « Notebook » (open-notebook, marimo), colonne Notes de l'utilisateur."
+  },
+  {
+   "id": "N07",
+   "jeu": "nouvelles",
+   "theme": "développement",
+   "requete": "Une interface pour utiliser Git dans le terminal, plus simple que la ligne de commande",
+   "options": {},
+   "en_tete": [
+    "jesseduffield/lazygit"
+   ],
+   "acceptables": [],
+   "a_exclure": [
+    "davila7/claude-code-templates",
+    "anomalyco/opencode"
+   ],
+   "aucun_fort": false,
+   "raisons": "A53 « Interface en mode texte pour piloter Git au clavier ... sans taper les commandes » ; « depuis le terminal ». Pièges : A29 « Outil en ligne de commande » (Claude Code), A28 « agent de code ... pour le terminal »."
+  },
+  {
+   "id": "N08",
+   "jeu": "nouvelles",
+   "theme": "enseignement",
+   "requete": "Créer des supports de cours interactifs en Python pour mes étudiants de BTS",
+   "options": {},
+   "en_tete": [
+    "marimo-team/marimo"
+   ],
+   "acceptables": [
+    "caviraoss/pagelm",
+    "lfnovo/open-notebook"
+   ],
+   "a_exclure": [
+    "thealgorithms/python",
+    "evidentlyai/evidently",
+    "rdumasia303/deepseek_ocr_app"
+   ],
+   "aucun_fort": false,
+   "raisons": "A45 « Notebook Python réactif ... déploiement en application » et Justification « supports interactifs » ; A39 « transforme des supports d'étude en ressources interactives » (TypeScript). Pièges : « Python » (TheAlgorithms), Brique pour « Outils pédagogiques BTS MEC » d'une application d'OCR (A10)."
   }
  ]
 }

@@ -182,7 +182,8 @@ def test_colonnes_personnelles(banc):
                     'Favori': p_autre('checkbox', True), 'Projet lié': p_autre('relation', [{'id': 'x'}]),
                     'Échéance': p_date('2026-12-01')}, colonnes)
     assert f.autres == {'Notes': 'Testé en salle B12', 'Tags': 'OCR, PDF'}
-    assert rd.contenu_fts(f)['notes'] == 'Notes : Testé en salle B12\nTags : OCR, PDF'
+    # valeurs seules (le nom de la colonne n'est pas indexé : « notes » ne trouve pas toute fiche annotée)
+    assert rd.contenu_fts(f)['notes'] == 'Testé en salle B12' + rd.SEPARATEUR_NOTES + 'OCR, PDF'
 
 
 def test_valeurs_nulles_partout(banc):
@@ -369,7 +370,9 @@ def test_justification_non_reconnue_utilisateur(banc):
     j = f.champs['Justification']
     assert j.fiabilite == 'utilisateur' and j.texte == 'À tester avec mes cours de métré (PDF) avant la rentrée.'
     contenu = rd.contenu_fts(f)
-    assert contenu['justification'] == '' and 'Justification : À tester avec mes cours de métré' in contenu['notes']
+    assert contenu['justification'] == '' and contenu['notes'].endswith('À tester avec mes cours de métré (PDF) avant '
+                                                                        'la rentrée.')
+    assert 'Justification' not in contenu['notes']
 
 
 def test_categorie_saisie_sur_fiche_ancienne_reste_ancienne(banc):
@@ -563,9 +566,10 @@ def test_meme_depot_un_groupe_preuves_par_fiche(banc):
     finally:
         con.close()
     avec_tags = [f for f in fiches if f['autres'].get('Tags')]
-    assert len(avec_tags) == 1 and 'Tags : OCR, PDF' in notes[avec_tags[0]['id']]
+    assert len(avec_tags) == 1 and 'OCR, PDF' in notes[avec_tags[0]['id']]
     sans_tags = [f for f in fiches if f is not avec_tags[0]]
-    assert all('Tags' not in notes[f['id']] for f in sans_tags)
+    assert all('OCR, PDF' not in notes[f['id']] for f in sans_tags)
+    assert all('Tags' not in texte and 'Notes :' not in texte for texte in notes.values())
 
 
 def test_fiche_principale_deterministe(banc):
@@ -647,4 +651,4 @@ def test_etat_doublons_et_anomalies(banc, capsys):
                                                        'unclecode/crawl4ai', 'paddlepaddle/paddleocr'}
     assert all(sum(f['principale'] for f in d['fiches']) == 1 for d in etat['doublons'])
     assert {a['code'] for a in etat['anomalies']} == {'url_non_github', 'url_absente'}
-    assert etat['familles']['v7.3'] == 16 and etat['moteur']['format_index'] == 1
+    assert etat['familles']['v7.3'] == 16 and etat['moteur']['format_index'] == 2

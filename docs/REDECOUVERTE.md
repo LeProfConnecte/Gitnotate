@@ -121,8 +121,10 @@ Synchronisation de l'index de redécouverte
   et regroupées à l'affichage. `etat --doublons` les liste pour un tri manuel dans Notion.
 - **Colonnes** : les colonnes que vous avez ajoutées vous-même, de type texte, sélection, statut,
   URL ou formule, sont « personnelles indexées » : leur contenu est cherchable et affiché « saisi par
-  vous ». Les autres (case à cocher, relation, date de création…) sont ignorées. Les colonnes
-  personne, e-mail, téléphone et fichiers ne sont jamais conservées.
+  vous ». Seules leurs valeurs sont cherchées, jamais leur nom : chercher « notes » ou « tags » ne
+  trouve pas toutes les fiches où ces colonnes sont remplies. Les autres (case à cocher, relation,
+  date de création…) sont ignorées. Les colonnes personne, e-mail, téléphone et fichiers ne sont
+  jamais conservées.
 - **Anomalies** : fiches sans adresse GitHub, colonne d'un type inattendu, valeur illisible,
   texte ressemblant à un jeton (masqué)… Détail : `python redecouverte.py etat --anomalies`.
 - **Différence / Disparues** : comparaison avec la synchronisation précédente.
@@ -261,15 +263,33 @@ Index     : 62 fiches, 51 dépôts — données lues dans Notion le 2026-10-11 �
 **En-tête.**
 
 - `Concepts` : les notions retenues, avec entre parenthèses des formes et synonymes français ou
-  anglais du lexique (`redecouverte_lexique.py`, 116 concepts). `(hors lexique)` : mot cherché tel
-  quel. `[contexte]` : mots (3 au plus) qui suivent « mes », « mon », « ma », « nos », « notre » ou
-  « my » (poids divisé par deux). `[référence]` : mots (3 au plus) qui suivent « alternative »,
-  « équivalent », « similaire »… (poids divisé par quatre).
-- `Ignorés` : mots de la question, sans contenu.
+  anglais du lexique (`redecouverte_lexique.py`, 119 concepts). `(hors lexique)` : mot cherché tel
+  quel, avec son singulier, son masculin et son féminin construit par règle (« interactifs » trouve
+  aussi « interactives », « créatif » trouve « créative »). `[contrainte]` : système, plateforme,
+  langage de programmation ou déploiement (Windows, Linux, macOS, Android, iOS, Python, JavaScript,
+  TypeScript, Docker, en local, hors ligne, GPU, terminal, ligne de commande) : il pèse la moitié de
+  la notion principale de l'objet du besoin, quelle que soit sa rareté, et ne suffit jamais seul pour
+  une correspondance forte quand le besoin nomme aussi son objet (« un OCR pour Windows » est d'abord
+  un OCR). `[contexte]` : mots (3 au plus) qui suivent « mes », « mon », « ma », « nos », « notre »,
+  « my » ou « our » (poids divisé par deux), sauf si le possessif est suivi de « propre » ou « own » :
+  dans « mon propre serveur », « my own MCP server », le serveur est l'objet cherché. `[référence]` : mots (3 au plus)
+  qui suivent « alternative », « équivalent », « similaire »…, ou une comparaison : « plus simple
+  que », « plus facile que », « plutôt que », « au lieu de », « à la place de », « mieux que »,
+  « instead of », « rather than », « simpler than », « easier than », « better than » (poids divisé
+  par quatre). Une notion citée à la fois comme objet et comme référence (« dans le terminal, plus
+  simple que la ligne de commande ») garde le rôle le plus fort.
+- `Ignorés` : mots de la question, sans contenu, et nombres isolés d'un ou deux chiffres
+  (« Eurocode 2 » ne cherche pas « 2 », qui trouverait « Apache-2.0 »).
 - `Non pris en compte (négation)` : mots qui suivent « sans », « pas », « aucun », « no »,
   « without »… Ils ne sont pas cherchés ; un dépôt qui les mentionne n'est pas écarté pour autant
   (voir « À vérifier »).
-- `Aucune fiche ne mentionne` : mots de votre besoin qu'aucune fiche ne contient.
+- `Aucune fiche ne mentionne` : mots de votre besoin qu'aucune fiche ne contient, même par un
+  concept voisin. `Aucune fiche ne mentionne directement : … (trouvé seulement par un concept
+  voisin)` : aucune fiche ne contient le mot ni ses synonymes, mais une notion proche est trouvée
+  (« élèves » et « éducative ») ; le résultat le dit dans `Répond à` (`concept voisin « … »`). En
+  JSON : `absents_partout` et `trouves_par_voisin`. Les mots sont écrits comme vous les avez tapés,
+  sans la majuscule du seul début de phrase (« Gérer les notes » donne « gérer ») ; sigles et
+  majuscules en cours de phrase sont gardés.
 - `Index` : date de la synchronisation (après un rejeu : date de lecture de la capture, puis date du
   rejeu) ; « Recherche locale : rien n'a été envoyé ». Une ligne `Attention` peut suivre (index
   ancien, fiches créées depuis par `gitnotate.py`).
@@ -286,18 +306,25 @@ chaque extrait reste attaché à sa fiche.
   poids), et les notions secondaires doivent être présentes. Ainsi, pour « un LLM local », un moteur
   de synthèse vocale qui ne parle que de « local » reste partiel (`Ne couvre pas : LLM (notion
   secondaire)`), et pour « gérer mes commits git depuis le terminal », « terminal » seul ne suffit
-  plus ;
+  plus. **Une contrainte** (`[contrainte]`) ne compte jamais seule comme notion trouvée directement
+  quand le besoin nomme aussi son objet : pour « un OCR pour les PC Windows », un dépôt qui ne parle
+  que de Windows reste partiel ; quand le besoin n'est fait que de contraintes (« installer Windows
+  dans un conteneur Docker »), elles sont l'objet ;
 - `correspondance partielle` : une partie seulement (un concept voisin compte pour moitié) ;
 - les correspondances faibles (notions trouvées seulement dans l'avis du LLM, ou seulement des
   notions secondaires) sont masquées ; `--tout` les affiche.
 
 Le pourcentage est le score de classement : la part des notions du besoin trouvées dans le dépôt,
-pondérée par leur rareté dans votre base (un mot présent partout compte peu), par le champ qui les
-contient et, pour 30 %, par la force de la correspondance (BM25). Les fortes viennent d'abord, puis
+pondérée par leur rareté dans votre base (un mot présent partout compte peu ; une contrainte pèse la
+moitié de la notion principale de l'objet, rare ou non), par le champ qui les contient et, pour 30 %,
+par la force de la correspondance (BM25). Les fortes viennent d'abord, puis
 les partielles, chacune par score décroissant.
 
-**Répond à** : pour chaque notion, les champs et la fiche qui la contiennent ; `via « … »` donne les
-mots trouvés quand ils diffèrent de ceux du besoin. `concept voisin « … »` : correspondance partielle
+**Répond à** : pour chaque notion, les champs et la fiche qui la contiennent ; un champ n'est cité
+que si son texte contient réellement le mot trouvé (une colonne personnelle : sa valeur). Le JSON
+donne, dans `occurrences`, le mot tel qu'écrit et sa position dans le champ (pour le Nom : dans le
+nom cherché, c'est-à-dire le titre suivi de son découpage CamelCase et de `propriétaire dépôt`).
+`via « … »` donne les mots trouvés quand ils diffèrent de ceux du besoin. `concept voisin « … »` : correspondance partielle
 par un concept proche (OCR et « scanné », PDF et « document »…), qui compte pour moitié.
 `Indice faible : … seulement dans l'avis du LLM` : la notion n'apparaît que dans la Justification.
 `Ne couvre pas` : notions du besoin absentes de ce dépôt, essentielles ou non ; une notion secondaire
@@ -486,7 +513,8 @@ classement local.
 **Supprimer le dossier `.gitnotate_index` ne fait rien perdre** : il se reconstruit au prochain
 `sync` (`Remove-Item -Recurse .gitnotate_index`, Linux : `rm -r .gitnotate_index`). Un index créé
 par une autre version du moteur n'est jamais converti : `cherche` et `etat` demandent de relancer
-`sync`. Modifier les concepts, mots vides ou déclencheurs du lexique (`redecouverte_lexique.py`) ne
+`sync` (c'est le cas d'un index construit avant l'affinage de la pertinence, format 1 : les noms des
+colonnes personnelles y étaient indexés ; le format 2 n'indexe que leurs valeurs). Modifier les concepts, mots vides ou déclencheurs du lexique (`redecouverte_lexique.py`) ne
 demande aucune synchronisation : l'index garde le texte des fiches. Exception : les gabarits
 `GABARITS_CAS_USAGE_EN` et `GABARITS_CAS_USAGE_FR` sont appliqués à l'indexation (fiabilité des Cas
 d'usage, version de la fiche) ; après les avoir modifiés, relancez `sync` (ou `sync --depuis` une
@@ -548,18 +576,21 @@ synthétiques, écrites pendant la conception : 62 hors corbeille, 51 dépôts, 
 v7.2 ×5, v7.0/v7.1 ×20, ancienne ×18 et manuelle ×3. Les noms de dépôts sont réels, le contenu des
 fiches est fabriqué pour les tests. L'index a été reconstruit hors ligne (`sync --depuis` d'une
 capture du corpus), puis mesuré avec `scripts/evaluer_redecouverte.py` sur 24 requêtes de référence
-(`tests/fixtures/redecouverte/requetes.json`) et sur 8 requêtes nouvelles, écrites avec leurs
-attendus et figées (empreinte SHA-256) avant tout résultat. Moteur 1.0.0, gitnotate 7.4.0, mesures
-du 2026-10-12, refaites après la revue du lot 4 (règle du niveau avec une seule notion essentielle,
-lexique « feed » et « surveillance »).
+et 8 requêtes nouvelles, écrites avec leurs attendus et figées (empreinte SHA-256) avant tout
+résultat, puis ajoutées sans changement au fichier de référence (jeu `nouvelles` de
+`tests/fixtures/redecouverte/requetes.json`). Moteur 1.0.0, gitnotate 7.4.0, mesures du 2026-10-12,
+refaites après l'affinage de la pertinence (noms des colonnes personnelles non indexés, classe
+« contrainte », comparaisons « plus simple que », « mon propre », féminins des mots hors lexique,
+nombres isolés ignorés, formes « calcul de structures », notion « vie scolaire », affichage des
+concepts absents). Entre parenthèses : la valeur avant l'affinage, quand elle diffère.
 
 | Jeu | Requêtes | nDCG@10 | MRR | P@5 | intrus@3 | intrus@5 | Réussies / partielles / échecs |
 |-----|----------|---------|-----|-----|----------|----------|-------------------------------|
-| Référence (Q01-Q15, hors Q10 et Q14 filtrées) | 13 | 0,83 | 0,92 | 0,80 | 0,00 | 0,38 | 11 / 2 / 0 |
+| Référence (Q01-Q15, hors Q10 et Q14 filtrées) | 13 | 0,84 (0,83) | 0,92 | 0,82 (0,80) | 0,00 | 0,31 (0,38) | 11 / 2 / 0 |
 | Hors échantillon (H01-H10) | 10 | 0,92 | 1,00 | 0,81 | 0,00 | 0,40 | 10 / 0 / 0 |
 | Anglais (E01) | 1 | 0,80 | 1,00 | 0,80 | 0,00 | 1,00 | 1 / 0 / 0 |
-| **Ensemble de référence** | 24 | **0,87** | **0,96** | **0,80** | **0,00** | 0,42 | 22 / 2 / 0 |
-| **Nouvelles (N01-N08)** | 8 | **0,84** | **0,85** | **0,73** | **0,38** | 0,50 | 4 / 2 / 2 |
+| **Ensemble de référence** | 24 | **0,87** | **0,96** | **0,81** (0,80) | **0,00** | 0,38 (0,42) | 22 / 2 / 0 |
+| **Nouvelles (N01-N08)** | 8 | **0,86** (0,84) | **0,86** (0,85) | **0,73** | **0,25** (0,38) | 0,50 | 5 / 2 / 1 (4 / 2 / 2) |
 | Filtrée Q10 (licence MIT), hors moyenne | 1 | 0,90 | 1,00 | 0,80 | 0 | 0 | réussie |
 | Filtrée Q14 (statuts), hors moyenne | 1 | 0,97 | 1,00 | 1,00 | 0 | 0 | réussie |
 
@@ -567,7 +598,7 @@ Verdicts : réussie si un dépôt attendu en tête est premier, sans intrus dans
 intrus « forte » dans les 5 premiers ; partielle si un dépôt attendu en tête figure dans les 3
 premiers, avec au plus un intrus dans les 3 premiers ; échec sinon. Une requête sans réponse
 attendue est réussie si aucune correspondance n'est « forte » et qu'aucun intrus n'est dans les 3
-premiers. Les listes d'intrus du fichier de référence sont incomplètes : d'après un relevé à part,
+premiers, en échec si une correspondance est « forte », partielle sinon. Les listes d'intrus du fichier de référence sont incomplètes : d'après un relevé à part,
 fait avant la revue du lot 4, environ 0,42 dépôt hors sujet par requête figure dans les 3 premiers,
 et non 0,00.
 
@@ -579,28 +610,56 @@ sujet listé comme tel ; deux dépôts différents s'appellent tesseract) :
 | Q01 « Quels outils déjà enregistrés pourrais-je utiliser pour extraire des données de PDF techniques ? » | docling, paddleocr, olmocr, dolphin, deepseek-ocr, deepseek_ocr_app | docling (F), paddleocr (F), olmocr (F), dolphin (F), omniparser (intrus, P) | réussie ; deepseek-ocr (fiche v7.0/v7.1 pauvre) absent des 10 premiers |
 | Q02 « Quels dépôts seraient réutilisables dans une application FastAPI de traitement documentaire ? » | deepseek_ocr_app, docling, txtai, paddleocr | deepseek_ocr_app (F), docling (F), paddleocr (F), pageindex (F), dolphin (F) | réussie |
 | Q03 « Ai-je déjà enregistré un projet intéressant pour automatiser une veille financière ? » | dexter, gpt-researcher, huginn, finrobot | huginn (F), dexter (F), composer-trade-mcp (P), finrobot (P), gpt-researcher (P) | réussie |
-| Q04 « Un moteur OCR qui fonctionne sous Windows pour des plans scannés ? » | tesseract (×2), paddleocr, poppler-windows | paddleocr (F), tesseract (P), dolphin (P), deepseek_ocr_app (P), windows (intrus, P) | réussie |
+| Q04 « Un moteur OCR qui fonctionne sous Windows pour des plans scannés ? » | tesseract (×2), paddleocr, poppler-windows | paddleocr (F), tesseract (P), dolphin (P), deepseek_ocr_app (P), tesseract (P) | réussie ; « Windows » est une contrainte : windows (intrus) n'est plus 5e |
 | Q05 « Ai-je quelque chose pour le métré ou la lecture de plans de bâtiment (BIM, IFC) ? » | aucun (rien dans le corpus) | paddleocr (P), open-notebook (P), docling (P) | réussie : aucune « forte » |
 | Q09 « Une base vectorielle ou un RAG pour interroger mes supports de cours ? » | ragflow, txtai, open-notebook, pagelm | pageindex (P), ragflow (P), paddleocr (P), buildingai (P), txtai (P) | partielle |
 | Q11 « Un agent de code open source auto-hébergeable, alternative à Claude Code ? » | openhands (×2 adresses), opencode | openhands (F), huginn (F, hors sujet), opencode (F), awesome-selfhosted (intrus, P), windows (P) | réussie (huginn hors sujet non listé comme intrus) |
-| H04 « faire tourner un modèle de langage en local sur mon PC » | llama.cpp | llama.cpp (F), piper1-gpl (P, hors sujet : `Ne couvre pas : modèle de langage (notion secondaire), PC [contexte]`), awesome-selfhosted (P), huginn (P) | réussie (partielle avant la revue : piper1-gpl « forte » en tête) |
+| Q15 « Un outil pour faire un tableau de bord de données en Python sans écrire de front-end ? » | marimo | evidently (F), marimo (P), python (P, hors sujet), fastmcp (P), docling (intrus, P) | partielle ; « Python » est une contrainte : un dépôt qui ne parle que de Python sort après ceux qui parlent de l'objet (avant : datagouv-mcp, paddleocr, olmocr aux rangs 3 à 5) |
+| H04 « faire tourner un modèle de langage en local sur mon PC » | llama.cpp | llama.cpp (F), piper1-gpl (P, hors sujet : `Ne couvre pas : modèle de langage (notion secondaire), PC [contexte]`), tesseract (P), awesome-selfhosted (P), huginn (P) | réussie |
 | E01 « Which saved tools could extract data from technical PDFs? » | comme Q01 | docling (F), olmocr (F), paddleocr (F), dolphin (F), omniparser (intrus, P) | réussie : mêmes 4 premiers que Q01 |
 | N01 « Je dois récupérer les quantités d'un DPGF en PDF pour les reprendre dans un tableur : quel outil ai-je déjà ? » | docling, paddleocr | docling (F), open-notebook (P), pageindex (P), paddleocr (P), dolphin (P) | réussie |
-| N03 « Which saved repos help me write my own MCP server in Python? » | fastmcp | fastmcp (F), datagouv-mcp (F), composer-trade-mcp (F), servers (P), awesome-mcp-servers (P) | réussie : 3 dépôts « forte » (28 avant la revue) |
-| N04 « Un OCR qui ne nécessite pas de GPU, pour les PC Windows de la salle informatique » | tesseract (×2) | tesseract (F), windows (intrus, P), poppler-windows (P), tesseract (P), deepseek_ocr_app (intrus, P) | partielle |
-| N05 « Un logiciel de calcul de structures en béton armé selon l'Eurocode 2 » | aucun | paddleocr (P), dolphin (P), pagelm (P), evidently (P) | réussie : aucune « forte » |
-| N06 « Gérer les notes et les absences de mes élèves » | aucun | pagelm (intrus, F), tesseract (P), docling (P), paddleocr (P), pageindex (P) | échec : pagelm « forte » par « notes structurées » ; tesseract et docling, partiels, sans extrait (libellé de colonne « Notes » indexé) |
-| N08 « Créer des supports de cours interactifs en Python pour mes étudiants de BTS » | marimo | open-notebook (F), pagelm (P), generative-ai-for-beginners (P), paddleocr (P), pageindex (P) | échec : marimo (fiche v7.0/v7.1 pauvre) 8e |
+| N02 « offline text-to-speech to narrate my course videos » | piper1-gpl, chatterbox | piper1-gpl (F), chatterbox (F), awesome-selfhosted (P), huginn (P), llama.cpp (P) | réussie ; « offline » est une contrainte : chatterbox (« SoTA open-source TTS », sans « hors ligne ») passe de partielle à forte |
+| N03 « Which saved repos help me write my own MCP server in Python? » | fastmcp | fastmcp (F), servers (F), datagouv-mcp (F), composer-trade-mcp (F), awesome-mcp-servers (F) | réussie : « my own » ne met plus « MCP server » en contexte ; les 5 « forte » sont des serveurs MCP (attendu ou acceptables) |
+| N04 « Un OCR qui ne nécessite pas de GPU, pour les PC Windows de la salle informatique » | tesseract (×2) | tesseract (F), tesseract (P), deepseek_ocr_app (intrus, P), deepseek-ocr (intrus, P), paddleocr (P) | partielle (nDCG@10 0,95, avant 0,88 avec windows, intrus, 2e) : la négation « pas de GPU » ne déclasse pas les dépôts qui exigent un GPU |
+| N05 « Un logiciel de calcul de structures en béton armé selon l'Eurocode 2 » | aucun | aucun résultat (`Aucune fiche ne contient ces concepts : calcul de structures, selon.`) | réussie (avant : paddleocr, dolphin, pagelm par « structurées », evidently par « Apache-2.0 », tous partiels) |
+| N06 « Gérer les notes et les absences de mes élèves » | aucun | pagelm (intrus, P) | partielle : aucune « forte » ; pagelm reste visible par « notes structurées » (avant : échec, pagelm « forte », tesseract et docling sans extrait par le nom de colonne « Notes ») |
+| N07 « Une interface pour utiliser Git dans le terminal, plus simple que la ligne de commande » | lazygit | lazygit (F), deepseek_ocr_app (P), marimo (P), claude-code-templates (intrus, P), ai-hedge-fund (P) | réussie (avant : partielle, claude-code-templates 2e) |
+| N08 « Créer des supports de cours interactifs en Python pour mes étudiants de BTS » | marimo | pagelm (F), open-notebook (F), generative-ai-for-beginners (P), paddleocr (P), pageindex (P) | échec : marimo (fiche v7.0/v7.1 pauvre) 7e ; pagelm trouvé par « ressources interactives » |
 
-**Contrôles de non-invention** (34 recherches, 273 résultats) : les 602 extraits et citations
-(458 extraits « D'après la fiche », 100 « Établi », 44 citations de négation ou de contrainte
-matérielle) se retrouvent tels quels dans le texte Notion d'origine, et le rendu affiché de chacun
-des 558 extraits (marques retirées) est identique au texte cité : avant la revue, deux notions qui
-se chevauchaient répétaient un mot à l'affichage (« *extracteur web**web* »). Aucun extrait ne vient
-d'un gabarit ni d'un « Non vérifié ». Les 188 résultats qui contiennent une fiche ancienne portent
-tous l'avertissement « première version de Gitnotate ». La version détectée correspond à la version
-attendue pour toutes les fiches affichées. La fiche non notée du corpus porte la limite « Fiche non
-notée ».
+**Contrôles de non-invention** (34 recherches, 263 résultats affichés, limite 10) : les 584 extraits
+et citations (449 extraits « D'après la fiche », 93 « Établi », 42 citations de négation ou de
+contrainte matérielle) se retrouvent tels quels dans le texte Notion d'origine, et le rendu affiché
+de chacun des 542 extraits (marques retirées) est identique au texte cité. Chaque notion de
+`Répond à` (389 lignes, 612 champs cités) correspond à une occurrence réelle du mot dans le texte
+stocké du champ cité ; 10 lignes n'ont pas d'extrait, toutes parce que le mot n'est que dans le nom
+du dépôt (le nom n'est jamais cité en extrait). Avant l'affinage, une recherche contenant « notes »
+ou « tags » citait la colonne « Notes » sans extrait : le mot n'était que dans le nom de la colonne.
+Cet invariant est vérifié sur toutes les requêtes du fichier de référence par
+`tests/test_redecouverte_affinage.py`. Aucun extrait ne vient d'un gabarit ni d'un « Non vérifié ».
+Les 184 résultats qui contiennent une fiche ancienne portent tous l'avertissement « première version
+de Gitnotate ». La version détectée correspond à la version attendue pour toutes les fiches
+affichées. La fiche non notée du corpus porte la limite « Fiche non notée ».
+
+**Effet de chaque correction** (32 requêtes sans filtre ; chacune retirée seule de l'état final, sauf
+la première, mesurée sur l'index du nouveau format comparé à l'ancien, avant les autres corrections) :
+
+| Correction | Requêtes dont une mesure change | Effet |
+|------------|---------------------------------|-------|
+| Noms des colonnes personnelles non indexés | N06 | tesseract et docling ne sortent plus sur le seul nom de colonne « Notes » |
+| Classe « contrainte » | Q04, Q07, N02, N03, N04, N07, N08 | nouvelles : nDCG@10 de 0,81 à 0,86, MRR de 0,74 à 0,86, intrus@3 de 0,375 à 0,25 ; référence : nDCG@10 de 0,835 à 0,836, intrus@3 inchangé (0) |
+| « mon propre », « my own » | N03 | fastmcp passe du 3e au 1er rang (MRR de 0,33 à 1) |
+| Comparaisons (« plus simple que »…) | aucune mesure | N07 : « simple » n'est plus cherché, omniparser (trouvé par ce seul mot) quitte les 5 premiers, lazygit passe de 70 à 100 % |
+| Féminins des mots hors lexique | aucune mesure | N08 : pagelm trouvé par « ressources interactives », de partielle à forte |
+| Nombres isolés ignorés | aucune mesure | N05 : evidently n'est plus trouvé par « Apache-2.0 » |
+| Formes « calcul de structures » | aucune mesure | N05 : paddleocr, dolphin et pagelm ne sont plus trouvés par « structurées » |
+| Notion « vie scolaire » (« absences »…) | N06 | sans elle, pagelm reste « forte » par le seul mot « notes » |
+
+Les concepts gardés en contrainte sont ceux dont la mesure ne dégrade pas la référence : classer
+« auto-hébergé » en contrainte améliorait Q11 mais plaçait dexter (intrus) 2e en H10 ; « navigateur »
+abaissait H03 (nDCG@10 de 1,00 à 0,99) ; « open source » en contrainte plaçait un intrus dans les 3 premiers de
+Q11 ; ces trois-là restent comme avant (« gratuit » et « open source » restent des notions secondaires,
+de poids 0,3). Un poids de contrainte fixé à la moitié de sa rareté (et non de la notion principale)
+laissait fastmcp 3e en N03 (MRR des nouvelles 0,74 au lieu de 0,86).
 
 **Ce que ces chiffres valent** : ils ont servi à choisir les réglages et à repérer les défauts
 décrits ci-dessous ; ils ne mesurent pas la qualité sur votre base réelle (corpus de 62 fiches écrit
@@ -614,31 +673,43 @@ n'ont pas été mesurés. La validation sur la base réelle (partie H de
 - **Recherche lexicale** : en dehors du lexique, aucune proximité de sens. Un besoin formulé avec des
   mots absents des fiches et du lexique ne trouve que les formes exactes (signalé par `Aucune fiche
   ne mentionne`). Le lexique a aussi des polysémies : « notes » (des élèves) rejoint « notes
-  structurées », « structures » (calcul de structures) rejoint « données structurées », un nombre
-  isolé (« Eurocode 2 ») rejoint « Apache-2.0 », « tableur » a pour voisin « table » (« table des
-  matières »). Corrigé à la revue : « feed » seul (verbe anglais, « to feed an LLM ») n'est plus lu
-  comme « veille » (seuls « rss feed » et « news feed » le sont), et « surveillance » n'entre plus
-  dans « veille » par le voisinage avec « monitoring ».
-- **Libellés des colonnes personnelles** : le nom d'une colonne personnelle est indexé avec sa valeur
-  (`Notes : …`, `Tags : …`). Un besoin qui contient « notes » ou « tags » trouve donc, en
-  correspondance forte et sans extrait, toutes les fiches où ces colonnes sont remplies. Méfiez-vous
-  d'un résultat « forte » dont le bloc `D'après la fiche` est absent.
+  structurées » (N06 : pagelm reste visible en partielle ; il n'est plus « forte » parce que
+  « absences », notion du lexique depuis l'affinage, n'est dans aucune fiche), « tableur » a pour
+  voisin « table » (« table des matières »), « DPGF » et « métré » sont une même notion, « français »
+  rejoint « données publiques françaises ». Corrigé à la revue : « feed » seul (verbe anglais, « to
+  feed an LLM ») n'est plus lu comme « veille » (seuls « rss feed » et « news feed » le sont), et
+  « surveillance » n'entre plus dans « veille » par le voisinage avec « monitoring ». Corrigé à
+  l'affinage : « calcul de structures » est une forme du lexique (plus de « données structurées »), un
+  nombre isolé d'un ou deux chiffres n'est plus cherché, un mot hors lexique au masculin trouve aussi
+  son féminin. Le féminin est construit par règle (if/ive, ier/ière, ien/ienne, el/elle, eur/euse,
+  sinon « e ») : il peut produire une forme qui n'existe pas (« créateur » donne « créateuse », sans effet
+  puisqu'aucune fiche ne la contient) ou, rarement, un autre mot.
 - **Fiches anciennes pauvres** : une fiche v7.0/v7.1 n'apporte que son nom, une phrase de
   description et l'avis du LLM (qui compte peu) ; elle ressort moins qu'une v7.3+. Signalé, non
   compensé : seule une nouvelle analyse l'enrichirait, ce que le moteur ne fait pas (aucune écriture
   dans Notion).
 - **Heuristiques de la phrase** : la négation porte sur les 4 mots de contenu qui suivent et s'arrête
   à une ponctuation ou à un mot de liaison ; elle retire le mot de la recherche sans déclasser les
-  dépôts qui le mentionnent. Le possessif (« mes », « my »…) met les 3 mots suivants en contexte, à
-  tort quand il désigne l'objet cherché (« my own MCP server » : seul « Python » reste essentiel) ;
-  quand le besoin n'a qu'une notion essentielle, les notions de contexte comptent dans la couverture
-  et les notions secondaires sont exigées pour « forte », ce qui limite l'effet (3 dépôts « forte »
-  sur cette requête, contre 28 avant la revue). Avec deux notions essentielles ou plus, « forte » ne
-  regarde que celles-ci : une notion secondaire absente (« données ») ne l'empêche pas, mais elle est
-  listée dans `Ne couvre pas`. La recherche reste lexicale : pour « un LLM local », gpt-researcher
-  (« fondé sur des LLM », « recherches … locales ») sort « forte » avant llama.cpp. Un mot rare de
-  contrainte (« Windows », « ligne de commande ») peut peser plus que l'objet du besoin (« OCR »).
-  `--details` montre le rôle et le poids de chaque mot.
+  dépôts qui le mentionnent (N04 « un OCR qui ne nécessite pas de GPU » : deepseek_ocr_app, qui exige
+  un GPU, est 3e, avec la limite `Contrainte matérielle mentionnée`). Le possessif (« mes », « my »…)
+  met les 3 mots suivants en contexte, sauf s'il est suivi de « propre » ou « own » ; il reste à tort
+  en contexte quand il désigne l'objet cherché sans ce mot (« pour créer mon serveur MCP »). Quand le
+  besoin n'a qu'une notion essentielle, les notions de contexte comptent dans la couverture et les
+  notions secondaires sont exigées pour « forte ». Avec deux notions essentielles ou plus, « forte »
+  ne regarde que celles-ci : une notion secondaire absente (« données ») ne l'empêche pas, mais elle
+  est listée dans `Ne couvre pas`. La recherche reste lexicale : pour « un LLM local », gpt-researcher
+  (« fondé sur des LLM », « recherches … locales ») sort « forte » avant llama.cpp. Une comparaison
+  (« plus simple que la ligne de commande ») met la suite en référence, mais une notion déjà citée
+  comme objet (« dans le terminal ») garde son rôle. `--details` montre le rôle et le poids de chaque
+  mot.
+- **Contraintes** : une contrainte (Windows, Python, Docker, en local, GPU, terminal…) pèse la moitié
+  de la notion principale de l'objet, même quand elle est très fréquente : un dépôt qui ne parle que
+  de la contrainte sort donc après ceux qui parlent de l'objet, mais avant des correspondances plus
+  faibles (Q15 « tableau de bord … en Python » : TheAlgorithms/Python, hors sujet, est 3e). Une fiche
+  qui couvre l'objet sans la contrainte peut être « forte » (N02 : chatterbox, dont la fiche ne dit pas
+  « hors ligne ») : la contrainte est listée dans `Ne couvre pas`. « Auto-hébergé » et « navigateur »
+  restent des notions ordinaires, « gratuit » et « open source » des notions secondaires (mesures de
+  la [section 10](#10-mesures-sur-le-corpus-synthétique)).
 - **Requêtes en anglais** : les mots de question anglais courants sont ignorés comme les français
   (E01 donne les mêmes premiers dépôts que Q01) ; le lexique reste centré sur les notions des
   fiches.
