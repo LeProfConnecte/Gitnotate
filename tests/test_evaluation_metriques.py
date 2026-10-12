@@ -1,12 +1,15 @@
 """Définitions des mesures de scripts/evaluer_redecouverte.py (P@5 à dénominateur fixe, R@5, cas limites).
 
-Aucun index ni réseau : seules les fonctions pures mesurer() et empreinte_jugements(), et l'option --empreinte
-(qui n'ouvre pas l'index), sont exercées.
+Aucun index ni réseau : seules les fonctions pures mesurer() et empreinte_jugements(), l'option --empreinte
+(qui n'ouvre pas l'index) et le compte des correspondances fortes d'evaluer() (base SQLite en mémoire, recherche
+remplacée par des réponses fabriquées) sont exercés.
 """
 import hashlib
 import importlib.util
 import json
+import sqlite3
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -190,3 +193,46 @@ def test_empreinte_des_jeux_figes_du_depot(ev):
         'anglais': (1, 'c9a7059c08ba5303aad6e41ab267891356d603da6ddc61ada198bec5aa53a37e'),
         'nouvelles': (8, '186d639603ae083c834d3c58b308fa29730678803f00e23de57e711c069767ae'),
     }
+
+
+# =============================================================================
+# Correspondances fortes et requêtes sans réponse attendue (« aucun_fort »)
+# =============================================================================
+def _resultat(cle, niveau, rang=None):
+    return SimpleNamespace(cle=cle, niveau=niveau, rang=rang, score=0.5)
+
+
+def test_forts_comptent_les_fiches_sans_depot_et_aucun_fort_est_controle(ev, monkeypatch, capsys):
+    """« forts » compte aussi les fiches sans dépôt GitHub (elles peuvent être « forte ») ; une requête
+    « aucun_fort »: true qui donne une correspondance forte est signalée, avec le compte par jeu."""
+    reponses = {
+        'S1': SimpleNamespace(resultats=[_resultat('a/a', 'partielle', 1)],
+                              sans_depot=[_resultat('page:0001', 'forte')]),
+        'S2': SimpleNamespace(resultats=[_resultat('b/b', 'partielle', 1)], sans_depot=[]),
+        'S3': SimpleNamespace(resultats=[_resultat('a/a', 'forte', 1)], sans_depot=[_resultat('page:0001', 'forte')]),
+    }
+    monkeypatch.setattr(ev, 'lancer', lambda con, requete: reponses[requete['id']])
+    requetes = [
+        {'id': 'S1', 'jeu': 'externe', 'requete': 'x', 'en_tete': [], 'acceptables': [], 'a_exclure': [],
+         'aucun_fort': True},
+        {'id': 'S2', 'jeu': 'externe', 'requete': 'y', 'en_tete': [], 'acceptables': [], 'a_exclure': ['b/b'],
+         'aucun_fort': True},
+        {'id': 'S3', 'jeu': 'externe', 'requete': 'z', 'en_tete': ['a/a'], 'acceptables': [], 'a_exclure': [],
+         'aucun_fort': False},
+    ]
+    con = sqlite3.connect(':memory:')
+    try:
+        con.execute('CREATE TABLE fiches (cle_depot TEXT)')
+        con.executemany('INSERT INTO fiches VALUES (?)', [('a/a',), ('b/b',), ('page:0001',)])
+        moyennes = ev.evaluer(con, requetes)
+    finally:
+        con.close()
+    sortie = [ligne for ligne in capsys.readouterr().out.splitlines() if ligne.strip()]
+    lignes = {ligne.split()[0]: ligne for ligne in sortie if not ligne.startswith('---')}
+    assert 'forts=1  aucun_fort non respecté' in lignes['S1']       # la fiche sans dépôt « forte » compte
+    assert 'forts=0' in lignes['S2'] and 'aucun_fort non respecté' not in lignes['S2']
+    assert 'forts=2' in lignes['S3'] and 'aucun_fort non respecté' not in lignes['S3']
+    assert '--- externe : aucun_fort non respecté pour 1 requête sur 2' in sortie
+    assert any(ligne.startswith('--- externe : ') and 'ndcg10=1,00' in ligne for ligne in sortie)
+    # les mesures ne changent pas : seules les requêtes avec des pertinents jugés entrent dans P@5
+    assert moyennes['externe']['p5'] == pytest.approx(0.2) and moyennes['externe']['intrus3'] == pytest.approx(1 / 3)

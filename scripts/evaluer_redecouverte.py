@@ -13,7 +13,8 @@ intrus@3, intrus@5 et les attendus manquants, puis les moyennes par jeu. Seuls l
 avec filtres (options) sont mesurées à part, hors moyennes. Aucune écriture, aucun réseau.
 
 Format du fichier : {"requetes": [{"id", "jeu", "requete", "options", "en_tete", "acceptables",
-"a_exclure"}]} avec des clés de dépôt « owner/repo » (gain 2 en tête, 1 acceptable).
+"a_exclure", "aucun_fort"}]} avec des clés de dépôt « owner/repo » (gain 2 en tête, 1 acceptable) ;
+« aucun_fort »: true marque une requête sans réponse attendue, qui ne doit donner aucune correspondance forte.
 
 --empreinte : n'ouvre pas l'index et ne lance aucune recherche ; affiche l'empreinte SHA-256 des
 jugements du fichier (voir empreinte_jugements), celle de chaque jeu, l'empreinte SHA-256 des octets
@@ -30,7 +31,9 @@ comme non trouvé) :
   intrus@k  nombre de dépôts jugés « à exclure » parmi les k premiers.
 P@5, R@5 et nDCG@10 ne sont pas définis (« — ») pour une requête sans dépôt pertinent jugé, MRR pour une
 requête sans dépôt « en tête » : ces requêtes sans réponse attendue sont jugées par intrus@k et par
-l'absence de correspondance forte. Jusqu'au 2026-10-12, la colonne « P@5 » divisait par min(5, nombre de
+l'absence de correspondance forte. « forts » compte les correspondances fortes parmi les dépôts et les fiches
+sans dépôt ; une requête « aucun_fort »: true qui en donne est marquée « aucun_fort non respecté », et le
+nombre de ces requêtes est donné par jeu. Jusqu'au 2026-10-12, la colonne « P@5 » divisait par min(5, nombre de
 pertinents) : c'était une précision normalisée, qui surestimait P@5 quand moins de 5 dépôts étaient jugés
 pertinents.
 
@@ -104,6 +107,7 @@ def _format(valeur: Optional[float]) -> str:
 def evaluer(con, requetes: List[Dict[str, Any]], details: bool = False) -> Dict[str, Dict[str, float]]:
     """Affiche les mesures de chaque requête et renvoie les moyennes par jeu (requêtes sans filtre)."""
     sommes: Dict[str, Dict[str, List[float]]] = {}
+    sans_fort: Dict[str, List[int]] = {}     # jeu -> [« aucun_fort » non respectées, requêtes « aucun_fort »]
     connues = {cle for (cle,) in con.execute('SELECT DISTINCT cle_depot FROM fiches')}
     for requete in requetes:
         inconnues = [cle for champ in ('en_tete', 'acceptables', 'a_exclure') for cle in requete.get(champ, [])
@@ -116,11 +120,19 @@ def evaluer(con, requetes: List[Dict[str, Any]], details: bool = False) -> Dict[
         m = mesurer(classement, requete)
         filtres = bool(requete.get('options'))
         jeu = requete.get('jeu', 'reference') + (' (filtres, hors moyenne)' if filtres else '')
-        forts = sum(1 for r in reponse.resultats if r.niveau == 'forte')
+        # une fiche sans dépôt GitHub peut aussi être « forte » : elle compte pour « aucun_fort »
+        forts = sum(1 for r in reponse.resultats + reponse.sans_depot if r.niveau == 'forte')
+        alerte = ''
+        if requete.get('aucun_fort') is True:
+            compte = sans_fort.setdefault(jeu, [0, 0])
+            compte[1] += 1
+            if forts:
+                compte[0] += 1
+                alerte = '  aucun_fort non respecté'
         manquants = f"  manquants : {', '.join(m['manquants'])}" if m['manquants'] else ''
         gn.log(f"{requete.get('id', '?'):<4} nDCG@10={_format(m['ndcg10'])}  P@5={_format(m['p5'])}  "
-               f"R@5={_format(m['r5'])}  MRR={_format(m['mrr'])}  intrus@3={m['intrus3']}  intrus@5={m['intrus5']}  forts={forts}{manquants}",
-               'always')
+               f"R@5={_format(m['r5'])}  MRR={_format(m['mrr'])}  intrus@3={m['intrus3']}  "
+               f"intrus@5={m['intrus5']}  forts={forts}{alerte}{manquants}", 'always')
         if details:
             for r in reponse.resultats[:8] + reponse.sans_depot:
                 gn.log(f"       {r.rang or '-':>2} {r.cle:<45} {r.niveau:<9} {r.score:.3f}", 'always')
@@ -131,6 +143,9 @@ def evaluer(con, requetes: List[Dict[str, Any]], details: bool = False) -> Dict[
     moyennes = {jeu: {cle: sum(v) / len(v) for cle, v in valeurs.items()} for jeu, valeurs in sommes.items()}
     for jeu, valeurs in moyennes.items():
         gn.log(f"--- {jeu} : " + '  '.join(f"{cle}={_format(v)}" for cle, v in valeurs.items()), 'always')
+    for jeu, (violees, total) in sans_fort.items():
+        gn.log(f"--- {jeu} : aucun_fort non respecté pour {violees} requête{'s' if violees > 1 else ''} "
+               f"sur {total}", 'always')
     return moyennes
 
 

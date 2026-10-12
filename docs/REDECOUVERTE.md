@@ -580,15 +580,19 @@ Pour chaque requête, le script affiche nDCG@10 (qualité de l'ordre des 10 prem
 dépôts pertinents, c'est-à-dire « en tête » ou « acceptables », parmi les 5 premiers, divisé par 5),
 R@5 (nombre de dépôts pertinents parmi les 5 premiers, divisé par le nombre de dépôts pertinents
 jugés), MRR (1 si un dépôt attendu en tête est premier, 1/2 s'il est deuxième…), intrus@3 et intrus@5
-(nombre d'intrus dans les 3 et 5 premiers), le nombre de correspondances fortes et les attendus
-manquants. P@5 garde un dénominateur fixe de 5 : avec 2 dépôts pertinents jugés, le maximum est 0,40,
-et un classement de moins de 5 dépôts n'est pas avantagé. P@5, R@5 et nDCG@10 ne sont pas définis
-(« — ») pour une requête sans dépôt pertinent jugé, MRR pour une requête sans dépôt « en tête » ; ces
-requêtes sans réponse attendue sont jugées par les intrus et l'absence de correspondance forte.
-Jusqu'au 2026-10-12, la colonne « P@5 » divisait par min(5, nombre de pertinents) : c'était une
-précision normalisée, plus flatteuse que P@5 dès que moins de 5 dépôts étaient jugés pertinents.
-`--details` montre les premiers dépôts. Les moyennes sont données par jeu ; les requêtes avec filtres sont mesurées à part, hors moyenne. Le
-script ouvre l'index en lecture seule, sans réseau (code 1 si le fichier ou l'index est illisible).
+(nombre d'intrus dans les 3 et 5 premiers), le nombre de correspondances fortes (`forts`, dépôts et
+fiches sans dépôt GitHub confondus) et les attendus manquants. P@5 garde un dénominateur fixe de 5 :
+avec 2 dépôts pertinents jugés, le maximum est 0,40, et un classement de moins de 5 dépôts n'est pas
+avantagé. P@5, R@5 et nDCG@10 ne sont pas définis (« — ») pour une requête sans dépôt pertinent jugé,
+MRR pour une requête sans dépôt « en tête » ; ces requêtes sans réponse attendue sont jugées par les
+intrus et l'absence de correspondance forte : marquez-les `"aucun_fort": true`, et le script ajoute
+`aucun_fort non respecté` à la ligne d'une telle requête qui donne une correspondance forte, puis le
+nombre de ces requêtes par jeu. Jusqu'au 2026-10-12, la colonne « P@5 » divisait par min(5, nombre de
+pertinents) : c'était une précision normalisée, plus flatteuse que P@5 dès que moins de 5 dépôts
+étaient jugés pertinents. `--details` montre les premiers dépôts. Les moyennes sont données par jeu,
+sur les seules requêtes où la mesure est définie ; les requêtes avec filtres sont mesurées à part,
+hors moyenne. Le script ouvre l'index en lecture seule, sans réseau (code 1 si le fichier ou l'index
+est illisible).
 
 ### Intégrer un jeu de requêtes externe
 
@@ -641,6 +645,13 @@ s'ajoute sous un nouveau nom, sans toucher les jugements des jeux existants.
 
 ## 10. Mesures sur le corpus synthétique
 
+> **Ces mesures ne disent rien de votre base.** Elles portent sur un corpus **synthétique** de
+> 62 fiches, écrit pendant la conception. Elles ne prouvent rien sur la qualité de la recherche
+> dans une base réelle, en particulier dans une base historique de plusieurs centaines de fiches
+> écrites par la v7.1 (voir la partie H de [VALIDATION.md](VALIDATION.md#h-redécouverte-lecture-seule)) :
+> aucune base réelle n'a été mesurée. Seule une validation en lecture seule, avec des attendus
+> écrits avant de voir les résultats, peut renseigner sur votre base.
+
 **Ce qui a été mesuré.** Le corpus de test (`tests/fixtures/redecouverte/`) contient 63 fiches
 synthétiques, écrites pendant la conception : 62 hors corbeille, 51 dépôts, réparties en v7.3+ ×16,
 v7.2 ×5, v7.0/v7.1 ×20, ancienne ×18 et manuelle ×3. Les noms de dépôts sont réels, le contenu des
@@ -648,36 +659,119 @@ fiches est fabriqué pour les tests. L'index a été reconstruit hors ligne (`sy
 capture du corpus), puis mesuré avec `scripts/evaluer_redecouverte.py` sur 24 requêtes de référence
 et 8 requêtes nouvelles, écrites avec leurs attendus et figées (empreinte SHA-256) avant tout
 résultat, puis ajoutées sans changement au fichier de référence (jeu `nouvelles` de
-`tests/fixtures/redecouverte/requetes.json`). Moteur 1.0.0, gitnotate 7.4.0, mesures du 2026-10-12,
-refaites après l'affinage de la pertinence (noms des colonnes personnelles non indexés, classe
-« contrainte », comparaisons « plus simple que », « mon propre », féminins des mots hors lexique,
-nombres isolés ignorés, formes « calcul de structures », notion « vie scolaire », affichage des
-concepts absents). Entre parenthèses : la valeur avant l'affinage, quand elle diffère. Les
-corrections de la seconde revue (un mot hors lexique n'est plus l'objet du besoin, plus de féminin
-en « e » ajouté, comparaison arrêtée par une préposition, citation `URL` d'un mot du seul
-propriétaire/dépôt) laissent toutes ces mesures inchangées (seuls les scores de N07 bougent, sans
-changer les 5 premiers).
+`tests/fixtures/redecouverte/requetes.json`). Toutes ces requêtes, les 26 des jeux `reference` (15),
+`hors_echantillon` (10) et `anglais` (1) comprises, ont été écrites par l'équipe qui a construit le
+moteur et le corpus : ce n'est **pas** un jeu indépendant. Aucun jeu externe n'a été intégré à ce
+jour (procédure au § 9).
 
-| Jeu | Requêtes | nDCG@10 | MRR | P@5 | R@5 | intrus@3 | intrus@5 | Réussies / partielles / échecs |
-|-----|----------|---------|-----|-----|-----|----------|----------|-------------------------------|
-| Référence (Q01-Q15, hors Q10 et Q14 filtrées) | 13 | 0,84 (0,83) | 0,92 | 0,68 | 0,65 | 0,00 | 0,31 (0,38) | 11 / 2 / 0 |
-| Hors échantillon (H01-H10) | 10 | 0,92 | 1,00 | 0,54 | 0,76 | 0,00 | 0,40 | 10 / 0 / 0 |
-| Anglais (E01) | 1 | 0,80 | 1,00 | 0,80 | 0,33 | 0,00 | 1,00 | 1 / 0 / 0 |
-| **Ensemble de référence** | 24 | **0,87** | **0,96** | **0,63** | **0,69** | **0,00** | 0,38 (0,42) | 22 / 2 / 0 |
-| **Nouvelles (N01-N08)** | 8 | **0,86** (0,84) | **0,86** (0,85) | **0,53** | **0,65** | **0,25** (0,38) | 0,50 | 5 / 2 / 1 (4 / 2 / 2) |
+**Avant et après l'affinage.** « Avant » est le commit `a679661` (dernière version vérifiée avant
+l'affinage de la pertinence) ; « après » est le moteur depuis `16e163f`, inchangé ensuite. Chaque
+version a été mesurée avec son propre moteur et son propre index, construits depuis la même
+capture, et avec la même définition des mesures (§ 9). L'affinage comprend : noms des colonnes
+personnelles non indexés, classe « contrainte », comparaisons « plus simple que », « mon propre »,
+féminins des mots hors lexique, nombres isolés ignorés, formes « calcul de structures », notion
+« vie scolaire », affichage des concepts absents, puis les corrections de la seconde revue (un mot
+hors lexique n'est plus l'objet du besoin, plus de féminin en « e » ajouté, comparaison arrêtée par
+une préposition, citation `URL` d'un mot du seul propriétaire/dépôt). Moteur 1.0.0, gitnotate 7.4.0,
+mesures du 2026-10-12. Entre parenthèses : la valeur avant l'affinage, quand elle diffère.
+
+| Jeu | Requêtes (dont mesurées en P@5 / MRR) | nDCG@10 | MRR | P@5 | R@5 | intrus@3 | intrus@5 | Réussies / partielles / échecs |
+|-----|---------------------------------------|---------|-----|-----|-----|----------|----------|-------------------------------|
+| Référence (Q01-Q15, hors Q10 et Q14 filtrées) | 13 (13 / 12) | 0,84 (0,83) | 0,92 | 0,68 (0,66) | 0,65 (0,64) | 0,00 | 0,31 (0,38) | 11 / 2 / 0 |
+| Hors échantillon (H01-H10) | 10 (10 / 10) | 0,92 | 1,00 | 0,54 | 0,76 | 0,00 | 0,40 | 10 / 0 / 0 |
+| Anglais (E01) | 1 (1 / 1) | 0,80 | 1,00 | 0,80 | 0,33 | 0,00 | 1,00 | 1 / 0 / 0 |
+| **Ensemble de référence** | 24 (24 / 23) | **0,87** | **0,96** | **0,625** (0,617) | **0,69** (0,68) | **0,00** | 0,375 (0,42) | 22 / 2 / 0 |
+| **Nouvelles (N01-N08)** | 8 (6 / 6) | **0,86** (0,84) | **0,86** (0,85) | **0,53** | **0,65** | **0,25** (0,375) | 0,50 | 5 / 2 / 1 (4 / 2 / 2) |
 | Filtrée Q10 (licence MIT), hors moyenne | 1 | 0,90 | 1,00 | 0,80 | 0,57 | 0 | 0 | réussie |
-| Filtrée Q14 (statuts), hors moyenne | 1 | 0,97 | 1,00 | 1,00 | 0,63 | 0 | 0 | réussie |
+| Filtrée Q14 (statuts), hors moyenne | 1 | 0,97 | 1,00 | 1,00 | 0,625 | 0 | 0 | réussie |
 
-P@5 et R@5 suivent la définition corrigée (§ 9) ; ils ont été recalculés le 2026-10-12 sur les mêmes
-classements (avec l'ancienne définition, P@5 valait 0,82 · 0,81 · 0,80 · 0,81 · 0,73 · 0,80 · 1,00).
+Lecture du tableau :
+
+- Les moyennes ne portent que sur les requêtes où la mesure est définie : P@5, R@5 et nDCG@10 sur
+  celles qui ont au moins un dépôt pertinent jugé (N05 et N06 n'en ont aucun), MRR sur celles qui
+  ont un dépôt « en tête » (Q05, N05 et N06 n'en ont pas). intrus@3 et intrus@5 portent sur toutes.
+- Une valeur exactement à mi-chemin entre deux centièmes est donnée avec trois décimales (0,625,
+  0,375) : le script l'affiche arrondie au pair (0,62, 0,38).
+- P@5 et R@5 suivent la définition corrigée (§ 9), recalculée le 2026-10-12 sur les classements de
+  chaque version. Avec l'ancienne définition (division par min(5, pertinents)), P@5 valait 0,82
+  (0,80) · 0,81 · 0,80 · 0,81 (0,80) · 0,73 · 0,80 · 1,00, dans l'ordre des lignes. Compte tenu du
+  nombre de pertinents jugés, la P@5 maximale atteignable est de 0,82 (référence), 0,66 (hors
+  échantillon), 1,00 (anglais), 0,76 (ensemble) et 0,77 (nouvelles) : une P@5 de 0,54 hors
+  échantillon n'est pas à comparer à 1.
+- Aucune mesure ni aucun verdict ne recule, requête par requête. Les gains viennent surtout du jeu
+  `nouvelles`, qui a servi à choisir les réglages : ce n'est pas une mesure indépendante.
 
 Verdicts : réussie si un dépôt attendu en tête est premier, sans intrus dans les 3 premiers ni
 intrus « forte » dans les 5 premiers ; partielle si un dépôt attendu en tête figure dans les 3
 premiers, avec au plus un intrus dans les 3 premiers ; échec sinon. Une requête sans réponse
 attendue est réussie si aucune correspondance n'est « forte » et qu'aucun intrus n'est dans les 3
-premiers, en échec si une correspondance est « forte », partielle sinon. Les listes d'intrus du fichier de référence sont incomplètes : d'après un relevé à part,
-fait avant la revue du lot 4, environ 0,42 dépôt hors sujet par requête figure dans les 3 premiers,
-et non 0,00.
+premiers, en échec si une correspondance est « forte », partielle sinon.
+
+**Faux positifs** (5 premiers des 32 requêtes sans filtre). Les listes d'intrus du fichier de
+référence sont incomplètes : intrus@3 = 0,00 sur l'ensemble de référence ne veut pas dire qu'aucun
+dépôt hors sujet n'est en tête. Les dépôts non listés ont donc été qualifiés d'après le seul texte
+de leur fiche, par un seul analyste, sans relecture (les jugements de référence n'ont pas été
+modifiés) :
+
+| Indicateur (32 requêtes sans filtre) | Avant | Après |
+|--------------------------------------|-------|-------|
+| Intrus listés dans les 3 premiers | 3 | 2 |
+| Intrus listés dans les 5 premiers | 14 | 13 |
+| Dépôts non listés jugés hors sujet, dans les 5 premiers (dont dans les 3 premiers) | 42 (21) | 35 (17) |
+| Correspondances « forte » données à un dépôt hors sujet | 2 | 1 |
+| Hors sujet par requête dans les 3 premiers, intrus listés compris : ensemble de référence | 0,54 | 0,54 |
+| Idem : nouvelles | 1,375 | 0,75 |
+
+La « forte » hors sujet qui reste est Q11 : huginn (agents de surveillance de sites et de flux),
+2e pour « un agent de code … auto-hébergeable », trouvé par le voisin « agents » ; celle de N06
+(pagelm) a disparu. Les qualifications de l'analyste sont discutables à la marge : selon que
+awesome-selfhosted, liste générale d'applications auto-hébergeables, est jugé hors sujet ou
+plausible pour H04, N02 et H10, la valeur de l'ensemble de référence va de 0,50 (avant) et 0,54
+(après) à 0,58 (avant comme après) ; un relevé antérieur, fait par une autre personne, donnait 0,42.
+Les causes récurrentes sont des mots génériques (« automatiser », « Créez »), des voisins larges
+(« selfhosted » pour en local, « pédagogiques » pour élèves ou cours, « investir » pour budget), des
+homonymes (« interface », « workflows », « superviser », « transformer ») et la colonne
+`Brique pour`.
+
+**Négations.** Un concept nié est retiré de la recherche ; les fiches qui le mentionnent ne sont
+pas déclassées (§ 11). N04 « Un OCR qui ne nécessite pas de GPU, pour les PC Windows de la salle
+informatique » garde un intrus dans les 3 premiers, mais pas le même : avant, dockur/windows
+(homonyme « Windows ») était 2e ; après, deepseek_ocr_app et deepseek-ocr, qui exigent un GPU, sont
+3e et 4e (intrus@3 1 et intrus@5 2, avant comme après). « Windows », devenu contrainte, ne départage
+plus les OCR, dont l'ordre ne tient qu'à de très petits écarts de score ; seule la limite générique
+`Contrainte matérielle mentionnée` signale le GPU. Q15 « … sans écrire de front-end » : « écrire »
+et « front-end » sont retirés, remotion (React, intrus) n'apparaît pas. « plus simple que »,
+« plutôt que » et « alternative à » mettent la suite en référence depuis l'affinage (N07 :
+claude-code-templates, « outil en ligne de commande », intrus, passe du 2e au 4e rang).
+
+**Recherches sans réponse attendue** (Q05, N05, N06, marquées `aucun_fort`). Après l'affinage,
+aucune ne donne de correspondance forte (avant, N06 en donnait une : pagelm, intrus, par « notes
+structurées »). N05 (calcul de structures en béton armé) n'affiche plus rien et le dit (`Aucune
+fiche ne contient ces concepts`), là où elle montrait 4 dépôts hors sujet trouvés par
+« structurées » et « Apache-2.0 ». N06 (notes et absences des élèves) garde pagelm en partielle,
+seul résultat (polysémie de « notes »). Q05 est inchangée : deux dépôts acceptables, une fiche sans
+dépôt acceptable et docling (une note parle des DPGF). Un mot trouvé seulement par un voisin est désormais signalé (`Aucune fiche ne
+mentionne directement : élèves`).
+
+**Échecs résiduels** (après l'affinage). Échec : N08, marimo (attendu en tête, fiche v7.0/v7.1
+pauvre) 7e. Partielles : Q09 et Q15 (attendu en tête 2e), N04 (intrus GPU 3e), N06 (pagelm).
+Régression qualitative, invisible dans les mesures parce que les dépôts en cause ne sont pas listés
+comme intrus : H04 « faire tourner un modèle de langage en local sur mon PC » affiche 5 résultats au
+lieu de 4, dont ub-mannheim/tesseract (un OCR) 3e, trouvé par le seul mot « PC » d'une note
+personnelle (« Installé … sur le PC de la salle B12 ») ; « en local », devenu contrainte, pèse moitié
+moins, et ce mot de contexte suffit alors à atteindre le seuil de « partielle ». Aucune correction du
+classement n'a été faite pour ces cas : la règle essayée pour H04 (n'accorder « partielle » que si un
+concept de rôle normal est trouvé) masquait l'objet du besoin dans d'autres recherches (« un outil
+Docker pour mes PDF », « de la synthèse vocale pour mes vidéos »), et un déclassement des fiches qui
+portent un concept nié ne reposerait que sur la seule requête N04.
+
+**Contrôle complémentaire, hors dépôt.** 8 requêtes (M01-M08) ont été écrites sans voir les
+résultats, mais par l'équipe du moteur, qui connaissait le corpus, puis utilisées pour vérifier que
+les corrections de la seconde revue ne changeaient rien. Elles ne sont pas dans le dépôt et ne
+forment pas un jeu indépendant. Mesures : nDCG@10 0,83, MRR 0,90 (sur 7 requêtes), P@5 0,40, R@5
+0,64, intrus@3 0,25, intrus@5 0,375 (0,625), 6 / 2 / 0, identiques avant et après sauf intrus@5. Les
+deux partielles sont M04 (un intrus 2e) et M08 (« brancher dans mes workflows n8n » : buildingai,
+intrus, « forte » 2e).
 
 **Recherches représentatives** (F : correspondance forte, P : partielle ; « intrus » : dépôt hors
 sujet listé comme tel ; deux dépôts différents s'appellent tesseract) :
@@ -692,7 +786,7 @@ sujet listé comme tel ; deux dépôts différents s'appellent tesseract) :
 | Q09 « Une base vectorielle ou un RAG pour interroger mes supports de cours ? » | ragflow, txtai, open-notebook, pagelm | pageindex (P), ragflow (P), paddleocr (P), buildingai (P), txtai (P) | partielle |
 | Q11 « Un agent de code open source auto-hébergeable, alternative à Claude Code ? » | openhands (×2 adresses), opencode | openhands (F), huginn (F, hors sujet), opencode (F), awesome-selfhosted (intrus, P), windows (P) | réussie (huginn hors sujet non listé comme intrus) |
 | Q15 « Un outil pour faire un tableau de bord de données en Python sans écrire de front-end ? » | marimo | evidently (F), marimo (P), python (P, hors sujet), fastmcp (P), docling (intrus, P) | partielle ; « Python » est une contrainte : un dépôt qui ne parle que de Python sort après ceux qui parlent de l'objet (avant : datagouv-mcp, paddleocr, olmocr aux rangs 3 à 5) |
-| H04 « faire tourner un modèle de langage en local sur mon PC » | llama.cpp | llama.cpp (F), piper1-gpl (P, hors sujet : `Ne couvre pas : modèle de langage (notion secondaire), PC [contexte]`), tesseract (P), awesome-selfhosted (P), huginn (P) | réussie |
+| H04 « faire tourner un modèle de langage en local sur mon PC » | llama.cpp | llama.cpp (F), piper1-gpl (P, hors sujet : `Ne couvre pas : modèle de langage (notion secondaire), PC [contexte]`), tesseract (P, hors sujet, trouvé par le seul « PC » d'une note personnelle), awesome-selfhosted (P, hors sujet), huginn (P, hors sujet) | réussie selon la règle (aucun intrus listé), mais 4 résultats hors sujet sur 5 ; régression : tesseract n'était pas affiché avant l'affinage |
 | E01 « Which saved tools could extract data from technical PDFs? » | comme Q01 | docling (F), olmocr (F), paddleocr (F), dolphin (F), omniparser (intrus, P) | réussie : mêmes 4 premiers que Q01 |
 | N01 « Je dois récupérer les quantités d'un DPGF en PDF pour les reprendre dans un tableur : quel outil ai-je déjà ? » | docling, paddleocr | docling (F), open-notebook (P), pageindex (P), paddleocr (P), dolphin (P) | réussie |
 | N02 « offline text-to-speech to narrate my course videos » | piper1-gpl, chatterbox | piper1-gpl (F), chatterbox (F), awesome-selfhosted (P), huginn (P), llama.cpp (P) | réussie ; « offline » est une contrainte : chatterbox (« SoTA open-source TTS », sans « hors ligne ») passe de partielle à forte |
@@ -741,10 +835,15 @@ de poids 0,3). Un poids de contrainte fixé à la moitié de sa rareté (et non 
 laissait fastmcp 3e en N03 (MRR des nouvelles 0,74 au lieu de 0,86).
 
 **Ce que ces chiffres valent** : ils ont servi à choisir les réglages et à repérer les défauts
-décrits ci-dessous ; ils ne mesurent pas la qualité sur votre base réelle (corpus de 62 fiches écrit
-pendant la conception, attendus jugés par une seule personne ; sur 8 requêtes nouvelles, une seule
-requête déplace le MRR moyen de 0,15). L'avis LLM, l'exécution sous Windows et la console cp1252
-n'ont pas été mesurés. La validation sur la base réelle (partie H de
+décrits ci-dessous ; ils ne mesurent pas la qualité sur votre base réelle et n'en sont pas une
+preuve (corpus synthétique de 62 fiches écrit pendant la conception, requêtes et attendus écrits par
+l'équipe du moteur et jugés par une seule personne ; le MRR des nouvelles n'est moyenné que sur 6
+requêtes, si bien qu'une seule requête peut le déplacer de 1/6, soit 0,17). Ils sont probablement
+optimistes pour une base écrite par la v7.0 ou la v7.1 : sur les 32 requêtes sans filtre, les dépôts
+attendus dont la fiche la plus récente est v7.3+ sont dans les 10 premiers dans 52 cas sur 54
+(96 %), ceux dont la fiche la plus récente est v7.0/v7.1 dans 30 cas sur 45 (67 %) ; cet indice est
+toutefois confondu avec le rôle des dépôts dans les jugements. L'avis LLM, l'exécution sous Windows
+et la console cp1252 n'ont pas été mesurés. La validation sur la base réelle (partie H de
 [VALIDATION.md](VALIDATION.md)) reste nécessaire.
 
 ## 11. Limites
@@ -777,7 +876,9 @@ n'ont pas été mesurés. La validation sur la base réelle (partie H de
   met les 3 mots suivants en contexte, sauf s'il est suivi de « propre » ou « own » ; il reste à tort
   en contexte quand il désigne l'objet cherché sans ce mot (« pour créer mon serveur MCP »). Quand le
   besoin n'a qu'une notion essentielle, les notions de contexte comptent dans la couverture et les
-  notions secondaires sont exigées pour « forte ». Avec deux notions essentielles ou plus, « forte »
+  notions secondaires sont exigées pour « forte ». Si cette notion est en plus une contrainte, un
+  seul mot de contexte peut suffire à une correspondance partielle, jamais forte (H04 « … en local
+  sur mon PC » : un OCR dont une note dit « sur le PC de la salle B12 » est affiché 3e). Avec deux notions essentielles ou plus, « forte »
   ne regarde que celles-ci : une notion secondaire absente (« données ») ne l'empêche pas, mais elle
   est listée dans `Ne couvre pas`. La recherche reste lexicale : pour « un LLM local », gpt-researcher
   (« fondé sur des LLM », « recherches … locales ») sort « forte » avant llama.cpp. Une comparaison
