@@ -11,7 +11,9 @@ recalculée ; empreinte du profil distincte de la v7.3) :
      l'absence de la colonne facultative « Brique pour » dans Notion ne compte jamais
   ✅ Dépôt sans description, sans topics et sans README exploitable (titre seul, badges, images) : fiche
      créée, Pertinence laissée vide, Justification « [NON NOTÉ] … », aucun appel LLM ; jamais filtrée
-     par SCORE_MIN_THRESHOLD ; « non notée » dans la console et le bilan
+     par SCORE_MIN_THRESHOLD ; « non notée » dans la console et le bilan. Un README illisible (5xx,
+     délai, quota) n'est jamais pris pour un README absent : sans description ni topics, aucune fiche,
+     erreur comptée, dépôt repris au run suivant (ni mis en cache)
   ✅ Distribution Docker seulement si une image désigne le dépôt analysé (nom de l'image = nom du
      dépôt, ou image <dépôt>-<suffixe> du propriétaire) : une image tierce (« docker run postgres »),
      « docker compose up » ou « docker build » seuls ne sont pas des preuves ; cache GitHub relu
@@ -308,9 +310,10 @@ USE_CASE_MAX_CHARS      = 200
 BRIQUES_MAX             = 3     # « brique pour » : 0 à 3 noms du profil
 SECTION_MAX_LINES       = 5     # Installation / Exemple / Prérequis : extrait verbatim du README
 SECTION_MAX_CHARS       = 300
-CACHE_FORMAT            = 4     # entrées plus anciennes (v7.2 sans licence ni pushed_at ; v7.3 avant la
+CACHE_FORMAT            = 5     # entrées plus anciennes (v7.2 sans licence ni pushed_at ; v7.3 avant la
                                 # revue : indice GPU sans gestion des négations ; v7.3 : distribution
-                                # Docker sans lien avec le dépôt) : relues sur GitHub
+                                # Docker sans lien avec le dépôt ; format 4 : README illisible confondu
+                                # avec un README absent) : relues sur GitHub
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'normal').strip().lower() or 'normal'
 if LOG_LEVEL not in _LOG_LEVELS:
@@ -2791,14 +2794,15 @@ def deterministic_hints(repo_info: Dict) -> List[str]:
 
 def readme_is_exploitable(cleaned: str, full_name: str = '') -> bool:
     """README nettoyé (clean_readme) dont il reste au moins une ligne autre que le titre égal au nom du
-    dépôt (« # my-tool », ou « my-tool » souligné de « ==== ») et les lignes sans lettre ni chiffre.
-    Tout autre texte, même « TODO » ou un titre différent du nom, compte comme information."""
-    repo_core = _name_core((full_name or '').rsplit('/', 1)[-1])
+    dépôt (« # my-tool », « # owner/my-tool », ou « my-tool » souligné de « ==== ») et les lignes sans
+    lettre ni chiffre. Tout autre texte, même « TODO » ou un titre différent du nom, compte comme
+    information."""
+    names = {_name_core((full_name or '').rsplit('/', 1)[-1]), _name_core(full_name or '')} - {''}
     for line in (cleaned or '').splitlines():
         text = line.strip().strip('#').strip()
         if not re.search(r'[^\W_]', text):                 # ligne vide, soulignement, ponctuation seule
             continue
-        if repo_core and _name_core(text) == repo_core:      # titre = nom du dépôt
+        if _name_core(text) in names:                        # titre = nom du dépôt (court ou complet)
             continue
         return True
     return False
@@ -2888,7 +2892,9 @@ def translate_and_score(
 
     # Rien ne dit ce que fait le dépôt : une note, une catégorie ou une description seraient devinées
     # d'après le seul nom. Aucune note, aucun appel LLM (toutes voies) ; la fiche garde les faits GitHub.
-    if repo_has_no_information(repo_info, description):
+    # Un README illisible (readme_state 'erreur') ne prouve pas son absence : _process_repo ne crée alors
+    # aucune fiche pour un dépôt sans description ni topics.
+    if repo_info.get('readme_state') != 'erreur' and repo_has_no_information(repo_info, description):
         result['description_fr'] = NON_VERIFIE
         result['scoring_method'] = 'none'
         return result
@@ -3295,13 +3301,19 @@ def fetch_github_repo(owner: str, repo: str) -> Tuple[Optional[Dict], str]:
 
     private        = bool(data.get('private'))
     readme_content = ''
-    if not private and readme_response is not None and readme_response.status_code in (200, 201):
-        try:
-            readme_content = base64.b64decode(
-                (_json_dict(readme_response) or {}).get('content') or ''
-            ).decode('utf-8', errors='ignore')
-        except Exception as e:
-            _warn(f"readme_decode ({owner}/{repo})", e)
+    # 'lu' | 'absent' (404 : le dépôt n'a pas de README) | 'erreur' (pas de réponse, 5xx, 403, 429, contenu
+    # illisible) : un README qui n'a pas pu être lu n'est jamais pris pour un README absent
+    readme_state   = 'erreur'
+    if readme_response is not None and readme_response.status_code == 404:
+        readme_state = 'absent'
+    elif not private and readme_response is not None and readme_response.status_code in (200, 201):
+        content = (_json_dict(readme_response) or {}).get('content')
+        if isinstance(content, str):
+            try:
+                readme_content = base64.b64decode(content).decode('utf-8', errors='ignore')
+                readme_state = 'lu'
+            except Exception as e:
+                _warn(f"readme_decode ({owner}/{repo})", e)
     readme_content = readme_content.replace('\r\n', '\n').replace('\r', '\n')
 
     def flag(key: str) -> Optional[bool]:
@@ -3335,13 +3347,15 @@ def fetch_github_repo(owner: str, repo: str) -> Tuple[Optional[Dict], str]:
         'readme_sections':  extract_readme_sections(readme_content),
         'readme_hints':     readme_hints(readme_content, full_name),
         'readme':           clean_readme(readme_content)[:README_MAX_CHARS],
+        'readme_state':     readme_state,
         'html_url':         data.get('html_url'),
         'private':          private,
         'cached_at':        time.time(),
         'cache_format':     CACHE_FORMAT,
     }
 
-    if CACHE_ENABLED and not private:
+    # README illisible : jamais mis en cache (relu au prochain run)
+    if CACHE_ENABLED and not private and readme_state != 'erreur':
         with cache_lock:
             GITHUB_CACHE[cache_key] = result
             GITHUB_CACHE_DIRTY = True
@@ -4240,7 +4254,14 @@ def build_page_properties(
         components = llm_result.get('components')
         uncapped = llm_result.get('score_uncapped')
         if scoring_method == 'none':
-            tag = "[NON NOTÉ] Ni description, ni topics, ni README exploitable : Pertinence laissée vide."
+            # README_LLM_CHARS=0 : un README exploitable existe (ses extraits peuvent figurer dans la fiche)
+            # mais n'a pas été transmis ; la phrase ne doit pas dire qu'il manquait
+            unsent = README_LLM_CHARS == 0 and readme_is_exploitable(
+                clean_readme(repo_info.get('readme') or ''),
+                repo_info.get('full_name') or repo_info.get('name') or '')
+            tag = ("[NON NOTÉ] Ni description, ni topics ; README non transmis au LLM (README_LLM_CHARS=0) : "
+                   "Pertinence laissée vide." if unsent else
+                   "[NON NOTÉ] Ni description, ni topics, ni README exploitable : Pertinence laissée vide.")
         elif scoring_method == 'llm':
             tag = f"[LLM {llm_result.get('model') or '?'} · {profile}]"
             if isinstance(components, dict):
@@ -4415,6 +4436,16 @@ def _process_repo(
         result['skipped'] = True
         stats.inc('filtered')
         log(f"[{idx}/{total}] ⏳ {label} — Trop ancien ({(repo_info.get('updated_at') or '')[:10]})")
+        return result
+
+    # README illisible (5xx, timeout, quota) et ni description ni topics : rien ne permet d'écrire la fiche
+    # sans deviner (« ni README exploitable » serait faux) → erreur comptée, dépôt repris au prochain run
+    if (repo_info.get('readme_state') == 'erreur'
+            and repo_has_no_information(repo_info, repo_info.get('description'))):
+        reason = "README illisible (dépôt sans description ni topics) : aucune fiche, reprise au prochain run"
+        result['error'] = reason
+        stats.add_error(url, reason, "README illisible")
+        log(f"[{idx}/{total}] ❌ {label} — {reason}", 'error')
         return result
 
     html_url = repo_info.get('html_url') or f"https://github.com/{owner}/{repo}"

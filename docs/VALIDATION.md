@@ -405,7 +405,7 @@ apparaissent jamais en clair) ainsi que la fiche concernée.
   (« Correctifs minimaux avant le lot 3 », dernier commit en version 7.2.0) ; le profil v2 peut
   rester en place, la v7.2 ne lit que ses 5 listes historiques.
 - **Fichiers locaux** : pour la v7.3, rien à supprimer : elle ignore les entrées du cache GitHub
-  écrites par la v7.4 (format 4) et relit ces dépôts sur GitHub. Pour la v7.2, supprimez le cache
+  écrites par la v7.4 (format 5) et relit ces dépôts sur GitHub. Pour la v7.2, supprimez le cache
   GitHub avant son premier run (`Remove-Item .gitnotate_cache.json`, sous Linux
   `rm .gitnotate_cache.json`, dans le dossier de données) : la v7.2 le relirait pendant 24 heures
   sans appeler GitHub, mais ce cache garde un README déjà nettoyé (blocs de code retirés), dont elle
@@ -464,7 +464,9 @@ quota. Mode d'emploi détaillé : [REDECOUVERTE.md](REDECOUVERTE.md).
    de la base.
 6. **Extraits mot pour mot** : lancez quelques recherches (`python redecouverte.py cherche "…"`) ;
    pour 10 extraits pris au hasard, vérifiez dans la fiche Notion (lien `Notion` du résultat,
-   Ctrl+F) qu'ils y figurent mot pour mot.
+   Ctrl+F) qu'ils y figurent mot pour mot. Le moteur uniformise l'apostrophe typographique (’
+   devient '), les espaces insécables et les traits d'union insécables, et retire les caractères de
+   contrôle : cherchez de préférence un fragment sans apostrophe ni espace insécable.
 7. **Aucune modification dans Notion** : triez une vue par « Dernière modification » (voir F3) :
    aucune fiche n'a une heure postérieure au début de la synchronisation, à part celles que vous
    auriez modifiées vous-même. Vous pouvez aussi comparer deux exports CSV (F6).
@@ -482,9 +484,14 @@ quota. Mode d'emploi détaillé : [REDECOUVERTE.md](REDECOUVERTE.md).
    (étape 6) ; aucune modification dans Notion (étape 7) ; au moins un attendu dans les 5 premiers
    (P@5 supérieur à 0) pour 8 besoins sur 10 (étape 5) ; `python -m pytest` vert.
 10. **Réglages éventuels** : ajustez d'abord le lexique (`redecouverte_lexique.py` : formes, voisins),
-    puis relancez directement `scripts/evaluer_redecouverte.py` (une modification du lexique ne
-    demande aucune synchronisation) ; ne touchez aux poids et aux seuils de `redecouverte.py` qu'en
-    dernier, et seulement si les écarts sont nets. `python -m pytest` doit rester vert. La capture
+    puis relancez directement `scripts/evaluer_redecouverte.py` (formes, voisins, mots vides et
+    déclencheurs ne demandent aucune synchronisation ; une modification des gabarits
+    `GABARITS_CAS_USAGE_EN` ou `GABARITS_CAS_USAGE_FR`, appliqués à l'indexation, exige
+    `python redecouverte.py sync`, ou `sync --depuis` la capture de l'étape 2) ; ne touchez aux poids et
+    aux seuils de `redecouverte.py` qu'en dernier, et seulement si les écarts sont nets.
+    `python -m pytest` doit rester vert, à une exception près : les tests de référence
+    (`tests/fixtures/redecouverte/requetes.json`, `test_requetes_reference`) peuvent légitimement
+    changer de résultat ; relisez alors chaque écart avant d'adapter l'attendu. La capture
     reste dans `exports\` (ignoré par git) et n'entre jamais dans les tests, car elle contient vos
     fiches ; seuls des cas anonymisés, recopiés à la main, peuvent y entrer.
 

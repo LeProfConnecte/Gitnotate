@@ -371,7 +371,7 @@ def test_a3_third_party_image_not_in_llm_message(world3):
 
 def test_a3_cache_format_4_rereads_old_hints(world3):
     gn, api = world3(repo=FRESH)
-    assert gn.CACHE_FORMAT == 4
+    assert gn.CACHE_FORMAT >= 4          # 5 depuis la revue du lot 4 (README illisible jamais mis en cache)
     old = {'name': 'repo', 'full_name': 'owner/repo', 'description': 'x', 'stars': 1, 'readme': 'x',
            'readme_hints': {'distribution': ['Docker'], 'gpu': None, 'gpu_source': ''}, 'readme_sections': {},
            'cached_at': time.time(), 'cache_format': 3, 'private': False}

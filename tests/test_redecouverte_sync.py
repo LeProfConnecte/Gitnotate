@@ -165,7 +165,9 @@ def test_database_id_invalide(load_gn, monkeypatch, capsys, valeur, code):
 ])
 def test_variables_redecouverte_invalides(banc, monkeypatch, capsys, nom, valeur, attendu):
     monkeypatch.setenv(nom, valeur)
-    assert banc.lancer('sync') == 1
+    # Revue du lot 4 : contrôlées par la commande qui les lit (cherche ; --llm pour REDECOUVERTE_LLM_MAX),
+    # plus par sync
+    assert banc.lancer('cherche', 'pdf', *(['--llm'] if nom == 'REDECOUVERTE_LLM_MAX' else [])) == 1
     assert banc.notion.journal == []
     assert attendu in _sorties(capsys)
     assert nom not in banc.gn.CONFIG_ERRORS          # aucune trace laissée dans gitnotate

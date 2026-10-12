@@ -232,7 +232,7 @@ def test_synonymes_fr_en_et_via(banc):
 def test_lexique_coherent(banc):
     rd, gn = banc.rd, banc.gn
     lexique = rd.lexique
-    assert len(lexique.CONCEPTS) == 116
+    assert len(lexique.CONCEPTS) >= 100          # 116 livrés ; VALIDATION H.10 permet d'en ajouter
     vides = lexique.MOTS_VIDES | lexique.MOTS_VIDES_REQUETE
     declencheurs = lexique.NEGATIONS | lexique.FIN_NEGATION | lexique.POSSESSIFS | lexique.REFERENCES
     for mot in vides | declencheurs | lexique.INVARIABLES | lexique.NEGATION_ANNULEE:
@@ -372,12 +372,21 @@ def test_niveaux(corpus, capsys):
         reponse = _chercher(rd, q['requete'], q['options'], tout=True, expliquer=False)
         actifs = [c for c in reponse.requete.concepts if not c.retire]
         essentiels = [c for c in actifs if c.classe != 'faible' and c.role == 'normal'] or actifs
+        # Revue du lot 4 : avec une seule notion essentielle, le contexte entre dans la couverture et les
+        # notions faibles de rôle normal (l'objet du besoin) sont exigées pour « forte »
+        seule = len(essentiels) == 1 and essentiels[0].classe != 'faible' and essentiels[0].role == 'normal'
+        couverts = [c for c in actifs if c.classe != 'faible' and c.role in ('normal', 'contexte')] if seule \
+            else essentiels
+        exiges = [c for c in actifs if c.classe == 'faible' and c.role == 'normal'] if seule else []
         for r in reponse.resultats + reponse.faibles + reponse.sans_depot:
             vus.add(r.niveau)
             if r.niveau == 'filtre':
                 continue
             m = [r.m.get(c.cle, 0) for c in essentiels]
-            forte = r.couverture >= rd.SEUIL_FORTE and max(m, default=0) >= 1.0
+            couverture = sum(c.poids * r.m.get(c.cle, 0) for c in couverts) / sum(c.poids for c in couverts)
+            assert abs(r.couverture - couverture) < 1e-9, (q['id'], r.cle)
+            objet = all(r.m.get(c.cle, 0) >= 0.5 for c in exiges)
+            forte = r.couverture >= rd.SEUIL_FORTE and max(m, default=0) >= 1.0 and objet
             partielle = max(m, default=0) >= 0.5 or r.couverture >= rd.SEUIL_PARTIELLE
             attendu = 'forte' if forte else ('partielle' if partielle else 'faible')
             assert r.niveau == attendu, (q['id'], r.cle)
@@ -567,7 +576,9 @@ def test_limites(corpus, banc, capsys):
     non_notee = {a['code']: a for a in _resultat(_chercher(rd, 'readme'),                 # amendement 2 (v7.4)
                                                  'gitnotate-exemple/outil-sans-readme').a_verifier}
     assert non_notee['non_notee']['texte'] == rd.LIMITE_NON_NOTEE
-    assert non_notee['licence_inconnue']['texte'] == "Licence « Non renseignée » : Gitnotate n'a pas pu l'identifier"
+    # Revue du lot 4 : « Non renseignée » = aucune licence selon GitHub (donnée lue), pas une incertitude
+    assert non_notee['licence_inconnue']['texte'] == ("Licence « Non renseignée » : aucune licence déclarée sur "
+                                                      "GitHub (fiche v7.3+) ; vérifiez les droits de réutilisation")
     # « No GPU required » n'est pas une contrainte matérielle
     _synchroniser(banc, [_fiche('leger', 'Moteur OCR léger.', Prérequis=p_texte('No GPU required')),
                          _fiche('lourd', 'Moteur OCR rapide.', Prérequis=p_texte('Requires an NVIDIA GPU')),

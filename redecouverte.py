@@ -46,7 +46,7 @@ import time
 import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import gitnotate as gn
@@ -108,7 +108,7 @@ LIGNE_MAX = 110
 LLM_CHAMP_MAX = 400
 LLM_BESOIN_MAX = 500
 LLM_RAISON_MAX = 300
-MARQUE_DEBUT = chr(0xE000)           # zone privée : jamais dans un texte de fiche
+MARQUE_DEBUT = chr(0xE000)           # zone privée : retirée de tout texte de fiche par normaliser()
 MARQUE_FIN = chr(0xE001)
 
 # =============================================================================
@@ -159,18 +159,22 @@ def _entier_borne(nom: str, defaut: int, maximum: int, erreurs: List[str]) -> in
     return valeur
 
 
-def lire_config(notion: bool = True) -> Config:
+def lire_config(notion: bool = True, ignorer: Iterable[str] = ()) -> Config:
     """Variables du moteur, lues à l'appel. notion=False (sync --depuis, recherche) : ni jeton ni
-    DATABASE_ID exigés."""
+    DATABASE_ID exigés. ignorer : variables REDECOUVERTE_* sans effet sur la commande (option donnée,
+    commande qui ne les lit pas) : une valeur invalide n'y bloque rien."""
     erreurs: List[str] = []
+    ignorer = set(ignorer)
     lecture_seule = gn._env_str('NOTION_READONLY_TOKEN')
     if lecture_seule:
         jeton, source = lecture_seule, 'NOTION_READONLY_TOKEN'
     else:
         jeton, source = gn.NOTION_TOKEN or '', ('NOTION_TOKEN' if gn.NOTION_TOKEN else '')
     database_id = normaliser_id(gn.DATABASE_ID)
-    resultats = _entier_borne('REDECOUVERTE_RESULTATS', 10, RESULTATS_MAX, erreurs)
-    llm_max = _entier_borne('REDECOUVERTE_LLM_MAX', 8, LLM_MAX_MAX, erreurs)
+    resultats = _entier_borne('REDECOUVERTE_RESULTATS', 10, RESULTATS_MAX,
+                              [] if 'REDECOUVERTE_RESULTATS' in ignorer else erreurs)
+    llm_max = _entier_borne('REDECOUVERTE_LLM_MAX', 8, LLM_MAX_MAX,
+                            [] if 'REDECOUVERTE_LLM_MAX' in ignorer else erreurs)
     if notion:
         if not jeton:
             erreurs.append("Jeton Notion manquant — ajoutez NOTION_READONLY_TOKEN=<jeton d'une intégration "
@@ -272,7 +276,7 @@ def _pistes() -> Dict[int, str]:
 def _decrire_echec(reponse: Any, cause: str) -> str:
     if reponse is None:
         return f"pas de réponse ({cause or 'réseau'}) — réseau ou timeout"
-    return gn._describe_failure(reponse, _pistes())
+    return gn._describe_failure(reponse, _pistes()).replace(chr(0x2192), '-')       # flèche hors cp1252
 
 
 def _texte_riche(segments: Any) -> str:
@@ -434,7 +438,16 @@ def contient_secret(donnees: bytes, secrets: Iterable[str]) -> bool:
 # =============================================================================
 # APLATISSEMENT TOLÉRANT DES PAGES (ne lève jamais d'exception)
 # =============================================================================
-_TABLE_NORMALISATION = {0x00A0: ' ', 0x202F: ' ', 0x2009: ' ', 0x2011: '-', 0x2010: '-', 0x2019: "'"}
+# Caractères de contrôle C0 et C1 (sauf tabulation et saut de ligne) -> espace, retour chariot retiré,
+# contrôles bidirectionnels retirés : un texte de fiche (README recopié, description GitHub) ne peut ni
+# piloter le terminal (séquences ESC, OSC 52, réécriture de ligne) ni retourner l'affichage
+_TABLE_CONTROLES: Dict[int, Optional[str]] = {
+    **{i: ' ' for i in (*range(0x00, 0x09), *range(0x0B, 0x20), *range(0x7F, 0xA0))},
+    0x0D: None, **{i: None for i in (*range(0x202A, 0x202F), *range(0x2066, 0x206A))}}
+_TABLE_NORMALISATION: Dict[int, Optional[str]] = {
+    0x00A0: ' ', 0x202F: ' ', 0x2009: ' ', 0x2011: '-', 0x2010: '-', 0x2019: "'",
+    0xE000: ' ', 0xE001: ' ',        # marqueurs de surlignage du moteur (MARQUE_DEBUT, MARQUE_FIN)
+    **_TABLE_CONTROLES}
 TYPES_CONSERVES = frozenset({'title', 'rich_text', 'select', 'status', 'multi_select', 'url', 'number',
                              'date', 'formula'})
 _ANNOTATIONS = ('bold', 'italic', 'strikethrough', 'underline', 'code')
@@ -442,8 +455,15 @@ _ANNOTATIONS = ('bold', 'italic', 'strikethrough', 'underline', 'code')
 
 def normaliser(texte: str) -> str:
     """Forme « verbatim » d'un texte : NFC, espaces et traits d'union insécables simplifiés, apostrophe
-    typographique droite, espaces de fin retirés."""
-    return unicodedata.normalize('NFC', texte).translate(_TABLE_NORMALISATION).rstrip()
+    typographique droite, caractères de contrôle et marqueurs de surlignage neutralisés, espaces de fin
+    retirés. Idempotente."""
+    return unicodedata.normalize('NFC', texte.translate(_TABLE_NORMALISATION)).rstrip()
+
+
+def affichable(texte: str) -> str:
+    """Dernière barrière avant le terminal : contrôles retirés (index construit avant ce filtre, texte
+    venu du LLM)."""
+    return texte.translate(_TABLE_CONTROLES)
 
 
 @dataclass(frozen=True)
@@ -623,7 +643,9 @@ def plate_depuis_dict(donnees: Any) -> PagePlate:
         if not all(isinstance(v, str) for v in valeurs):
             raise ValueError(f'{nom}.valeurs')
         nombre = brute.get('nombre')
-        colonnes[nom] = ValeurPlate(**dict(brute, valeurs=valeurs,
+        # normaliser() est idempotente : une capture d'une version antérieure est remise à la forme courante
+        colonnes[nom] = ValeurPlate(**dict(brute, texte=normaliser(brute.get('texte', '')),
+                                           valeurs=tuple(normaliser(v) for v in valeurs),
                                            nombre=None if nombre is None else _nombre(nombre)))
     return PagePlate(donnees['page_id'], donnees['url_notion'], donnees['cree_le'], donnees['modifie_le'],
                      colonnes)
@@ -838,7 +860,8 @@ def _lire(plate: PagePlate, cols: Colonnes) -> _Lus:
 
 
 # --- Provenance (première règle applicable) -------------------------------------------------------
-R73 = re.compile(r'^\[(?:LLM (?P<modele>.+?)|LEXICAL) · profil (?P<pver>[^\]\n]+)/(?P<empreinte>[0-9a-f]{6})\]'
+# Version de profil libre (gitnotate.py accepte « v2 [octobre] ») : elle s'arrête au premier « /<6 hex>] »
+R73 = re.compile(r'^\[(?:LLM (?P<modele>.+?)|LEXICAL) · profil (?P<pver>[^\n]+?)/(?P<empreinte>[0-9a-f]{6})\]'
                  r'(?=\s|$)')
 R72 = re.compile(r'^\[(?:LLM (?P<modele>.+?)|LEXICAL) · profil (?P<empreinte>[0-9a-f]{6})\](?=\s|$)')
 R71 = re.compile(r'^\[(?P<methode>LLM|LEXICAL)\](?=\s|$)')
@@ -861,6 +884,8 @@ NOMS_FAMILLE = {'v7.3': 'v7.3+', 'v7.2-nv': 'v7.2', 'v7.2': 'v7.2', 'v7.1': 'v7.
                 'manuelle': 'manuelle', 'indeterminee': 'indéterminée'}
 RANG_FAMILLE = {'v7.3': 6, 'v7.2-nv': 5, 'v7.2': 4, 'v7.1': 3, 'ancienne': 2, 'indeterminee': 1, 'manuelle': 0}
 LIMITE_NON_NOTEE = ("Fiche non notée : le dépôt n'avait ni description, ni topics, ni README exploitable")
+LIMITE_NON_NOTEE_README = ("Fiche non notée : le dépôt n'avait ni description ni topics, et son README n'a pas "
+                           "été transmis au LLM (README_LLM_CHARS=0)")
 
 
 def est_gabarit_cas_usage(texte: str) -> bool:
@@ -990,6 +1015,7 @@ ETIQUETTES_NIVEAU = {
     'inconnu': 'origine inconnue', 'defaut': '', 'gabarit': "gabarit de l'ancienne version, ignoré",
     'non_verifie': 'non vérifié par Gitnotate', 'vide': '',
 }
+ETIQUETTE_README_MODIFIE = 'README, modifié dans Notion — à vérifier'
 CHAMPS = ('Nom', 'URL', 'Description', "Cas d'usage", 'Installation', 'Exemple', 'Prérequis', 'Justification',
           'Catégorie', 'Brique pour', 'Licence', 'Type', 'Langage', 'Statut')
 CHAMPS_PRODUITS = ('Nom', 'Description', "Cas d'usage", 'Installation', 'Exemple', 'Prérequis', 'Justification')
@@ -1433,10 +1459,23 @@ def liberer_verrou(fd: int) -> None:
         os.close(fd)
 
 
+_SURS_URI = frozenset('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~/:')
+
+
+def uri_lecture(chemin: PurePath) -> str:
+    """URI SQLite en lecture seule d'un chemin absolu, sans autorité : « file:///C:/… », « file:///home/… »
+    et, pour un partage réseau, « file:////serveur/partage/… » (Path.as_uri donnerait « file://serveur/… »,
+    autorité que SQLite refuse : « invalid uri authority »). Espaces, accents, # et ? encodés."""
+    posix = chemin.as_posix()
+    encode = ''.join(chr(o) if chr(o) in _SURS_URI else f'%{o:02X}' for o in os.fsencode(posix))
+    return 'file://' + ('' if posix.startswith('/') else '/') + encode + '?mode=ro'
+
+
 def ouvrir_index_lecture(chemin: Optional[Path] = None) -> sqlite3.Connection:
-    """Connexion en lecture seule (URI mode=ro + query_only) : espaces et accents du chemin encodés."""
+    """Connexion en lecture seule (URI mode=ro + query_only). Chemin rendu absolu sans résoudre les liens :
+    un lecteur réseau (H:) reste une lettre de lecteur."""
     chemin = chemin_index() if chemin is None else chemin
-    con = sqlite3.connect(chemin.resolve().as_uri() + '?mode=ro', uri=True)
+    con = sqlite3.connect(uri_lecture(chemin.absolute()), uri=True)
     try:
         con.execute('PRAGMA query_only=1')
     except sqlite3.Error:
@@ -1641,6 +1680,16 @@ def _controler(con: sqlite3.Connection, attendu: int, temoin: Optional[Tuple[int
         raise refus(f"erreur SQLite {type(e).__name__}") from None
 
 
+def _valeurs_index(con: sqlite3.Connection) -> bytes:
+    """Textes décodés de toutes les tables : dans le fichier, une longue valeur peut être coupée par une page
+    de débordement SQLite, et un jeton à cheval sur la coupure échapperait à l'analyse des octets."""
+    morceaux: List[str] = []
+    for table in ('meta', 'fiches', 'anomalies', 'recherche'):
+        for ligne in con.execute(f'SELECT * FROM {table}'):
+            morceaux += [v for v in ligne if isinstance(v, str)]
+    return '\n'.join(morceaux).encode('utf-8')
+
+
 def _remplacer(tmp: Path, cible: Path) -> None:
     """os.replace avec réessais : sous Windows, un index ouvert (recherche, DB Browser, OneDrive,
     antivirus) refuse le remplacement quelques instants."""
@@ -1671,9 +1720,10 @@ def _fsync_dossier(dossier: Path) -> None:
 
 
 def construire_et_remplacer(plates: List[PagePlate], meta: MetaLecture, secrets: Iterable[str] = (),
-                            accepter_baisse: bool = False) -> Bilan:
+                            accepter_baisse: bool = False, etat: Optional[Dict[str, bool]] = None) -> Bilan:
     """Seule écriture de l'index : fiches construites, garde-fou de baisse, .tmp en une transaction,
-    contrôles, analyse des octets, os.replace. Le .tmp et son journal sont supprimés dans tous les cas."""
+    contrôles, analyse des valeurs et des octets, os.replace. Le .tmp et son journal sont supprimés dans
+    tous les cas. etat['remplace'] passe à True dès le remplacement (message juste en cas de Ctrl-C)."""
     dossier = dossier_index()
     dossier.mkdir(parents=True, exist_ok=True)
     cible = dossier / NOM_INDEX
@@ -1702,12 +1752,15 @@ def construire_et_remplacer(plates: List[PagePlate], meta: MetaLecture, secrets:
         con.execute("INSERT INTO recherche(recherche) VALUES('optimize')")
         con.commit()
         _controler(con, len(plates), temoin)
+        valeurs = _valeurs_index(con) if secrets else b''
         con.close()
         con = None
-        if contient_secret(tmp.read_bytes(), secrets):
+        if contient_secret(valeurs, secrets) or contient_secret(tmp.read_bytes(), secrets):
             raise Arret(gn.EXIT_INCOMPLETE, "Un jeton a été détecté dans l'index en construction : écriture "
                                             "refusée (valeur non affichée). L'index précédent est conservé")
         _remplacer(tmp, cible)
+        if etat is not None:
+            etat['remplace'] = True
         _fsync_dossier(dossier)
     except (sqlite3.Error, OSError) as e:             # disque plein, dossier protégé… (type seulement)
         raise Arret(gn.EXIT_INCOMPLETE, f"Construction de l'index impossible ({type(e).__name__}) : l'index "
@@ -1791,11 +1844,14 @@ def charger_capture(valeur: str, secrets: Iterable[str] = ()) -> Tuple[List[Page
     if len(plates) != len(pages) or len({p.page_id for p in plates}) != len(plates):        # V10
         raise Arret(gn.EXIT_CONFIG, f"Capture illisible (pages manquantes ou en double) : {chemin}")
     nb_requetes = donnees.get('nb_requetes')
+    # Date de lecture dans Notion (lu_le) : l'âge des données affiché et les alertes en dépendent, pas la
+    # date du rejeu
+    lu_le = _instant_utc(_chaine(donnees.get('lu_le')))
     meta = MetaLecture(database_id=database_id, base_titre=masquer(_chaine(donnees.get('base_titre')), secrets),
                        source=f"capture:{chemin.name}", schema=schema,
                        nb_requetes=nb_requetes if isinstance(nb_requetes, int) else 0,
                        nb_objets_recus=len(plates) + sum(ignorees.values()), ignorees=dict(ignorees),
-                       debut_utc=_utc_iso())
+                       debut_utc=lu_le.isoformat(timespec='seconds') if lu_le else _utc_iso())
     return plates, meta
 
 # =============================================================================
@@ -1899,14 +1955,36 @@ def texte_bilan_sync(bilan: Bilan) -> str:
     return '\n'.join(lignes)
 
 
-def _age_jours(meta: Dict[str, str]) -> Optional[int]:
+def _instant_utc(texte: str) -> Optional[datetime]:
+    """Date ISO (« Z » accepté ; sans fuseau : UTC) ou None."""
     try:
-        fin = datetime.fromisoformat(meta.get('sync_fin_utc', ''))
+        instant = datetime.fromisoformat(texte.replace('Z', '+00:00'))
     except ValueError:
         return None
-    if fin.tzinfo is None:
-        fin = fin.replace(tzinfo=timezone.utc)
-    return max(0, int((datetime.now(timezone.utc) - fin).total_seconds() // 86400))
+    return instant if instant.tzinfo else instant.replace(tzinfo=timezone.utc)
+
+
+def _lecture(meta: Dict[str, str]) -> Optional[datetime]:
+    """Date des données : fin de la synchronisation ; pour un rejeu, date de lecture de la capture."""
+    if _source_capture(meta):
+        return _instant_utc(meta.get('sync_debut_utc', '')) or _instant_utc(meta.get('sync_fin_utc', ''))
+    return _instant_utc(meta.get('sync_fin_utc', ''))
+
+
+def _lecture_locale(meta: Dict[str, str]) -> str:
+    """Date des données en heure locale « AAAA-MM-JJ HH:MM:SS » (comme gitnotate_stats.json) : fin de la
+    synchronisation, ou date de lecture de la capture rejouée."""
+    lecture = _lecture(meta)
+    if _source_capture(meta) and lecture is not None:
+        return lecture.astimezone().strftime('%Y-%m-%d %H:%M:%S')
+    return meta.get('sync_fin_locale', '')
+
+
+def _age_jours(meta: Dict[str, str]) -> Optional[int]:
+    lecture = _lecture(meta)
+    if lecture is None:
+        return None
+    return max(0, int((datetime.now(timezone.utc) - lecture).total_seconds() // 86400))
 
 
 def _il_y_a(jours: Optional[int]) -> str:
@@ -1943,8 +2021,9 @@ def alertes_index(meta: Dict[str, str]) -> List[str]:
     alertes = []
     jours = _age_jours(meta)
     if jours is not None and jours > AGE_ALERTE_JOURS:
-        alertes.append(f"Index synchronisé il y a {jours} jours : relancez sync pour inclure les fiches récentes")
-    runs = alerte_runs_gitnotate(meta.get('sync_fin_locale', ''))
+        quoi = "Données lues dans Notion" if _source_capture(meta) else "Index synchronisé"
+        alertes.append(f"{quoi} il y a {jours} jours : relancez sync pour inclure les fiches récentes")
+    runs = alerte_runs_gitnotate(_lecture_locale(meta))
     if runs:
         alertes.append(runs)
     return alertes
@@ -2051,6 +2130,7 @@ def lire_etat(con: sqlite3.Connection, meta: Dict[str, str], anomalies: bool = F
     etat: Dict[str, Any] = {
         'fichier': str(chemin), 'taille_octets': chemin.stat().st_size,
         'synchronise_le': meta['sync_fin_utc'], 'synchronise_le_local': meta['sync_fin_locale'],
+        'donnees_lues_le': meta['sync_debut_utc'], 'donnees_lues_le_local': _lecture_locale(meta),
         'age_jours': _age_jours(meta), 'source': meta['source'], 'nb_requetes': int(meta['nb_requetes']),
         'base': {'titre': meta['base_titre'], 'database_id': meta['database_id'],
                  'notion_version': meta['notion_version']},
@@ -2075,8 +2155,11 @@ def lire_etat(con: sqlite3.Connection, meta: Dict[str, str], anomalies: bool = F
 
 def texte_etat(etat: Dict[str, Any]) -> str:
     source = etat['source']
-    if source.startswith('capture:'):
-        provenance = f"capture {source[len('capture:'):]} (aucun appel réseau)"
+    age = f" ({_il_y_a(etat['age_jours'])})"
+    if source.startswith('capture:'):             # âge des données : date de lecture de la capture
+        provenance = (f"capture {source[len('capture:'):]} (aucun appel réseau), données lues dans Notion le "
+                      f"{etat['donnees_lues_le_local'][:16]}{age}")
+        age = ''
     else:
         provenance = f"Notion, {_n(etat['nb_requetes'], 'requête')}"
     base = etat['base']
@@ -2084,7 +2167,7 @@ def texte_etat(etat: Dict[str, Any]) -> str:
     lignes = [
         "Index de redécouverte",
         f"   Fichier     : {etat['fichier']} ({_taille(etat['taille_octets'])})",
-        f"   Synchronisé : {etat['synchronise_le_local'][:16]} ({_il_y_a(etat['age_jours'])}) — source : {provenance}",
+        f"   Synchronisé : {etat['synchronise_le_local'][:16]}{age} — source : {provenance}",
         f"   Base Notion : « {base['titre']} » {base['database_id'][:8]}… — Notion-Version "
         f"{base['notion_version']}, lecture seule",
         f"   Fiches      : {etat['fiches']} ({_n(etat['depots'], 'dépôt')} ; {_n(etat['depots_multiples'], 'dépôt')} "
@@ -2127,7 +2210,7 @@ def texte_etat(etat: Dict[str, Any]) -> str:
                 lignes.append(f"     - {f['nom']} · {f['libelle']}{date}{statut}{principale} — {f['url_notion']}")
         if not etat['doublons']:
             lignes.append("   aucun")
-    return '\n'.join(lignes)
+    return affichable('\n'.join(lignes))
 
 # =============================================================================
 # REQUÊTE : DÉCOUPAGE PAR LE TOKENIZER DE L'INDEX, LEXIQUE, NÉGATION, CONTEXTE, RÉFÉRENCE
@@ -2317,9 +2400,11 @@ def expressions_fts(concept: Concept, presents: Iterable[str] = ()) -> Tuple[str
     voisins: List[str] = []
     if concept.lexique:
         exclus = set(presents) | {concept.lexique}
+        faux_amis = lexique.FAUX_AMIS.get(concept.lexique, set())      # aussi par le voisinage
         for v in lex.voisins[concept.lexique]:
             if v not in exclus:
-                voisins += [t for t in _termes_formes(lex.sequences[v]) if t not in termes]
+                sequences = [seq for seq in lex.sequences[v] if not (len(seq) == 1 and seq[0] in faux_amis)]
+                voisins += [t for t in _termes_formes(sequences) if t not in termes]
     voisins = list(dict.fromkeys(voisins))
     concept.termes, concept.termes_voisins = termes, voisins
     return ' OR '.join(termes), ' OR '.join(voisins)
@@ -2529,7 +2614,9 @@ def _preuve(rowid: int, bm25: float, marques: Dict[str, str], mode: str) -> Preu
         if marque is None:
             continue
         texte, occurrences = _occurrences(marque)
-        if colonne != 'nom' and occurrences and all(occurrence_niee(texte, a, b) for a, b in occurrences):
+        if not occurrences:             # marqueur sans occurrence réelle (défense en profondeur : normaliser()
+            continue                    # retire déjà les marqueurs des textes de fiche) : pas une preuve
+        if colonne != 'nom' and all(occurrence_niee(texte, a, b) for a, b in occurrences):
             niees.append(colonne)
         else:
             colonnes.append(colonne)
@@ -2581,6 +2668,26 @@ def _passe_filtres(fiches: List[Dict[str, Any]], filtres: Dict[str, List[str]]) 
         if not any(gn._fold(v) in gn._fold(b) for f in fiches for b in f['brique_pour'] for v in filtres['projet']):
             return False
     return True
+
+
+def ensembles_niveau(actifs: List[Concept]) -> Tuple[List[Concept], List[Concept], List[Concept]]:
+    """(essentiels, couverts, exiges) pour le niveau d'un dépôt (§ 16.4-16.5, revue du lot 4).
+    - essentiels : classe non faible et rôle normal (à défaut, tous les concepts actifs) ; « forte » exige
+      que l'un d'eux soit trouvé directement.
+    - couverts : base de la couverture ; les essentiels, et aussi, quand un seul concept est essentiel, les
+      concepts de rôle contexte (poids déjà divisé par deux) : « gérer mes commits git depuis le
+      terminal » n'est pas couvert par « terminal » seul.
+    - exiges : quand un seul concept est essentiel, les concepts faibles de rôle normal, souvent l'objet du
+      besoin (« un LLM local »), doivent aussi être trouvés pour « forte ».
+    Avec deux concepts essentiels ou plus, le besoin est assez décrit : règle de la spécification."""
+    essentiels = [c for c in actifs if c.classe != 'faible' and c.role == 'normal']
+    if not essentiels:
+        return list(actifs), list(actifs), []
+    if len(essentiels) > 1:
+        return essentiels, essentiels, []
+    couverts = [c for c in actifs if c.classe != 'faible' and c.role in ('normal', 'contexte')]
+    exiges = [c for c in actifs if c.classe == 'faible' and c.role == 'normal']
+    return essentiels, couverts, exiges
 
 
 def _cle_tri(r: Resultat) -> Tuple[Any, ...]:
@@ -2651,8 +2758,8 @@ def rechercher(con: sqlite3.Connection, requete: Requete, filtres: Optional[Dict
         preuves_par_concept[c.cle] = preuves
         niees_par_concept[c.cle] = niees
     total = sum(c.poids for c in actifs)
-    essentiels = [c for c in actifs if c.classe != 'faible' and c.role == 'normal'] or actifs
-    total_ess = sum(c.poids for c in essentiels)
+    essentiels, couverts, exiges = ensembles_niveau(actifs)
+    total_couverts = sum(c.poids for c in couverts)
     resultats: Dict[str, Resultat] = {}
     for c in actifs:
         for rowid, p in preuves_par_concept[c.cle].items():
@@ -2682,10 +2789,12 @@ def rechercher(con: sqlite3.Connection, requete: Requete, filtres: Optional[Dict
         r.nom_plie = principale['nom_plie']
         if r.niveau != 'filtre':
             r.score = sum(r.contributions.values()) / total if total else 0.0
-            r.couverture = sum(c.poids * r.m.get(c.cle, 0.0) for c in essentiels) / total_ess if total_ess else 0.0
+            r.couverture = (sum(c.poids * r.m.get(c.cle, 0.0) for c in couverts) / total_couverts
+                            if total_couverts else 0.0)
             direct = any(r.m.get(c.cle, 0.0) >= 1.0 for c in essentiels)
+            objet = all(r.m.get(c.cle, 0.0) >= FACTEUR_VOISIN for c in exiges)
             partiel = any(r.m.get(c.cle, 0.0) >= FACTEUR_VOISIN for c in essentiels)
-            if r.couverture >= SEUIL_FORTE and direct:
+            if r.couverture >= SEUIL_FORTE and direct and objet:
                 r.niveau = 'forte'
             elif partiel or r.couverture >= SEUIL_PARTIELLE:
                 r.niveau = 'partielle'
@@ -2787,6 +2896,8 @@ def _fenetre(texte: str, intervalles: List[Tuple[int, int]], maximum: int = EXTR
     """Phrase de la première occurrence, étendue aux suivantes dans la limite de `maximum` caractères ;
     phrase trop longue : `maximum` caractères autour de la première occurrence, coupés sur des espaces."""
     intervalles = sorted(intervalles)
+    if not intervalles:
+        return 0, 0
     a0, b0 = intervalles[0]
     debut, fin = _phrase(texte, a0, b0)
     for a, b in intervalles[1:]:
@@ -2810,11 +2921,24 @@ def _fenetre(texte: str, intervalles: List[Tuple[int, int]], maximum: int = EXTR
     return _sans_espaces(texte, debut, fin)
 
 
+def _fusionner(intervalles: Iterable[Tuple[int, int]]) -> List[List[int]]:
+    """Intervalles triés, ceux qui se chevauchent ou se touchent réunis (« extracteur web » et « web ») :
+    chaque caractère n'est cité qu'une fois."""
+    fusion: List[List[int]] = []
+    for a, b in sorted(intervalles):
+        if fusion and a <= fusion[-1][1]:
+            fusion[-1][1] = max(fusion[-1][1], b)
+        else:
+            fusion.append([a, b])
+    return fusion
+
+
 def _extrait(texte: str, intervalles: List[Tuple[int, int]], **base: Any) -> Dict[str, Any]:
-    """Extrait mot pour mot : texte == champ[debut:fin] ; surlignes relatifs à l'extrait."""
+    """Extrait mot pour mot : texte == champ[debut:fin] ; surlignes relatifs à l'extrait, disjoints et triés."""
     debut, fin = _fenetre(texte, intervalles)
-    surlignes = sorted({(max(a, debut) - debut, min(b, fin) - debut) for a, b in intervalles if a < fin and b > debut})
-    return dict(base, texte=texte[debut:fin], debut=debut, fin=fin, surlignes=[list(s) for s in surlignes],
+    surlignes = _fusionner((max(a, debut) - debut, min(b, fin) - debut) for a, b in intervalles
+                           if a < fin and b > debut)
+    return dict(base, texte=texte[debut:fin], debut=debut, fin=fin, surlignes=surlignes,
                 avant=_coupe_avant(texte, debut), apres=_coupe_apres(texte, fin))
 
 
@@ -2888,6 +3012,8 @@ class _Contexte:
 
     def _decouper(self, rowid: int, colonne: str, marque: str):
         texte, occurrences = _occurrences(marque)
+        if not occurrences:
+            return
         if colonne != 'notes':
             yield self._zone(rowid, colonne, CHAMP_DE_COLONNE[colonne], texte), occurrences
             return
@@ -2911,13 +3037,19 @@ class _Contexte:
         champ = self.fiches[zone.rowid]['champs'].get(zone.champ) or {}
         return champ.get('fiabilite', 'inconnu')
 
+    def modifie(self, zone: _Zone) -> bool:
+        """Champ produit par Gitnotate puis modifié dans Notion (mise en forme, segments, mention)."""
+        if zone.colonne == 'notes':
+            return False
+        return bool((self.fiches[zone.rowid]['champs'].get(zone.champ) or {}).get('modifie'))
+
     def extrait(self, zone: _Zone) -> Dict[str, Any]:
         """Extrait d'une zone : occurrences de tous les concepts qui y sont marqués."""
         intervalles = sorted({i for occurrences in zone.intervalles.values() for i in occurrences})
         f = self.fiches[zone.rowid]
         return _extrait(zone.texte, intervalles, champ=zone.champ, colonne=zone.colonne, fiabilite=self.niveau(zone),
-                        famille=f['famille'], libelle=_libelle(f), analyse_le=f['analyse_le'], page_id=f['page_id'],
-                        concepts=list(zone.intervalles))
+                        modifie=self.modifie(zone), famille=f['famille'], libelle=_libelle(f),
+                        analyse_le=f['analyse_le'], page_id=f['page_id'], concepts=list(zone.intervalles))
 
 
 def _variante(mot: str, concept: Concept) -> bool:
@@ -2980,9 +3112,13 @@ def _repond_a(ctx: _Contexte, concepts: List[Concept], essentiels: List[Concept]
     r = ctx.r
     for c in concepts:
         m = r.m.get(c.cle, 0.0)
-        if m <= 0:
+        if m <= 0:                  # tout concept absent, sauf une référence (« alternative à … »)
             if c in essentiels:
                 r.ne_couvre_pas.append(c.nom)
+            elif c.role == 'contexte':
+                r.ne_couvre_pas.append(f"{c.nom} [contexte]")
+            elif c.role == 'normal':
+                r.ne_couvre_pas.append(f"{c.nom} (notion secondaire)")
             continue
         p = _meilleure(ctx, r.preuves[c.cle])
         f = ctx.fiches[p.rowid]
@@ -3037,26 +3173,29 @@ def _extraits(ctx: _Contexte, concepts: List[Concept]) -> None:
 
 def _etabli(ctx: _Contexte) -> None:
     """Seulement des champs README (mot pour mot) ou GitHub (topics) qui portent un concept ; à défaut la
-    première ligne de l'Installation README de la fiche principale. Jamais un texte rédigé par un LLM."""
+    première ligne de l'Installation README de la fiche principale. Jamais un texte rédigé par un LLM, ni
+    un champ README modifié dans Notion (une partie peut venir de l'utilisateur)."""
     r = ctx.r
     for f in r.fiches:
         for colonne in _COLONNES_README + ('type',):
             attendu = 'github' if colonne == 'type' else 'readme'
             for zone in ctx.zones_de(f['id'], colonne):
-                if ctx.niveau(zone) == attendu and len(r.etabli) < ETABLI_MAX:
+                if ctx.niveau(zone) == attendu and not ctx.modifie(zone) and len(r.etabli) < ETABLI_MAX:
                     r.etabli.append(ctx.extrait(zone))
     if r.etabli:
         return
     installation = r.principale['champs'].get('Installation') or {}
     ligne = next(re.finditer(r'[^\n]*\S[^\n]*', installation.get('texte', '')), None)
-    if installation.get('fiabilite') == 'readme' and ligne:           # première ligne non vide, 120 au plus
+    if installation.get('fiabilite') == 'readme' and installation.get('modifie'):
+        r.etabli_note = "Installation modifiée dans Notion : voir À vérifier"
+    elif installation.get('fiabilite') == 'readme' and ligne:           # première ligne non vide, 120 au plus
         texte = installation['texte']
         debut, fin = _sans_espaces(texte, ligne.start(), ligne.end())
         if fin - debut > 120:
             espace = texte.rfind(' ', debut, debut + 120)
             fin = espace if espace > debut else debut + 120
         r.etabli.append({'champ': 'Installation', 'colonne': 'installation', 'fiabilite': 'readme',
-                         'famille': r.principale['famille'], 'libelle': _libelle(r.principale),
+                         'modifie': False, 'famille': r.principale['famille'], 'libelle': _libelle(r.principale),
                          'analyse_le': r.principale['analyse_le'], 'page_id': r.principale['page_id'],
                          'texte': texte[debut:fin], 'debut': debut, 'fin': fin, 'surlignes': [], 'concepts': [],
                          'avant': _coupe_avant(texte, debut), 'apres': _coupe_apres(texte, fin)})
@@ -3090,8 +3229,8 @@ def _limites(ctx: _Contexte, concepts: List[Concept]) -> None:
     if anciennes:
         ajouter('ancienne_version', _texte_anciennes(anciennes), pages=[f['page_id'] for f in anciennes])
     non_notees = [f for f in r.fiches if f['methode'] == 'NON NOTÉ']
-    if non_notees:
-        ajouter('non_notee', LIMITE_NON_NOTEE, pages=[f['page_id'] for f in non_notees])
+    for texte in dict.fromkeys(_limite_non_notee(f) for f in non_notees):
+        ajouter('non_notee', texte, pages=[f['page_id'] for f in non_notees if _limite_non_notee(f) == texte])
     champs = [nom for nom in _CHAMPS_NON_VERIFIES if (p['champs'].get(nom) or {}).get('fiabilite') == 'non_verifie']
     if champs:
         ajouter('non_verifie', f"{', '.join(champs)} : « {gn.NON_VERIFIE} » par Gitnotate ({_libelle(p)})",
@@ -3123,7 +3262,13 @@ def _limites(ctx: _Contexte, concepts: List[Concept]) -> None:
         limites.append(materiel)
     fiche_licence, licence = _licence_retenue(r)
     if fiche_licence is None:
-        if licence.get('fiabilite') == 'non_verifie':
+        if (licence.get('fiabilite') == 'non_verifie' and p['famille'] == 'v7.3'
+                and licence.get('texte') == gn.LICENCE_NONE):
+            # GitHub indique que le dépôt n'a pas de licence (license null) : donnée lue, pas une incertitude
+            ajouter('licence_inconnue', f"Licence « {licence['texte']} » : aucune licence déclarée sur GitHub "
+                                        f"({_libelle(p)}) ; vérifiez les droits de réutilisation",
+                    page_id=p['page_id'])
+        elif licence.get('fiabilite') == 'non_verifie':
             ajouter('licence_inconnue', f"Licence « {licence['texte']} » : Gitnotate n'a pas pu l'identifier",
                     page_id=p['page_id'])
         else:
@@ -3152,6 +3297,12 @@ def _limites(ctx: _Contexte, concepts: List[Concept]) -> None:
                 ajouter('jeton_masque', f"Un texte ressemblant à un jeton a été masqué (colonne "
                                         f"{anomalie['colonne']}) : vérifiez la fiche dans Notion", page_id=f['page_id'])
     r.a_verifier = limites
+
+
+def _limite_non_notee(f: Dict[str, Any]) -> str:
+    """Phrase fixe choisie d'après le corps de la Justification « [NON NOTÉ] … » écrite par gitnotate.py."""
+    corps = (f['champs'].get('Justification') or {}).get('texte', '')
+    return LIMITE_NON_NOTEE_README if 'README_LLM_CHARS=0' in corps else LIMITE_NON_NOTEE
 
 
 def _texte_anciennes(anciennes: List[Dict[str, Any]]) -> str:
@@ -3185,7 +3336,8 @@ def _texte_anciennes(anciennes: List[Dict[str, Any]]) -> str:
 
 
 def _contrainte_materielle(ctx: _Contexte) -> Optional[Dict[str, Any]]:
-    """GPU, CUDA, VRAM, NVIDIA, carte graphique mentionné (et non nié) dans un texte indexé du dépôt."""
+    """GPU, CUDA, VRAM, NVIDIA, carte graphique mentionné (non nié, hors phrase facultative) dans un texte
+    indexé du dépôt."""
     for f in ctx.r.fiches:
         textes = ctx.textes.get(f['id'], {})
         for colonne in ORDRE_EXPLICATION:
@@ -3197,7 +3349,10 @@ def _contrainte_materielle(ctx: _Contexte) -> Optional[Dict[str, Any]]:
                 zones = [(CHAMP_DE_COLONNE[colonne], textes.get(colonne, ''))]
             for champ, texte in zones:
                 for m in _MATERIEL_RE.finditer(texte or ''):
-                    if not occurrence_niee(texte, m.start(), m.end()):
+                    # Phrase négative, facultative ou avec alternative CPU (« GPU facultatif », « GPU
+                    # optional ») : jamais une contrainte, même règle que l'indice GPU de gitnotate.py
+                    phrase = texte[slice(*_phrase(texte, m.start(), m.end()))]
+                    if not occurrence_niee(texte, m.start(), m.end()) and not gn._GPU_SOFT_RE.search(phrase):
                         return {'code': 'materiel', 'texte': f"Contrainte matérielle mentionnée ({champ} · "
                                                              f"{_libelle(f)}) : « {_court(texte, m.start(), m.end())} »",
                                 'champ': champ, 'page_id': f['page_id']}
@@ -3207,7 +3362,7 @@ def _contrainte_materielle(ctx: _Contexte) -> Optional[Dict[str, Any]]:
 def expliquer(con: sqlite3.Connection, reponse: Reponse) -> None:
     """Remplit, pour chaque résultat affiché : Répond à, extraits, Établi, À vérifier, statuts, Voir aussi."""
     concepts = [c for c in reponse.requete.concepts if not c.retire]
-    essentiels = [c for c in concepts if c.classe != 'faible' and c.role == 'normal'] or concepts
+    essentiels = ensembles_niveau(concepts)[0]
     for r in reponse.affiches:
         ctx = _Contexte(r, _charger_resultat(con, r))
         r.statuts = statuts_du_depot(r.fiches)
@@ -3252,9 +3407,16 @@ def _citation(e: Dict[str, Any], marque: str = '*', echapper=None) -> str:
     return ('…' if e.get('avant') else '') + ''.join(morceaux) + ('…' if e.get('apres') else '')
 
 
+def _etiquette_extrait(e: Dict[str, Any]) -> str:
+    """Étiquette d'un extrait : un champ README modifié dans Notion n'est plus « mot pour mot »."""
+    if e.get('modifie') and e['fiabilite'] == 'readme':
+        return ETIQUETTE_README_MODIFIE
+    return _etiquette(e['fiabilite'])
+
+
 def _source(e: Dict[str, Any]) -> str:
     date = f" du {e['analyse_le']}" if e.get('analyse_le') else ''
-    return f"{e['champ']} [{_etiquette(e['fiabilite'])} · {e['libelle']}{date}]"
+    return f"{e['champ']} [{_etiquette_extrait(e)} · {e['libelle']}{date}]"
 
 
 def _lignes_extrait(prefixe: str, e: Dict[str, Any]) -> List[str]:
@@ -3301,11 +3463,15 @@ def _texte_filtres(filtres: Dict[str, List[str]]) -> str:
 
 def _ligne_index(meta: Dict[str, str]) -> str:
     fin = meta.get('sync_fin_locale', '')
-    source = meta.get('source', '')
-    origine = f", capture {source[len('capture:'):]}" if source.startswith('capture:') else ''
+    capture = _source_capture(meta)
+    if capture:                             # âge des données : date de la capture, pas celle du rejeu
+        lu = _lecture_locale(meta)
+        quand = (f"données lues dans Notion le {lu[:10]} à {lu[11:16]} ({_il_y_a(_age_jours(meta))}), capture "
+                 f"{capture} rejouée le {fin[:10]}")
+    else:
+        quand = f"synchronisé le {fin[:10]} à {fin[11:16]} ({_il_y_a(_age_jours(meta))})"
     return (f"{_n(int(meta.get('nb_fiches', '0')), 'fiche')}, {_n(int(meta.get('nb_depots', '0')), 'dépôt')} — "
-            f"synchronisé le {fin[:10]} à {fin[11:16]} ({_il_y_a(_age_jours(meta))}{origine}). "
-            "Recherche locale : rien n'a été envoyé.")
+            f"{quand}. Recherche locale : rien n'a été envoyé.")
 
 
 def _lignes_entete(rep: Reponse, details: bool) -> List[str]:
@@ -3418,6 +3584,12 @@ def _lignes_details(r: Resultat) -> List[str]:
     return lignes
 
 
+def _deja_cite(e: Dict[str, Any], r: Resultat) -> bool:
+    """Extrait « Établi » identique à un extrait de « D'après la fiche » : cité une seule fois."""
+    return any((x['page_id'], x['champ'], x['debut'], x['fin']) == (e['page_id'], e['champ'], e['debut'], e['fin'])
+               for x in r.extraits)
+
+
 def _lignes_resultat(r: Resultat, details: bool) -> List[str]:
     p = r.principale
     if est_depot(r.cle):
@@ -3438,7 +3610,11 @@ def _lignes_resultat(r: Resultat, details: bool) -> List[str]:
     if r.niveau != 'filtre':
         if r.etabli:
             for i, e in enumerate(r.etabli):
-                lignes += _lignes_extrait('   Établi     : ' if i == 0 else ' ' * 16, e)
+                prefixe = '   Établi     : ' if i == 0 else ' ' * 16
+                if _deja_cite(e, r):
+                    lignes += _envelopper(prefixe, f"{_source(e)} : extrait cité ci-dessus", 16)
+                else:
+                    lignes += _lignes_extrait(prefixe, e)
         else:
             note = f" ({r.etabli_note})" if r.etabli_note else ''
             lignes.append(f"   Établi     : rien de vérifié mot pour mot dans le README{note}")
@@ -3493,8 +3669,16 @@ def _lignes_pied(rep: Reponse) -> List[str]:
         lignes.append(f"{_n(n['au_dela_de_la_limite'], 'autre dépôt', 'autres dépôts')} au-delà de la limite de "
                       f"{rep.limite} (option -n).")
     if n.get('filtres'):
-        lignes.append(f"{_n(n['filtres'], 'dépôt écarté', 'dépôts écartés')} par les filtres.")
+        lignes.append(f"{_n(n['filtres'], 'fiche ou dépôt écarté', 'fiches ou dépôts écartés')} "
+                      "par les filtres.")
     return lignes
+
+
+def _texte_ecartes(ecartes: int) -> str:
+    """Aucun dépôt affiché parce que les filtres écartent ceux qui contiennent les concepts."""
+    return "Aucun résultat ne passe les filtres : " + (
+        f"{ecartes} fiches ou dépôts correspondent au besoin mais sont écartés." if ecartes > 1
+        else "1 fiche ou dépôt correspond au besoin mais est écarté.")
 
 
 def en_texte(rep: Reponse, details: bool = False) -> str:
@@ -3504,7 +3688,11 @@ def en_texte(rep: Reponse, details: bool = False) -> str:
     actifs = [c for c in rep.requete.concepts if not c.retire]
     montres = rep.resultats + (rep.faibles if rep.tout else [])
     if not montres and not rep.sans_depot:
-        if rep.requete.concepts and not rep.non_affiches.get('faibles'):
+        ecartes = rep.non_affiches.get('filtres', 0)
+        if rep.requete.concepts and ecartes and not rep.non_affiches.get('faibles'):
+            # Des fiches contiennent les concepts : ce sont les filtres qui les écartent (pied de page)
+            lignes.append(_texte_ecartes(ecartes))
+        elif rep.requete.concepts and not rep.non_affiches.get('faibles'):
             noms = [c.nom for c in rep.requete.concepts]
             lignes.append(f"Aucune fiche ne contient ces concepts : {', '.join(noms)}.")
             lignes.append("Piste : beaucoup d'anciennes fiches sont en anglais et pauvres en texte ; essayez des "
@@ -3530,10 +3718,19 @@ def en_texte(rep: Reponse, details: bool = False) -> str:
             lignes.append(f"   (+ {_n(rep.non_affiches['sans_depot'], 'autre fiche', 'autres fiches')} sans dépôt GitHub)")
         lignes.append('')
     lignes += _lignes_pied(rep)
-    return '\n'.join(lignes).rstrip('\n')
+    return affichable('\n'.join(lignes).rstrip('\n'))
 
 
 _MD_SPECIAUX = re.compile(r'([\\`*_\[\]<>|#])')
+# Règle exacte du niveau (rechercher, ensembles_niveau), sans syntaxe Markdown à échapper
+LEGENDE_MARKDOWN = (
+    f"Niveaux : **forte** = au moins {round(SEUIL_FORTE * 100)} % du poids des notions essentielles du besoin, "
+    "dont une trouvée directement (pas seulement par un concept voisin ni par l'avis du LLM) ; quand le besoin "
+    "n'a qu'une notion essentielle, ses notions de contexte comptent aussi et ses notions secondaires doivent "
+    "être présentes ; **partielle** = une partie seulement (un concept voisin compte pour moitié) ; les "
+    "correspondances faibles (notions trouvées seulement dans l'avis du LLM, ou seulement des notions "
+    "secondaires) sont masquées, sauf avec --tout. Chaque extrait est cité mot pour mot (apostrophes, espaces "
+    "et caractères de contrôle normalisés) avec son champ et sa fiabilité.")
 
 
 def _md(texte: str) -> str:
@@ -3549,9 +3746,7 @@ def en_markdown(rep: Reponse) -> str:
     q = rep.requete
     lignes = [f"# Redécouverte : {_md(q.texte) if q.texte else '(liste filtrée)'}", '',
               f"Index : {_md(_ligne_index(rep.meta))}", '',
-              "Niveaux : **forte** = toutes les notions importantes du besoin sont présentes dans la fiche ; "
-              "**partielle** = une partie seulement ; les correspondances faibles (avis du LLM seul, concepts "
-              "voisins) sont masquées. Chaque extrait est cité mot pour mot avec son champ et sa fiabilité.", '']
+              LEGENDE_MARKDOWN, '']
     actifs = [c for c in q.concepts if not c.retire]
     if actifs:
         lignes.append(f"Concepts : {_md(' · '.join(texte_concept(c) for c in actifs))}")
@@ -3578,7 +3773,9 @@ def en_markdown(rep: Reponse) -> str:
                           f"{_md(licence.get('texte', '') if fiche_licence else '')} |")
         lignes.append('')
     else:
-        lignes += ["Aucun résultat.", '']
+        ecartes = rep.non_affiches.get('filtres', 0)
+        filtres = bool(q.concepts and ecartes and not rep.non_affiches.get('faibles'))
+        lignes += [_md(_texte_ecartes(ecartes)) if filtres else "Aucun résultat.", '']
     for r in montres:
         lignes += _markdown_resultat(r)
     if rep.sans_depot:
@@ -3590,7 +3787,7 @@ def en_markdown(rep: Reponse) -> str:
     if rep.avis_texte:
         lignes += ['', '## Avis du LLM (facultatif, non vérifié)', '']
         lignes += [_md(ligne.strip()) for ligne in rep.avis_texte.split('\n') if ligne.strip()]
-    return '\n'.join(lignes).rstrip('\n') + '\n'
+    return affichable('\n'.join(lignes).rstrip('\n') + '\n')
 
 
 def _markdown_resultat(r: Resultat) -> List[str]:
@@ -3610,10 +3807,12 @@ def _markdown_resultat(r: Resultat) -> List[str]:
             lignes.append(f"  - {_md(_source(e))} : « {citation} »")
     if r.niveau != 'filtre':
         for e in r.etabli:
-            citation = _citation(e, '**', _md).replace('\n', ' ')
-            lignes.append(f"- **Établi** : {_md(_source(e))} : « {citation} »")
+            citation = 'extrait cité ci-dessus' if _deja_cite(e, r) else \
+                '« ' + _citation(e, '**', _md).replace('\n', ' ') + ' »'
+            lignes.append(f"- **Établi** : {_md(_source(e))} : {citation}")
         if not r.etabli:
-            lignes.append("- **Établi** : rien de vérifié mot pour mot dans le README")
+            note = f" ({_md(r.etabli_note)})" if r.etabli_note else ''
+            lignes.append(f"- **Établi** : rien de vérifié mot pour mot dans le README{note}")
     limites = [a for a in r.a_verifier if a['code'] not in ('avis_seul', 'statuts_divergents')]
     if limites:
         lignes.append('- **À vérifier** :')
@@ -3632,8 +3831,8 @@ def _markdown_resultat(r: Resultat) -> List[str]:
     return lignes
 
 
-_CLES_EXTRAIT = ('champ', 'fiabilite', 'famille', 'analyse_le', 'page_id', 'texte', 'debut', 'fin', 'surlignes',
-                 'concepts')
+_CLES_EXTRAIT = ('champ', 'fiabilite', 'modifie', 'famille', 'analyse_le', 'page_id', 'texte', 'debut', 'fin',
+                 'surlignes', 'concepts')
 
 
 def _json_resultat(r: Resultat) -> Dict[str, Any]:
@@ -3741,9 +3940,11 @@ class AvisLLM:
 
 
 def _premier_champ(r: Resultat, nom: str, niveaux: Tuple[str, ...]) -> str:
+    """Premier texte du champ, dans l'ordre des fiches du dépôt, de niveau envoyable ; un champ modifié dans
+    Notion (une partie peut venir de l'utilisateur) n'est jamais envoyé."""
     for f in r.fiches:
         champ = f['champs'].get(nom) or {}
-        if champ.get('fiabilite') in niveaux and champ.get('texte'):
+        if champ.get('fiabilite') in niveaux and champ.get('texte') and not champ.get('modifie'):
             return champ['texte']
     return ''
 
@@ -3810,13 +4011,13 @@ def texte_apercu(envoi: Envoi) -> str:
         lignes += _envelopper('   Confidentialité : ', ' ; '.join(confidentialite), 21)
     lignes += [f"   Remarque    : {r}" for r in envoi.remarques]
     lignes.append("   Texte exact : relancez avec --llm-apercu")
-    return '\n'.join(lignes)
+    return affichable('\n'.join(lignes))
 
 
 def texte_apercu_exact(envoi: Envoi) -> str:
-    return '\n'.join(["Avis LLM — aperçu : texte exact qui serait envoyé (rien n'a été envoyé)",
-                      '--- Message système ---', SYSTEME_LLM, '--- Message utilisateur ---', envoi.utilisateur,
-                      '--- Fin ---'])
+    return affichable('\n'.join(["Avis LLM — aperçu : texte exact qui serait envoyé (rien n'a été envoyé)",
+                                 '--- Message système ---', SYSTEME_LLM, '--- Message utilisateur ---',
+                                 envoi.utilisateur, '--- Fin ---']))
 
 
 def demander_confirmation(envoi: Envoi, oui: bool) -> str:
@@ -3848,7 +4049,7 @@ def _premier_objet_json(texte: str) -> Any:
         return None
     try:
         return json.JSONDecoder(strict=False).raw_decode(texte[debut:])[0]
-    except ValueError:
+    except (ValueError, RecursionError):        # comme gn._parse_llm_json : JSON très imbriqué
         return None
 
 
@@ -3871,7 +4072,7 @@ def valider_avis(texte: str, envoi: Envoi) -> AvisLLM:
             continue
         rid, raison = element.get('id'), element.get('raison')
         adequation = gn._coerce_scale(element.get('adequation'), 3)
-        raison = ' '.join(raison.split())[:LLM_RAISON_MAX] if isinstance(raison, str) else ''
+        raison = ' '.join(normaliser(raison).split())[:LLM_RAISON_MAX] if isinstance(raison, str) else ''
         if rid not in blocs or rid in avis or adequation is None or not raison:
             rejets += 1
             continue
@@ -3882,11 +4083,12 @@ def valider_avis(texte: str, envoi: Envoi) -> AvisLLM:
     return AvisLLM('valide', avis=avis, rejets=rejets)
 
 
-def obtenir_avis(envoi: Envoi) -> AvisLLM:
+def obtenir_avis(envoi: Envoi, suite: str = 'résultats locaux ci-dessus') -> AvisLLM:
     """gn._call_translation_api (délai, nouvelle tentative, coupe-circuit, modèle servi), fournisseur suivant
-    si l'un ne répond pas. Aucune mise en cache, rien n'est écrit."""
+    si l'un ne répond pas. Aucune mise en cache, rien n'est écrit. suite : fin des messages d'échec (où
+    trouver les résultats locaux)."""
     if not envoi.fournisseurs:
-        return AvisLLM('echec', message="Avis LLM impossible (aucune clé configurée) ; résultats locaux ci-dessus")
+        return AvisLLM('echec', message=f"Avis LLM impossible (aucune clé configurée) ; {suite}")
     for fournisseur in envoi.fournisseurs:
         resultat = gn._call_translation_api(fournisseur, envoi.messages, temperature=0.0)
         if resultat is None:
@@ -3895,9 +4097,9 @@ def obtenir_avis(envoi: Envoi) -> AvisLLM:
         texte, modele = resultat
         avis = valider_avis(texte, envoi)
         avis.fournisseur = gn._PROVIDER_NAMES.get(fournisseur, fournisseur)
-        avis.modele_servi = modele
+        avis.modele_servi = normaliser(modele) if isinstance(modele, str) else ''
         return avis
-    return AvisLLM('echec', message="Avis LLM impossible (aucun fournisseur n'a répondu) ; résultats locaux ci-dessus")
+    return AvisLLM('echec', message=f"Avis LLM impossible (aucun fournisseur n'a répondu) ; {suite}")
 
 
 def appliquer_avis(reponse: Reponse, envoi: Optional[Envoi], avis: AvisLLM) -> None:
@@ -3942,16 +4144,43 @@ def texte_avis(envoi: Envoi, avis: AvisLLM) -> str:
     sans = len(envoi.candidats) - len(avis.avis)
     if sans:
         lignes.append(f"   Dépôts sans avis valide : {sans}")
-    return '\n'.join(lignes)
+    return affichable('\n'.join(lignes))
 
 # =============================================================================
 # LIGNE DE COMMANDE
 # =============================================================================
 _NIVEAUX_LOG = ('quiet', 'normal', 'verbose')
+# Messages d'argparse les plus probables, en français (le reste est repris tel quel)
+_ERREURS_ARGPARSE = (
+    (re.compile(r"unrecognized arguments: (.*)", re.S),
+     lambda m: f"arguments en trop : {m[1]}. Mettez le besoin entre guillemets doubles, par exemple : "
+               "python redecouverte.py cherche \"extraire des tableaux de PDF\""),
+    (re.compile(r"argument \{sync,cherche,etat\}: invalid choice: '([^']*)'.*", re.S),
+     lambda m: f"commande « {m[1]} » inconnue (sync, cherche ou etat ; les options se placent après la commande)"),
+    (re.compile(r"argument (\S+): invalid choice: '([^']*)' \(choose from (.*)\)", re.S),
+     lambda m: f"valeur « {m[2]} » invalide pour {m[1]} (valeurs possibles : {m[3].replace(chr(39), '')})"),
+    (re.compile(r"argument (\S+): invalid int value: '([^']*)'", re.S),
+     lambda m: f"{m[1]} attend un nombre entier (reçu : « {m[2]} »)"),
+    (re.compile(r"argument (\S+): expected one argument", re.S), lambda m: f"{m[1]} attend une valeur"),
+)
+
+
+class _Parseur(gn._Parser):
+    """Comme gn._Parser (code 1), avec un message en français, sans emoji (console cp1252)."""
+
+    def error(self, message):
+        for motif, traduire in _ERREURS_ARGPARSE:
+            trouve = motif.fullmatch(message)
+            if trouve:
+                message = traduire(trouve)
+                break
+        self.print_usage(sys.stderr)
+        gn.log(f"Commande invalide : {message}", 'error')
+        raise SystemExit(gn.EXIT_CONFIG)
 
 
 def construire_parseur() -> argparse.ArgumentParser:
-    parseur = gn._Parser(
+    parseur = _Parseur(
         prog='redecouverte',
         description="Retrouve, hors ligne, les dépôts déjà enregistrés dans la base Notion de Gitnotate "
                     "(Notion est seulement lu).",
@@ -3960,7 +4189,7 @@ def construire_parseur() -> argparse.ArgumentParser:
                "impossible, 130 Ctrl-C.")
     parseur.add_argument('--version', action='version',
                          version=f"%(prog)s {__version__} (gitnotate {gn.__version__})")
-    sous = parseur.add_subparsers(dest='commande', metavar='{sync,cherche,etat}', parser_class=gn._Parser)
+    sous = parseur.add_subparsers(dest='commande', metavar='{sync,cherche,etat}', parser_class=_Parseur)
 
     sync = sous.add_parser('sync', help="copie locale des fiches de la base Notion (lecture seule)",
                            description="Lit toute la base DATABASE_ID, valide, reconstruit et remplace l'index "
@@ -4024,7 +4253,7 @@ def cmd_sync(args: argparse.Namespace) -> int:
     if message:
         gn.log(message, 'error')
         return gn.EXIT_CONFIG
-    cfg = lire_config(notion=not args.depuis)
+    cfg = lire_config(notion=not args.depuis, ignorer=('REDECOUVERTE_RESULTATS', 'REDECOUVERTE_LLM_MAX'))
     if cfg.erreurs:
         _afficher_erreurs_config(cfg)
         return gn.EXIT_CONFIG
@@ -4039,7 +4268,7 @@ def cmd_sync(args: argparse.Namespace) -> int:
     if args.depuis:
         plates, meta = charger_capture(args.depuis, secrets)
     gn._STOP_EVENT.clear()
-    remplace = False
+    etat = {'remplace': False}
     dossier = dossier_index()
     dossier.mkdir(parents=True, exist_ok=True)
     verrou = prendre_verrou(dossier)
@@ -4057,8 +4286,7 @@ def cmd_sync(args: argparse.Namespace) -> int:
                                source='notion', schema=info['schema'], nb_requetes=lecture.nb_requetes,
                                nb_objets_recus=lecture.nb_objets_recus, ignorees=lecture.ignorees,
                                debut_utc=debut)
-        bilan = construire_et_remplacer(plates, meta, secrets, args.accepter_baisse)
-        remplace = True
+        bilan = construire_et_remplacer(plates, meta, secrets, args.accepter_baisse, etat)
         bilan.source_jeton = '' if args.depuis else cfg.source_jeton
         gn.log(texte_bilan_sync(bilan))
         if args.capture is not None:
@@ -4074,8 +4302,11 @@ def cmd_sync(args: argparse.Namespace) -> int:
         return gn.EXIT_OK
     except KeyboardInterrupt:
         gn._STOP_EVENT.set()
-        gn.log("Interruption : index remplacé, capture non écrite." if remplace
-               else "Interruption : l'index précédent est conservé.", 'error')
+        if etat['remplace']:
+            gn.log("Interruption : index remplacé"
+                   + (", capture non écrite." if args.capture is not None else "."), 'error')
+        else:
+            gn.log("Interruption : l'index précédent est conservé.", 'error')
         return gn.EXIT_INTERRUPTED
     finally:
         liberer_verrou(verrou)
@@ -4121,6 +4352,10 @@ def ecrire_sortie(valeur: str, format_sortie: str, contenu: Any) -> Path:
 def _avis_llm(reponse: Reponse, args: argparse.Namespace, cfg: Config, flux: str) -> int:
     """Avis LLM facultatif, après la recherche locale ; renvoie le code de sortie."""
     envoi = preparer_envoi(reponse, args.llm_max or cfg.llm_max)
+    # « ci-dessus » seulement quand les résultats viennent d'être affichés en texte à l'écran
+    direct = args.format == 'texte' and not args.sortie
+    suite = 'résultats locaux ci-dessus' if direct else 'résultats locaux conservés'
+
     if not envoi.candidats:
         avis = AvisLLM('annule', message="Avis LLM non demandé : aucun dépôt à évaluer")
     elif args.llm_apercu:
@@ -4128,7 +4363,7 @@ def _avis_llm(reponse: Reponse, args: argparse.Namespace, cfg: Config, flux: str
         avis = AvisLLM('apercu')
     elif not envoi.fournisseurs:
         cause = ' ; '.join(envoi.remarques) or 'aucune clé configurée'
-        avis = AvisLLM('echec', message=f"Avis LLM impossible ({cause}) ; résultats locaux ci-dessus")
+        avis = AvisLLM('echec', message=f"Avis LLM impossible ({cause}) ; {suite}")
     else:
         decision = demander_confirmation(envoi, args.oui)
         if decision == 'non_interactif':
@@ -4136,7 +4371,7 @@ def _avis_llm(reponse: Reponse, args: argparse.Namespace, cfg: Config, flux: str
         elif decision == 'annule':
             avis = AvisLLM('annule', message="Avis LLM annulé : rien n'a été envoyé")
         else:
-            avis = obtenir_avis(envoi)
+            avis = obtenir_avis(envoi, suite)
     appliquer_avis(reponse, envoi if envoi.candidats else None, avis)
     if avis.message:
         gn.log(avis.message, 'error')
@@ -4148,11 +4383,14 @@ def cmd_cherche(args: argparse.Namespace) -> int:
         if valeur is not None and not 1 <= valeur <= maximum:
             gn.log(f"Option {option} invalide : {valeur} (de 1 à {maximum})", 'error')
             return gn.EXIT_CONFIG
-    cfg = lire_config(notion=False)
+    demande_llm = args.llm or args.llm_apercu
+    # L'option prime sur la variable (env.example) ; REDECOUVERTE_LLM_MAX ne sert qu'avec --llm
+    ignorer = (['REDECOUVERTE_RESULTATS'] if args.nombre is not None else []) + \
+        (['REDECOUVERTE_LLM_MAX'] if args.llm_max is not None or not demande_llm else [])
+    cfg = lire_config(notion=False, ignorer=ignorer)
     if cfg.erreurs:
         _afficher_erreurs_config(cfg)
         return gn.EXIT_CONFIG
-    demande_llm = args.llm or args.llm_apercu
     if demande_llm:
         erreurs = [m for cle, m in gn.CONFIG_ERRORS.items() if cle.startswith(('LLM_', 'MISTRAL_', 'OPENROUTER_'))]
         if erreurs:
@@ -4223,6 +4461,8 @@ def cmd_etat(args: argparse.Namespace) -> int:
 def main(argv: Optional[List[str]] = None) -> int:
     gn._configure_console()
     arguments = list(sys.argv[1:] if argv is None else argv)
+    if arguments and gn._fold(arguments[0]) in COMMANDES:       # « état », « Cherche »
+        arguments[0] = gn._fold(arguments[0])
     if arguments and not arguments[0].startswith('-') and arguments[0] not in COMMANDES:
         gn.log(f"Commande inconnue « {arguments[0]} ». Pour chercher : python redecouverte.py cherche "
                f"\"{arguments[0]}\"", 'error')
@@ -4252,7 +4492,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     except EcritureNotionInterdite:
         raise
     except Exception as e:                   # type seulement : un message pourrait recopier un jeton
-        gn.log(f"Erreur inattendue ({type(e).__name__}) : l'index précédent est conservé.", 'error')
+        suite = " : l'index précédent est conservé." if args.commande == 'sync' else '.'
+        gn.log(f"Erreur inattendue ({type(e).__name__}){suite}", 'error')
         return gn.EXIT_INCOMPLETE
 
 

@@ -14,7 +14,8 @@ avec filtres (options) sont mesurées à part, hors moyennes. Aucune écriture, 
 Format du fichier : {"requetes": [{"id", "jeu", "requete", "options", "en_tete", "acceptables",
 "a_exclure"}]} avec des clés de dépôt « owner/repo » (gain 2 en tête, 1 acceptable).
 
-Codes de sortie : 0 mesures affichées · 1 fichier illisible ou index absent.
+Codes de sortie : 0 mesures affichées · 1 fichier illisible (position de l'erreur JSON affichée), option
+inconnue ou mal formée, ou index absent.
 """
 
 import contextlib
@@ -77,7 +78,13 @@ def _format(valeur: Optional[float]) -> str:
 def evaluer(con, requetes: List[Dict[str, Any]], details: bool = False) -> Dict[str, Dict[str, float]]:
     """Affiche les mesures de chaque requête et renvoie les moyennes par jeu (requêtes sans filtre)."""
     sommes: Dict[str, Dict[str, List[float]]] = {}
+    connues = {cle for (cle,) in con.execute('SELECT DISTINCT cle_depot FROM fiches')}
     for requete in requetes:
+        inconnues = [cle for champ in ('en_tete', 'acceptables', 'a_exclure') for cle in requete.get(champ, [])
+                     if cle not in connues]
+        if inconnues:                        # faute de frappe, majuscules : la mesure serait faussée
+            gn.log(f"Attention : {requete.get('id', '?')} cite des dépôts absents de l'index : "
+                   f"{', '.join(inconnues)} (clés « propriétaire/dépôt » en minuscules)", 'error')
         reponse = lancer(con, requete)
         classement = classement_de(reponse)
         m = mesurer(classement, requete)
@@ -101,6 +108,27 @@ def evaluer(con, requetes: List[Dict[str, Any]], details: bool = False) -> Dict[
     return moyennes
 
 
+def verifier_options(requetes: List[Dict[str, Any]]) -> List[str]:
+    """Options de chaque requête : clés de rd.FILTRES, valeurs en liste de textes (un texte seul est mis dans
+    une liste) ; renvoie les erreurs (une option mal écrite fausserait la mesure sans rien signaler)."""
+    erreurs = []
+    for requete in requetes:
+        options = requete.get('options') or {}
+        nom = requete.get('id', '?')
+        if not isinstance(options, dict):
+            erreurs.append(f"{nom} : « options » doit être un objet JSON")
+            continue
+        for cle, valeur in list(options.items()):
+            if cle not in rd.FILTRES:
+                erreurs.append(f"{nom} : option inconnue « {cle} » (possibles : {', '.join(rd.FILTRES)})")
+            elif isinstance(valeur, str):
+                options[cle] = [valeur]
+            elif not isinstance(valeur, list) or not all(isinstance(v, str) for v in valeur):
+                erreurs.append(f"{nom} : l'option « {cle} » attend un texte ou une liste de textes")
+        requete['options'] = options
+    return erreurs
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     gn._configure_console()
     parseur = gn._Parser(prog='evaluer_redecouverte', description="Mesure hors ligne de la redécouverte.")
@@ -111,12 +139,28 @@ def main(argv: Optional[List[str]] = None) -> int:
     except SystemExit as e:
         return e.code if isinstance(e.code, int) else gn.EXIT_CONFIG
     try:
-        donnees = json.loads(Path(args.fichier).read_text(encoding='utf-8'))
+        # utf-8-sig : un fichier enregistré avec BOM (PowerShell 5.1, Bloc-notes) reste lisible
+        donnees = json.loads(Path(args.fichier).read_text(encoding='utf-8-sig'))
         requetes = donnees['requetes']
         if not isinstance(requetes, list) or not all(isinstance(q, dict) for q in requetes):
             raise ValueError('requetes')
-    except (OSError, ValueError, KeyError, TypeError):
+    except json.JSONDecodeError as e:
+        gn.log(f"Fichier de requêtes illisible : {args.fichier} (JSON invalide ligne {e.lineno}, colonne "
+               f"{e.colno} ; virgule en trop ou guillemet manquant ?)", 'error')
+        return gn.EXIT_CONFIG
+    except UnicodeDecodeError:
+        gn.log(f"Fichier de requêtes illisible : {args.fichier} (encodage UTF-8 attendu)", 'error')
+        return gn.EXIT_CONFIG
+    except OSError:
         gn.log(f"Fichier de requêtes illisible : {args.fichier}", 'error')
+        return gn.EXIT_CONFIG
+    except (ValueError, KeyError, TypeError):
+        gn.log(f"Fichier de requêtes illisible : {args.fichier} (objet {{\"requetes\": [...]}} attendu)", 'error')
+        return gn.EXIT_CONFIG
+    erreurs = verifier_options(requetes)
+    if erreurs:
+        for erreur in erreurs:
+            gn.log(f"Fichier de requêtes : {erreur}", 'error')
         return gn.EXIT_CONFIG
     try:
         con, _ = rd.ouvrir_index_valide()

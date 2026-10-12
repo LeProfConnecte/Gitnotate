@@ -17,7 +17,10 @@ Spécification du lot 4, annexes A à C :
     lignes sont comparées après repli (gitnotate._fold), puces et ponctuation finale retirées ; les
     expressions françaises sont compilées une fois par le moteur.
 
-Modifier le lexique n'exige pas de resynchronisation : l'index garde le texte verbatim des fiches.
+Modifier les concepts, les mots vides ou les déclencheurs n'exige pas de resynchronisation : l'index garde
+le texte des fiches. Exception : les gabarits GABARITS_CAS_USAGE_EN et GABARITS_CAS_USAGE_FR sont appliqués
+à l'indexation (fiabilité des Cas d'usage, version de la fiche) ; après les avoir modifiés, relancez
+« python redecouverte.py sync » (ou « sync --depuis » une capture).
 """
 
 E, F = 'essentiel', 'faible'
@@ -121,7 +124,8 @@ CONCEPTS = {
     'crypto': (E, ['crypto', 'cryptos', 'cryptomonnaie', 'cryptomonnaies', 'cryptocurrency',
         'cryptocurrencies', 'bitcoin', 'ethereum', 'web3', 'blockchain', 'on-chain', 'defi'], []),
     'veille': (E, ['veille', 'veilles', 'rss', 'flux rss', 'news', 'actualité', 'actualités', 'agrégateur',
-        'aggregator', 'alerte', 'alertes', 'alert', 'alerts', 'newsletter', 'newsletters', 'feed', 'feeds'],
+        'aggregator', 'alerte', 'alertes', 'alert', 'alerts', 'newsletter', 'newsletters', 'rss feed', 'news feed',
+        'news feeds'],
         ['monitoring', 'recherche_web']),
     'monitoring': (E, ['surveiller', 'surveille', 'surveillent', 'surveillance', 'monitor', 'monitors',
         'monitoring', 'supervision', 'superviser', 'observabilité', 'observability'], ['veille']),

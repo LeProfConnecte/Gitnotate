@@ -302,14 +302,19 @@ licence inconnue est notée `?` et sort du calcul.
 README exploitable n'est pas envoyé au LLM et ne reçoit aucune note : une note, une catégorie ou une
 description seraient devinées d'après le seul nom. Un README est exploitable si, une fois nettoyé
 (balises, images, badges et liens retirés), il contient au moins une ligne avec une lettre ou un
-chiffre autre qu'un titre égal au nom du dépôt : pour le dépôt `mon-outil`, un README réduit au
-titre `# mon-outil` et à des badges ne l'est pas. Avec `README_LLM_CHARS=0`, le README n'est pas
-envoyé au LLM et compte comme absent. La fiche est quand même créée (elle n'est jamais reportée par
-le mode reprise, ni écartée par `SCORE_MIN_THRESHOLD`) avec les faits GitHub (nom, URL, étoiles,
-licence, dates, extraits du README s'il y en a), `Pertinence` vide, `Description` et `Cas d'usage`
-« Non vérifié », ni `Catégorie` ni `Brique pour`, et la Justification
+chiffre autre qu'un titre égal au nom du dépôt : pour le dépôt `moi/mon-outil`, un README réduit au
+titre `# mon-outil` (ou `# moi/mon-outil`) et à des badges ne l'est pas. Avec `README_LLM_CHARS=0`,
+le README n'est pas envoyé au LLM et compte comme absent. La fiche est quand même créée (elle n'est
+jamais reportée par le mode reprise, ni écartée par `SCORE_MIN_THRESHOLD`) avec les faits GitHub
+(nom, URL, étoiles, licence, dates, extraits du README s'il y en a), `Pertinence` vide,
+`Description` et `Cas d'usage` « Non vérifié », ni `Catégorie` ni `Brique pour`, et la Justification
 `[NON NOTÉ] Ni description, ni topics, ni README exploitable : Pertinence laissée vide.` (si la base
-a la colonne `Justification`).
+a la colonne `Justification`) ; avec `README_LLM_CHARS=0` et un README exploitable :
+`[NON NOTÉ] Ni description, ni topics ; README non transmis au LLM (README_LLM_CHARS=0) : Pertinence
+laissée vide.`. Un README **illisible** (erreur 5xx, délai dépassé, quota GitHub épuisé, contenu
+illisible) n'est jamais pris pour un README absent : pour un dépôt sans description ni topics, aucune
+fiche n'est créée, l'erreur `README illisible` est comptée (code de sortie 2) et le dépôt est repris
+au run suivant ; ce résultat n'est pas mis en cache.
 
 **Repli lexical** : dans trois cas, la note est un score lexical de 0 à 10, calculé localement à
 partir des mots-clés du profil : `REQUIRE_LLM=false` sans réponse LLM valide,
@@ -339,7 +344,7 @@ empreinte différente en v7.3 et en v7.4.
 | `Statut` | « À explorer » |
 | `Dernière MAJ` | date du dernier push (`pushed_at`), à défaut `updated_at` |
 | `Analysé le` | date du run |
-| `Justification` | `[LLM <modèle réellement servi> · profil <version>/<empreinte>] U2·P3·T1·I2·C2·M2·L2 = 10 — <justification>` (faits tirés du dépôt ; 40 mots demandés au LLM, 400 caractères gardés au plus) ; `M?` ou `L?` si la donnée manque ; quand le plafond sans brique change la note : `… = 10, plafonnée à 8 (aucune brique du profil) — <justification>` ; `[LEXICAL · profil <version>/<empreinte>]` en repli lexical, suivi de `Note 10, plafonnée à 8 (aucune brique du profil).` si le plafond a joué ; `[NON NOTÉ] Ni description, ni topics, ni README exploitable : Pertinence laissée vide.` pour une fiche non notée ; 800 caractères au plus en tout |
+| `Justification` | `[LLM <modèle réellement servi> · profil <version>/<empreinte>] U2·P3·T1·I2·C2·M2·L2 = 10 — <justification>` (faits tirés du dépôt ; 40 mots demandés au LLM, 400 caractères gardés au plus) ; `M?` ou `L?` si la donnée manque ; quand le plafond sans brique change la note : `… = 10, plafonnée à 8 (aucune brique du profil) — <justification>` ; `[LEXICAL · profil <version>/<empreinte>]` en repli lexical, suivi de `Note 10, plafonnée à 8 (aucune brique du profil).` si le plafond a joué ; `[NON NOTÉ] Ni description, ni topics, ni README exploitable : Pertinence laissée vide.` pour une fiche non notée (variante « README non transmis au LLM (README_LLM_CHARS=0) » quand ce réglage a écarté un README exploitable) ; 800 caractères au plus en tout |
 | `Licence`, `Catégorie`, `Brique pour` | colonnes facultatives, voir ci-dessous |
 
 `Langage`, `Type` et `Statut` ne reçoivent que des options **déjà présentes** dans la base (celles
@@ -560,8 +565,9 @@ Validez d'abord la v7.4 sur une base de test : [docs/VALIDATION.md](docs/VALIDAT
 - **Anciennes fiches** : jamais modifiées ni recalculées. Une fiche v7.3 notée 9 ou 10 sans
   `Brique pour` garde sa note ; elle aurait 8 en v7.4. L'empreinte du profil change avec la v7.4,
   même si le profil est identique.
-- **Cache GitHub** : son format passe de 3 à 4 ; les entrées écrites par la v7.3 sont relues sur
-  GitHub une fois, quand le dépôt est traité. Aucune action n'est nécessaire.
+- **Cache GitHub** : son format passe de 3 à 5 (le format 5 distingue un README absent d'un README
+  illisible) ; les entrées plus anciennes sont relues sur GitHub une fois, quand le dépôt est traité.
+  Aucune action n'est nécessaire.
 - **Retour à la v7.3** : voir l'étape G de [docs/VALIDATION.md](docs/VALIDATION.md). Aucune donnée
   Notion n'est à restaurer.
 
@@ -640,5 +646,7 @@ indice Docker, repli lexical neutre). `tests/test_redecouverte_sync.py`, `test_r
 et `test_redecouverte_recherche.py` couvrent `redecouverte.py` sur un corpus synthétique
 (`tests/fixtures/redecouverte/`) : liste blanche des appels Notion, pagination, interruption,
 conservation de l'index, versions des fiches, extraits mot pour mot, classement et requêtes de
-référence. Ces tests ne remplacent pas la validation sur une vraie base de test décrite dans
+référence. `tests/test_lot4_revue.py` reprend les constats de la revue du lot 4 (citations, niveau
+« forte », champs modifiés dans Notion, caractères de contrôle, README illisible, chemins réseau…).
+Ces tests ne remplacent pas la validation sur une vraie base de test décrite dans
 [docs/VALIDATION.md](docs/VALIDATION.md).
