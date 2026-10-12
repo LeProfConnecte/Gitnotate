@@ -6,13 +6,28 @@ Mesure hors ligne du moteur de redécouverte sur des requêtes de référence (o
   python scripts/evaluer_redecouverte.py tests/fixtures/redecouverte/requetes.json [--details]
 
 Ouvre l'index local en lecture seule (BASE_DIR/.gitnotate_index/redecouverte.sqlite, construit par
-« python redecouverte.py sync »), lance chaque requête avec ses options et affiche nDCG@10, P@5, MRR,
+« python redecouverte.py sync »), lance chaque requête avec ses options et affiche nDCG@10, P@5, R@5, MRR,
 intrus@3, intrus@5 et les attendus manquants, puis les moyennes par jeu. Seuls les dépôts visibles
 (correspondances forte et partielle) sont classés, suivis des fiches sans dépôt GitHub. Les requêtes
 avec filtres (options) sont mesurées à part, hors moyennes. Aucune écriture, aucun réseau.
 
 Format du fichier : {"requetes": [{"id", "jeu", "requete", "options", "en_tete", "acceptables",
 "a_exclure"}]} avec des clés de dépôt « owner/repo » (gain 2 en tête, 1 acceptable).
+
+Définitions (un dépôt « pertinent » est jugé en tête ou acceptable ; un dépôt absent du classement compte
+comme non trouvé) :
+  nDCG@10   DCG des 10 premiers (gain 2^g - 1, remise log2(rang + 1)) divisé par le DCG du classement idéal
+            des dépôts jugés.
+  P@5       pertinents parmi les 5 premiers / 5. Dénominateur fixe : un classement de moins de 5 dépôts
+            n'est pas avantagé ; avec moins de 5 pertinents jugés, le maximum vaut leur nombre / 5.
+  R@5       pertinents parmi les 5 premiers / nombre de pertinents jugés.
+  MRR       1 / rang du premier dépôt jugé « en tête » (0 s'il n'apparaît pas).
+  intrus@k  nombre de dépôts jugés « à exclure » parmi les k premiers.
+P@5, R@5 et nDCG@10 ne sont pas définis (« — ») pour une requête sans dépôt pertinent jugé, MRR pour une
+requête sans dépôt « en tête » : ces requêtes sans réponse attendue sont jugées par intrus@k et par
+l'absence de correspondance forte. Jusqu'au 2026-10-12, la colonne « P@5 » divisait par min(5, nombre de
+pertinents) : c'était une précision normalisée, qui surestimait P@5 quand moins de 5 dépôts étaient jugés
+pertinents.
 
 Codes de sortie : 0 mesures affichées · 1 fichier illisible (position de l'erreur JSON affichée), option
 inconnue ou mal formée, ou index absent.
@@ -32,7 +47,7 @@ if str(RACINE) not in sys.path:
 import gitnotate as gn  # noqa: E402
 import redecouverte as rd  # noqa: E402
 
-METRIQUES = ('ndcg10', 'p5', 'mrr', 'intrus3', 'intrus5')
+METRIQUES = ('ndcg10', 'p5', 'r5', 'mrr', 'intrus3', 'intrus5')
 
 
 def jugements(requete: Dict[str, Any]) -> Tuple[Dict[str, int], Set[str]]:
@@ -51,11 +66,13 @@ def mesurer(classement: List[str], requete: Dict[str, Any], k: int = 10) -> Dict
     dcg = sum((2 ** gain.get(cle, 0) - 1) / math.log2(i + 2) for i, cle in enumerate(classement[:k]))
     ideal = sorted(gain.values(), reverse=True)[:k]
     idcg = sum((2 ** v - 1) / math.log2(i + 2) for i, v in enumerate(ideal))
-    pertinents = [cle for cle, g in gain.items() if g >= 1]
-    p5 = (sum(1 for cle in classement[:5] if gain.get(cle, 0) >= 1) / min(5, len(pertinents))) if pertinents else None
+    pertinents = {cle for cle, g in gain.items() if g >= 1}
+    trouves5 = len(pertinents & set(classement[:5]))
+    p5 = trouves5 / 5 if pertinents else None
+    r5 = trouves5 / len(pertinents) if pertinents else None
     tete = [cle for cle, g in gain.items() if g == 2]
     mrr = next((1 / (i + 1) for i, cle in enumerate(classement) if gain.get(cle) == 2), 0.0) if tete else None
-    return {'ndcg10': dcg / idcg if idcg else None, 'p5': p5, 'mrr': mrr,
+    return {'ndcg10': dcg / idcg if idcg else None, 'p5': p5, 'r5': r5, 'mrr': mrr,
             'intrus3': sum(1 for cle in classement[:3] if cle in intrus),
             'intrus5': sum(1 for cle in classement[:5] if cle in intrus),
             'manquants': [cle for cle in tete if cle not in classement[:k]]}
@@ -93,7 +110,7 @@ def evaluer(con, requetes: List[Dict[str, Any]], details: bool = False) -> Dict[
         forts = sum(1 for r in reponse.resultats if r.niveau == 'forte')
         manquants = f"  manquants : {', '.join(m['manquants'])}" if m['manquants'] else ''
         gn.log(f"{requete.get('id', '?'):<4} nDCG@10={_format(m['ndcg10'])}  P@5={_format(m['p5'])}  "
-               f"MRR={_format(m['mrr'])}  intrus@3={m['intrus3']}  intrus@5={m['intrus5']}  forts={forts}{manquants}",
+               f"R@5={_format(m['r5'])}  MRR={_format(m['mrr'])}  intrus@3={m['intrus3']}  intrus@5={m['intrus5']}  forts={forts}{manquants}",
                'always')
         if details:
             for r in reponse.resultats[:8] + reponse.sans_depot:

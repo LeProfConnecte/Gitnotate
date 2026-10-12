@@ -1026,7 +1026,8 @@ def test_script_evaluer(corpus, capsys, tmp_path, load_gn, monkeypatch):
     assert 'Q01 nDCG@10=' in sortie and '--- reference : ndcg10=' in sortie
     assert '--- hors_echantillon : ndcg10=' in sortie and 'docling-project/docling' in sortie
     mesures = ev.mesurer(['a/a', 'b/b', 'c/c'], {'en_tete': ['b/b'], 'acceptables': ['a/a'], 'a_exclure': ['c/c']})
-    assert mesures['mrr'] == 0.5 and mesures['intrus3'] == 1 and mesures['p5'] == 1.0
+    # P@5 à dénominateur fixe (2 pertinents sur 5 rangs) et R@5 (les 2 pertinents jugés sont trouvés)
+    assert mesures['mrr'] == 0.5 and mesures['intrus3'] == 1 and mesures['p5'] == 0.4 and mesures['r5'] == 1.0
     illisible = tmp_path / 'illisible.json'
     illisible.write_text('{pas du json', encoding='utf-8')
     assert ev.main([str(illisible)]) == 1

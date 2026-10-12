@@ -576,11 +576,18 @@ frappe, majuscules) est signalé par une ligne `Attention`.
 ]}
 ```
 
-Pour chaque requête, le script affiche nDCG@10 (qualité de l'ordre des 10 premiers), P@5 (part
-d'attendus dans les 5 premiers), MRR (1 si un dépôt attendu en tête est premier, 1/2 s'il est
-deuxième…), intrus@3 et intrus@5 (nombre d'intrus dans les 3 et 5 premiers), le nombre de
-correspondances fortes et les attendus manquants ; `--details` montre les premiers dépôts. Les
-moyennes sont données par jeu ; les requêtes avec filtres sont mesurées à part, hors moyenne. Le
+Pour chaque requête, le script affiche nDCG@10 (qualité de l'ordre des 10 premiers), P@5 (nombre de
+dépôts pertinents, c'est-à-dire « en tête » ou « acceptables », parmi les 5 premiers, divisé par 5),
+R@5 (nombre de dépôts pertinents parmi les 5 premiers, divisé par le nombre de dépôts pertinents
+jugés), MRR (1 si un dépôt attendu en tête est premier, 1/2 s'il est deuxième…), intrus@3 et intrus@5
+(nombre d'intrus dans les 3 et 5 premiers), le nombre de correspondances fortes et les attendus
+manquants. P@5 garde un dénominateur fixe de 5 : avec 2 dépôts pertinents jugés, le maximum est 0,40,
+et un classement de moins de 5 dépôts n'est pas avantagé. P@5, R@5 et nDCG@10 ne sont pas définis
+(« — ») pour une requête sans dépôt pertinent jugé, MRR pour une requête sans dépôt « en tête » ; ces
+requêtes sans réponse attendue sont jugées par les intrus et l'absence de correspondance forte.
+Jusqu'au 2026-10-12, la colonne « P@5 » divisait par min(5, nombre de pertinents) : c'était une
+précision normalisée, plus flatteuse que P@5 dès que moins de 5 dépôts étaient jugés pertinents.
+`--details` montre les premiers dépôts. Les moyennes sont données par jeu ; les requêtes avec filtres sont mesurées à part, hors moyenne. Le
 script ouvre l'index en lecture seule, sans réseau (code 1 si le fichier ou l'index est illisible).
 
 ## 10. Mesures sur le corpus synthétique
@@ -602,15 +609,18 @@ en « e » ajouté, comparaison arrêtée par une préposition, citation `URL` d
 propriétaire/dépôt) laissent toutes ces mesures inchangées (seuls les scores de N07 bougent, sans
 changer les 5 premiers).
 
-| Jeu | Requêtes | nDCG@10 | MRR | P@5 | intrus@3 | intrus@5 | Réussies / partielles / échecs |
-|-----|----------|---------|-----|-----|----------|----------|-------------------------------|
-| Référence (Q01-Q15, hors Q10 et Q14 filtrées) | 13 | 0,84 (0,83) | 0,92 | 0,82 (0,80) | 0,00 | 0,31 (0,38) | 11 / 2 / 0 |
-| Hors échantillon (H01-H10) | 10 | 0,92 | 1,00 | 0,81 | 0,00 | 0,40 | 10 / 0 / 0 |
-| Anglais (E01) | 1 | 0,80 | 1,00 | 0,80 | 0,00 | 1,00 | 1 / 0 / 0 |
-| **Ensemble de référence** | 24 | **0,87** | **0,96** | **0,81** (0,80) | **0,00** | 0,38 (0,42) | 22 / 2 / 0 |
-| **Nouvelles (N01-N08)** | 8 | **0,86** (0,84) | **0,86** (0,85) | **0,73** | **0,25** (0,38) | 0,50 | 5 / 2 / 1 (4 / 2 / 2) |
-| Filtrée Q10 (licence MIT), hors moyenne | 1 | 0,90 | 1,00 | 0,80 | 0 | 0 | réussie |
-| Filtrée Q14 (statuts), hors moyenne | 1 | 0,97 | 1,00 | 1,00 | 0 | 0 | réussie |
+| Jeu | Requêtes | nDCG@10 | MRR | P@5 | R@5 | intrus@3 | intrus@5 | Réussies / partielles / échecs |
+|-----|----------|---------|-----|-----|-----|----------|----------|-------------------------------|
+| Référence (Q01-Q15, hors Q10 et Q14 filtrées) | 13 | 0,84 (0,83) | 0,92 | 0,68 | 0,65 | 0,00 | 0,31 (0,38) | 11 / 2 / 0 |
+| Hors échantillon (H01-H10) | 10 | 0,92 | 1,00 | 0,54 | 0,76 | 0,00 | 0,40 | 10 / 0 / 0 |
+| Anglais (E01) | 1 | 0,80 | 1,00 | 0,80 | 0,33 | 0,00 | 1,00 | 1 / 0 / 0 |
+| **Ensemble de référence** | 24 | **0,87** | **0,96** | **0,63** | **0,69** | **0,00** | 0,38 (0,42) | 22 / 2 / 0 |
+| **Nouvelles (N01-N08)** | 8 | **0,86** (0,84) | **0,86** (0,85) | **0,53** | **0,65** | **0,25** (0,38) | 0,50 | 5 / 2 / 1 (4 / 2 / 2) |
+| Filtrée Q10 (licence MIT), hors moyenne | 1 | 0,90 | 1,00 | 0,80 | 0,57 | 0 | 0 | réussie |
+| Filtrée Q14 (statuts), hors moyenne | 1 | 0,97 | 1,00 | 1,00 | 0,63 | 0 | 0 | réussie |
+
+P@5 et R@5 suivent la définition corrigée (§ 9) ; ils ont été recalculés le 2026-10-12 sur les mêmes
+classements (avec l'ancienne définition, P@5 valait 0,82 · 0,81 · 0,80 · 0,81 · 0,73 · 0,80 · 1,00).
 
 Verdicts : réussie si un dépôt attendu en tête est premier, sans intrus dans les 3 premiers ni
 intrus « forte » dans les 5 premiers ; partielle si un dépôt attendu en tête figure dans les 3

@@ -397,7 +397,9 @@ def test_forme_saisie_homogene(banc):
 def test_requetes_nouvelles_seuils(corpus):
     """Seuils = mesures après l'affinage moins 0,05 (intrus@3 : plus 0,05). Mesures (8 requêtes, 6 avec des
     attendus en tête) : nDCG@10 0,858, MRR 0,857, P@5 0,728, intrus@3 0,25 (N04 : deepseek_ocr_app, qui
-    exige un GPU, 3e ; N06 : PageLM, partielle). Avant l'affinage : 0,842 · 0,854 · 0,728 · 0,375."""
+    exige un GPU, 3e ; N06 : PageLM, partielle). Avant l'affinage : 0,842 · 0,854 · 0,728 · 0,375.
+    P@5 recalculé le 2026-10-12 avec la définition corrigée (pertinents parmi les 5 premiers / 5, et non plus
+    / min(5, pertinents)) : 0,533 sur les mêmes classements, seuil 0,483 ; R@5 0,650, seuil 0,600."""
     rd = corpus.rd
     spec = importlib.util.spec_from_file_location(
         'evaluer_affinage', Path(__file__).resolve().parent.parent / 'scripts' / 'evaluer_redecouverte.py')
@@ -417,7 +419,8 @@ def test_requetes_nouvelles_seuils(corpus):
         return sum(valeurs) / len(valeurs)
     assert moyenne('ndcg10') >= 0.808
     assert moyenne('mrr') >= 0.807
-    assert moyenne('p5') >= 0.677
+    assert moyenne('p5') >= 0.483
+    assert moyenne('r5') >= 0.600
     assert moyenne('intrus3') <= 0.30
     for ident in ('N05', 'N06'):                              # aucun résultat attendu
         assert PAR_ID[ident]['aucun_fort']
