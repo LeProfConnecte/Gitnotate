@@ -4,6 +4,7 @@
 Mesure hors ligne du moteur de redécouverte sur des requêtes de référence (outil de développement).
 
   python scripts/evaluer_redecouverte.py tests/fixtures/redecouverte/requetes.json [--details]
+  python scripts/evaluer_redecouverte.py tests/fixtures/redecouverte/requetes.json --empreinte
 
 Ouvre l'index local en lecture seule (BASE_DIR/.gitnotate_index/redecouverte.sqlite, construit par
 « python redecouverte.py sync »), lance chaque requête avec ses options et affiche nDCG@10, P@5, R@5, MRR,
@@ -13,6 +14,10 @@ avec filtres (options) sont mesurées à part, hors moyennes. Aucune écriture, 
 
 Format du fichier : {"requetes": [{"id", "jeu", "requete", "options", "en_tete", "acceptables",
 "a_exclure"}]} avec des clés de dépôt « owner/repo » (gain 2 en tête, 1 acceptable).
+
+--empreinte : n'ouvre pas l'index et ne lance aucune recherche ; affiche l'empreinte SHA-256 des
+jugements du fichier (voir empreinte_jugements), celle de chaque jeu, l'empreinte SHA-256 des octets
+du fichier et le nombre de requêtes par jeu, pour prouver qu'un jeu intégré n'a pas été modifié.
 
 Définitions (un dépôt « pertinent » est jugé en tête ou acceptable ; un dépôt absent du classement compte
 comme non trouvé) :
@@ -29,11 +34,12 @@ l'absence de correspondance forte. Jusqu'au 2026-10-12, la colonne « P@5 » div
 pertinents) : c'était une précision normalisée, qui surestimait P@5 quand moins de 5 dépôts étaient jugés
 pertinents.
 
-Codes de sortie : 0 mesures affichées · 1 fichier illisible (position de l'erreur JSON affichée), option
-inconnue ou mal formée, ou index absent.
+Codes de sortie : 0 mesures (ou empreintes) affichées · 1 fichier illisible (position de l'erreur JSON
+affichée), option inconnue ou mal formée, ou index absent.
 """
 
 import contextlib
+import hashlib
 import json
 import math
 import sys
@@ -48,6 +54,9 @@ import gitnotate as gn  # noqa: E402
 import redecouverte as rd  # noqa: E402
 
 METRIQUES = ('ndcg10', 'p5', 'r5', 'mrr', 'intrus3', 'intrus5')
+# Champs d'une requête couverts par l'empreinte des jugements (« jeu », « raisons », « commentaire »… n'en
+# font pas partie : on peut ranger un jeu externe sous un nom de jeu sans changer son empreinte).
+CHAMPS_JUGEMENT = ('id', 'requete', 'options', 'en_tete', 'acceptables', 'a_exclure', 'aucun_fort')
 
 
 def jugements(requete: Dict[str, Any]) -> Tuple[Dict[str, int], Set[str]]:
@@ -125,6 +134,47 @@ def evaluer(con, requetes: List[Dict[str, Any]], details: bool = False) -> Dict[
     return moyennes
 
 
+def _canonique(valeur: Any) -> str:
+    return json.dumps(valeur, ensure_ascii=True, sort_keys=True, separators=(',', ':'))
+
+
+def empreinte_jugements(requetes: List[Dict[str, Any]]) -> str:
+    """SHA-256 (hexadécimal) des jugements, indépendante de la mise en forme du fichier.
+
+    Pour chaque requête : les champs de CHAMPS_JUGEMENT présents dans le fichier, valeurs telles qu'écrites
+    (un champ absent reste absent, une option écrite en texte seul n'est pas mise en liste) ; requêtes triées
+    par id (comparaison de textes ; à id égal, par leur sérialisation) ; la liste est sérialisée en JSON ASCII
+    à clés triées et sans espace (json.dumps(liste, ensure_ascii=True, sort_keys=True,
+    separators=(',', ':'))), puis hachée. L'ordre des requêtes et des clés, l'indentation, les fins de
+    ligne, un BOM et les autres champs (jeu, raisons, commentaire…) ne la changent pas ; toute modification
+    d'un de ces champs, même l'ajout d'un champ vide, la change."""
+    entrees = [{cle: q[cle] for cle in CHAMPS_JUGEMENT if cle in q} for q in requetes]
+    entrees.sort(key=lambda e: (str(e.get('id', '')), _canonique(e)))
+    return hashlib.sha256(_canonique(entrees).encode('ascii')).hexdigest()
+
+
+def afficher_empreinte(requetes: List[Dict[str, Any]], contenu: bytes) -> None:
+    """Empreintes (jugements, chaque jeu, octets du fichier) et nombre de requêtes par jeu, sans recherche."""
+    jeux: Dict[str, List[Dict[str, Any]]] = {}
+    for requete in requetes:                 # même jeu par défaut que evaluer()
+        jeux.setdefault(str(requete.get('jeu', 'reference')), []).append(requete)
+    gn.log(f"Empreinte des jugements (SHA-256) : {empreinte_jugements(requetes)}", 'always')
+    gn.log(f"Empreinte du fichier (SHA-256 des octets) : {hashlib.sha256(contenu).hexdigest()}", 'always')
+    gn.log(f"Requêtes : {len(requetes)} ; par jeu (empreinte des jugements du jeu) :", 'always')
+    for jeu in sorted(jeux):
+        liste = jeux[jeu]
+        filtres = sum(1 for q in liste if q.get('options'))
+        dont = f", dont {filtres} avec filtres (hors moyenne)" if filtres else ''
+        gn.log(f"  {jeu} : {len(liste)} requête{'s' if len(liste) > 1 else ''}{dont}  "
+               f"{empreinte_jugements(liste)}", 'always')
+    ids = [str(q['id']) for q in requetes if 'id' in q]
+    doublons = sorted({i for i in ids if ids.count(i) > 1})
+    if doublons:
+        gn.log(f"Attention : identifiants en double : {', '.join(doublons)}", 'error')
+    if len(ids) < len(requetes):
+        gn.log(f"Attention : {len(requetes) - len(ids)} requête(s) sans « id »", 'error')
+
+
 def verifier_options(requetes: List[Dict[str, Any]]) -> List[str]:
     """Options de chaque requête : clés de rd.FILTRES, valeurs en liste de textes (un texte seul est mis dans
     une liste) ; renvoie les erreurs (une option mal écrite fausserait la mesure sans rien signaler)."""
@@ -151,13 +201,17 @@ def main(argv: Optional[List[str]] = None) -> int:
     parseur = gn._Parser(prog='evaluer_redecouverte', description="Mesure hors ligne de la redécouverte.")
     parseur.add_argument('fichier', help="fichier JSON des requêtes de référence")
     parseur.add_argument('--details', action='store_true', help="affiche les premiers dépôts de chaque requête")
+    parseur.add_argument('--empreinte', action='store_true',
+                         help="affiche l'empreinte SHA-256 des jugements et le nombre de requêtes par jeu, "
+                              "sans ouvrir l'index ni lancer de recherche")
     try:
         args = parseur.parse_args(argv)
     except SystemExit as e:
         return e.code if isinstance(e.code, int) else gn.EXIT_CONFIG
     try:
+        contenu = Path(args.fichier).read_bytes()
         # utf-8-sig : un fichier enregistré avec BOM (PowerShell 5.1, Bloc-notes) reste lisible
-        donnees = json.loads(Path(args.fichier).read_text(encoding='utf-8-sig'))
+        donnees = json.loads(contenu.decode('utf-8-sig'))
         requetes = donnees['requetes']
         if not isinstance(requetes, list) or not all(isinstance(q, dict) for q in requetes):
             raise ValueError('requetes')
@@ -174,6 +228,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     except (ValueError, KeyError, TypeError):
         gn.log(f"Fichier de requêtes illisible : {args.fichier} (objet {{\"requetes\": [...]}} attendu)", 'error')
         return gn.EXIT_CONFIG
+    if args.empreinte:                       # avant verifier_options, qui met les options en liste
+        afficher_empreinte(requetes, contenu)
+        return gn.EXIT_OK
     erreurs = verifier_options(requetes)
     if erreurs:
         for erreur in erreurs:

@@ -1,8 +1,11 @@
 """Définitions des mesures de scripts/evaluer_redecouverte.py (P@5 à dénominateur fixe, R@5, cas limites).
 
-Aucun index ni réseau : seule la fonction pure mesurer() est exercée.
+Aucun index ni réseau : seules les fonctions pures mesurer() et empreinte_jugements(), et l'option --empreinte
+(qui n'ouvre pas l'index), sont exercées.
 """
+import hashlib
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -63,3 +66,127 @@ def test_attendu_jamais_intrus_et_gain_maximal(ev):
 
 def test_metriques_moyennees_comprennent_r5(ev):
     assert ev.METRIQUES == ('ndcg10', 'p5', 'r5', 'mrr', 'intrus3', 'intrus5')
+
+
+# =============================================================================
+# --empreinte : prouver qu'un jeu de requêtes intégré n'a pas été modifié
+# =============================================================================
+FIXTURE_REQUETES = Path(__file__).resolve().parent / 'fixtures' / 'redecouverte' / 'requetes.json'
+JUGES = ('id', 'requete', 'options', 'en_tete', 'acceptables', 'a_exclure', 'aucun_fort')
+EXTERNES = [
+    {'id': 'X02', 'jeu': 'externe', 'requete': 'un OCR sans GPU', 'options': {}, 'en_tete': ['a/ocr'],
+     'acceptables': ['b/ocr', 'c/ocr'], 'a_exclure': ['d/gpu'], 'aucun_fort': False, 'raisons': 'gpu exclu'},
+    {'id': 'X01', 'jeu': 'externe', 'requete': 'planning de chantier', 'options': {}, 'en_tete': [],
+     'acceptables': [], 'a_exclure': ['e/x'], 'aucun_fort': True},
+    {'id': 'X03', 'jeu': 'filtre', 'requete': '', 'options': {'licence': ['MIT']}, 'en_tete': ['a/ocr'],
+     'acceptables': [], 'a_exclure': []},
+]
+
+
+def _empreinte_documentee(requetes):
+    """Algorithme décrit dans docs/REDECOUVERTE.md § 9, réécrit indépendamment du script."""
+    entrees = sorted(({k: q[k] for k in JUGES if k in q} for q in requetes), key=lambda e: e['id'])
+    texte = json.dumps(entrees, ensure_ascii=True, sort_keys=True, separators=(',', ':'))
+    return hashlib.sha256(texte.encode('ascii')).hexdigest()
+
+
+def _ecrire(chemin, requetes, **dump):
+    chemin.write_text(json.dumps({'requetes': requetes}, **dump), encoding='utf-8')
+    return chemin
+
+
+@pytest.fixture
+def sans_recherche(ev, monkeypatch):
+    def interdit(*a, **k):
+        raise AssertionError("--empreinte ne doit ni ouvrir l'index ni lancer de recherche")
+    for nom in ('ouvrir_index_valide', 'rechercher', 'analyser_requete'):
+        monkeypatch.setattr(ev.rd, nom, interdit)
+    return ev
+
+
+def test_empreinte_sans_index_ni_recherche(sans_recherche, tmp_path, capsys):
+    ev = sans_recherche
+    fichier = _ecrire(tmp_path / 'externe.json', EXTERNES, ensure_ascii=False, indent=2)
+    assert ev.main([str(fichier), '--empreinte']) == 0
+    sortie = capsys.readouterr().out
+    assert f"Empreinte des jugements (SHA-256) : {_empreinte_documentee(EXTERNES)}" in sortie
+    assert f"Empreinte du fichier (SHA-256 des octets) : {hashlib.sha256(fichier.read_bytes()).hexdigest()}" in sortie
+    assert 'Requêtes : 3 ;' in sortie
+    assert f"  externe : 2 requêtes  {_empreinte_documentee(EXTERNES[:2])}" in sortie
+    assert f"  filtre : 1 requête, dont 1 avec filtres (hors moyenne)  {_empreinte_documentee(EXTERNES[2:])}" in sortie
+    assert 'nDCG@10' not in sortie
+    # options écrites en texte seul : empreinte calculée avant la mise en liste, sans erreur
+    texte = _ecrire(tmp_path / 'texte.json', [dict(EXTERNES[2], options={'licence': 'MIT'})])
+    assert ev.main([str(texte), '--empreinte']) == 0
+    assert _empreinte_documentee([dict(EXTERNES[2], options={'licence': 'MIT'})]) in capsys.readouterr().out
+    # fichier illisible : même contrôle que pour les mesures (code 1)
+    (tmp_path / 'casse.json').write_text('{"requetes": [}', encoding='utf-8')
+    assert ev.main([str(tmp_path / 'casse.json'), '--empreinte']) == 1
+    assert 'JSON invalide' in capsys.readouterr().err
+
+
+def test_empreinte_insensible_a_la_mise_en_forme(sans_recherche, tmp_path):
+    ev = sans_recherche
+    reference = ev.empreinte_jugements(EXTERNES)
+    # ordre des requêtes et des clés, champs hors jugements (jeu, raisons, commentaire) : sans effet
+    autre = [dict(reversed(list(dict(q, jeu='independant', commentaire='rangé ailleurs').items())))
+             for q in reversed(EXTERNES)]
+    for q in autre:
+        q.pop('raisons', None)
+    assert ev.empreinte_jugements(autre) == reference
+    # indentation, BOM, fins de ligne Windows : même empreinte des jugements, octets différents
+    compact = _ecrire(tmp_path / 'compact.json', EXTERNES)
+    bom = tmp_path / 'bom.json'
+    bom.write_bytes(b'\xef\xbb\xbf' + json.dumps({'requetes': EXTERNES}, ensure_ascii=False, indent=1)
+                    .replace('\n', '\r\n').encode('utf-8'))
+    lus = [json.loads(f.read_bytes().decode('utf-8-sig'))['requetes'] for f in (compact, bom)]
+    assert [ev.empreinte_jugements(r) for r in lus] == [reference, reference]
+    assert compact.read_bytes() != bom.read_bytes()
+
+
+@pytest.mark.parametrize('modification', [
+    lambda q: q['en_tete'].append('z/z'),
+    lambda q: q['acceptables'].remove('c/ocr'),
+    lambda q: q['a_exclure'].clear(),
+    lambda q: (q['acceptables'].remove('b/ocr'), q['a_exclure'].append('b/ocr')),   # jugement déplacé
+    lambda q: q.update(aucun_fort=True),
+    lambda q: q.update(requete='un OCR avec GPU'),
+    lambda q: q.update(options={'statut': ['En test']}),
+    lambda q: q.update(id='X09'),
+    lambda q: q.pop('aucun_fort'),
+    lambda q: q['en_tete'].insert(0, q['acceptables'].pop()),
+], ids=['ajout_en_tete', 'retrait_acceptable', 'a_exclure_vide', 'deplace', 'aucun_fort', 'requete',
+        'options', 'id', 'champ_retire', 'promu'])
+def test_empreinte_detecte_toute_modification_de_jugement(sans_recherche, modification):
+    ev = sans_recherche
+    modifies = json.loads(json.dumps(EXTERNES))
+    modification(modifies[0])
+    assert ev.empreinte_jugements(modifies) != ev.empreinte_jugements(EXTERNES)
+
+
+def test_empreinte_signale_les_identifiants_en_double(sans_recherche, tmp_path, capsys):
+    ev = sans_recherche
+    double = [EXTERNES[0], dict(EXTERNES[1], id='X02'), {k: v for k, v in EXTERNES[2].items() if k != 'id'}]
+    assert ev.main([str(_ecrire(tmp_path / 'double.json', double)), '--empreinte']) == 0
+    erreurs = capsys.readouterr().err
+    assert 'identifiants en double : X02' in erreurs and '1 requête(s) sans « id »' in erreurs
+    # à id égal, l'ordre du fichier ne change pas l'empreinte
+    assert ev.empreinte_jugements(double) == ev.empreinte_jugements(list(reversed(double)))
+
+
+def test_empreinte_des_jeux_figes_du_depot(ev):
+    """Jugements des jeux de tests/fixtures/redecouverte/requetes.json : un changement de seuil ou de moteur ne
+    doit jamais s'accompagner d'une retouche des attendus. Un nouveau jeu s'ajoute sous un nouveau nom de jeu,
+    sans toucher ces empreintes. « nouvelles » a la même empreinte que le fichier figé avant tout résultat
+    (requetes_nouvelles.json, SHA-256 des octets debd09a2…), intégré sans changement."""
+    requetes = json.loads(FIXTURE_REQUETES.read_text(encoding='utf-8'))['requetes']
+    jeux = {}
+    for q in requetes:
+        jeux.setdefault(q['jeu'], []).append(q)
+    assert {jeu: (len(liste), ev.empreinte_jugements(liste)) for jeu, liste in jeux.items()
+            if jeu in ('reference', 'hors_echantillon', 'anglais', 'nouvelles')} == {
+        'reference': (15, '31f6704ff33acdae4b8666bbc2783294bbc11b0c759e8290c9e85f51cf1e9bd3'),
+        'hors_echantillon': (10, '8b73b1e29059a901f1af06ddf2106e7b6b5d7022e87838ee90115a736e667976'),
+        'anglais': (1, 'c9a7059c08ba5303aad6e41ab267891356d603da6ddc61ada198bec5aa53a37e'),
+        'nouvelles': (8, '186d639603ae083c834d3c58b308fa29730678803f00e23de57e711c069767ae'),
+    }

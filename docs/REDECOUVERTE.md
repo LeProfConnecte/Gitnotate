@@ -590,6 +590,55 @@ précision normalisée, plus flatteuse que P@5 dès que moins de 5 dépôts éta
 `--details` montre les premiers dépôts. Les moyennes sont données par jeu ; les requêtes avec filtres sont mesurées à part, hors moyenne. Le
 script ouvre l'index en lecture seule, sans réseau (code 1 si le fichier ou l'index est illisible).
 
+### Intégrer un jeu de requêtes externe
+
+Un jeu de requêtes écrit par quelqu'un d'autre (avec ses attendus et son protocole de
+qualification) ne doit pas être retouché pour l'intégrer : ses jugements sont la mesure.
+
+1. **Copier le fichier tel quel** dans `tests/fixtures/redecouverte/`, sans le reformater ni
+   corriger un attendu, même manifestement faux : une clé de dépôt absente de l'index est signalée
+   par une ligne `Attention` au moment de la mesure ; elle se signale à l'auteur du jeu, elle ne
+   se corrige pas dans le fichier. Si le fichier n'est pas au format décrit plus haut, gardez
+   l'original intact à côté de la version convertie et faites valider la conversion par l'auteur
+   avant de noter l'empreinte des jugements.
+2. **Comparer l'empreinte** avant et après la copie :
+
+   ```powershell
+   python scripts/evaluer_redecouverte.py tests/fixtures/redecouverte/jeu_externe.json --empreinte
+   ```
+
+   Le script n'ouvre pas l'index et ne lance aucune recherche (l'option fonctionne avant toute
+   synchronisation). Il affiche l'empreinte SHA-256 des octets du fichier, à comparer avec celle
+   donnée par l'auteur ou calculée sur le fichier reçu (`Get-FileHash <fichier> -Algorithm SHA256`
+   sous Windows, `sha256sum <fichier>` sous Linux) ; l'empreinte SHA-256 des jugements du fichier
+   et celle de chaque jeu ; le nombre de requêtes par jeu (et combien ont des filtres, mesurées hors
+   moyenne). Notez l'empreinte des jugements à la réception : elle doit rester la même.
+3. **Lancer le script** sans `--empreinte`, sur l'index construit par `sync`, et lire les requêtes
+   une par une (`--details`), dépôts hors sujet non listés compris.
+
+L'empreinte des jugements couvre, pour chaque requête, les champs `id`, `requete`, `options`,
+`en_tete`, `acceptables`, `a_exclure` et `aucun_fort` présents dans le fichier, valeurs telles
+qu'écrites (un champ absent reste absent, une option écrite en texte seul n'est pas mise en
+liste). Les requêtes sont triées par `id`, la liste est sérialisée en JSON ASCII à clés triées et
+sans espace, puis hachée en SHA-256 ; en Python :
+
+```python
+entrees = sorted(({k: q[k] for k in CHAMPS if k in q} for q in requetes), key=lambda e: str(e.get('id', '')))
+hashlib.sha256(json.dumps(entrees, ensure_ascii=True, sort_keys=True, separators=(',', ':')).encode('ascii')).hexdigest()
+```
+
+(`CHAMPS` = les sept champs ci-dessus ; à `id` égal, le script départage par la sérialisation de
+chaque requête.) L'ordre des requêtes et des clés, l'indentation, les fins de ligne, un BOM et les
+autres champs (`jeu`, `raisons`, `commentaire`…) ne changent pas cette empreinte ; toute
+modification d'un de ces sept champs, même l'ajout d'un champ vide ou le déplacement d'un dépôt
+d'`acceptables` vers `a_exclure`, la change. Comme `jeu` n'en fait pas partie, un jeu externe peut
+aussi être versé dans un fichier commun sous un nom de jeu qui lui est propre : l'empreinte de ce
+jeu, affichée par `--empreinte`, doit alors être égale à l'empreinte des jugements du fichier
+d'origine. C'est ainsi que les 8 requêtes `nouvelles` de `requetes.json` ont la même empreinte
+(`186d6396…`) que le fichier figé avant tout résultat dont elles viennent. Les empreintes des jeux
+du fichier de référence sont vérifiées par `tests/test_evaluation_metriques.py` : un nouveau jeu
+s'ajoute sous un nouveau nom, sans toucher les jugements des jeux existants.
+
 ## 10. Mesures sur le corpus synthétique
 
 **Ce qui a été mesuré.** Le corpus de test (`tests/fixtures/redecouverte/`) contient 63 fiches
