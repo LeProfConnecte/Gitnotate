@@ -2,10 +2,13 @@
 
 M. Invariant « Répond à » (aucune correspondance sans occurrence réelle) · N. Requête (contraintes,
 références, possessifs, variantes, nombres) · O. Affichage des concepts absents · P. Seuils des requêtes
-nouvelles (écrites avant tout résultat, attendus inchangés).
+nouvelles (écrites avant tout résultat, attendus inchangés) · Q. Seconde revue contradictoire (objet du
+besoin et mots hors lexique, féminin sans « e » ajouté, portée d'une comparaison, garde-fou au changement
+de format, mot du seul propriétaire/dépôt).
 """
 import importlib.util
 import json
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -16,6 +19,8 @@ from redecouverte_outils import (
     p_multi,
     p_texte,
     page,
+    pages_du_corpus,
+    pages_numerotees,
     preparer,
     schema,
 )
@@ -67,9 +72,11 @@ def _synchroniser(banc, pages, colonnes=None):
 # M. Invariant « Répond à »
 # =============================================================================
 def _texte_cite(rd, fiche, occurrence):
-    """Texte stocké du champ cité : valeur de la colonne personnelle, nom indexé, ou texte du champ."""
+    """Texte stocké du champ cité : valeur de la colonne personnelle, titre (Nom) ou adresse (URL, pour un mot
+    du seul propriétaire/dépôt) de la fiche, ou texte du champ."""
     if occurrence['colonne'] == 'nom':
-        return rd.texte_nom_indexe(fiche['nom'], fiche['cle_depot'])
+        assert occurrence['champ'] in ('Nom', 'URL'), occurrence
+        return fiche['champs'][occurrence['champ']]['texte']
     if occurrence['colonne'] == 'notes':
         if occurrence['champ'] in fiche['autres']:
             return fiche['autres'][occurrence['champ']]
@@ -91,7 +98,8 @@ def verifier_repond_a(rd, reponse, contexte=''):
     """Pour chaque résultat affiché et chaque concept de « Répond à » (m > 0) : chaque champ cité contient une
     occurrence surlignée du concept dans le texte stocké de la fiche citée (sous-chaîne exacte, formée des
     termes de l'expression du concept), et le concept a un extrait, sauf raison : occurrence dans le seul
-    Nom (exclu des extraits) ou nombre maximal d'extraits atteint."""
+    Nom ou dans le seul propriétaire/dépôt (cité URL ; exclus des extraits) ou nombre maximal d'extraits
+    atteint."""
     concepts = {c.cle: c for c in reponse.requete.concepts}
     verifies = 0
     for r in reponse.affiches:
@@ -112,8 +120,9 @@ def verifier_repond_a(rd, reponse, contexte=''):
         for entree in r.repond_a:
             ou = (contexte, r.cle, entree['concept'])
             extrait = any(entree['concept'] in e['concepts'] for e in r.extraits)
-            assert extrait or entree['champs'] == ['Nom'] or len(r.extraits) == rd.EXTRAITS_PAR_RESULTAT, ou
-            if entree['champs'] == ['Nom']:
+            nom_seul = set(entree['champs']) <= {'Nom', 'URL'}
+            assert extrait or nom_seul or len(r.extraits) == rd.EXTRAITS_PAR_RESULTAT, ou
+            if nom_seul:
                 assert {o['colonne'] for o in entree['occurrences']} == {'nom'}, ou
             assert 'Notes' not in entree['champs'] or 'Notes' in fiches[entree['page_id']]['autres'], ou
     return verifies
@@ -203,8 +212,7 @@ def test_contrainte_rare_ne_pese_plus_que_l_objet(corpus):
     rd = corpus.rd
     reponse = _chercher(rd, PAR_ID['N04']['requete'])
     concepts = {c.cle: c for c in reponse.requete.concepts}
-    objets = [c.poids for c in concepts.values() if c.classe in ('essentiel', 'libre') and c.role == 'normal'
-              and not c.retire]
+    objets = [c.poids for c in concepts.values() if c.classe == 'essentiel' and c.role == 'normal' and not c.retire]
     assert concepts['windows'].poids == pytest.approx(0.5 * max(objets))
     assert concepts['windows'].poids < concepts['ocr'].poids
     cles = [r.cle for r in reponse.resultats]
@@ -255,6 +263,12 @@ def test_contrainte_frequente_departage_encore(corpus):
     ('a spreadsheet rather than Notion', [('tableur', 'normal'), ('notion', 'reference')]),
     ('a CLI simpler than Docker', [('cli', 'normal'), ('docker', 'reference')]),
     ('a CLI better than Docker', [('cli', 'normal'), ('docker', 'reference')]),
+    # portée arrêtée par une préposition, prolongée par « ou »/« et » (seconde revue, R2P-3)
+    ('un OCR plus simple que Tesseract pour les plans scannés', [('ocr', 'normal'), ('tesseract', 'reference'),
+                                                                ('plan', 'normal'), ('scan', 'normal')]),
+    ('a CLI simpler than Docker for Windows', [('cli', 'normal'), ('docker', 'reference'), ('windows', 'normal')]),
+    ('un tableur plutôt que Notion ou Airtable', [('tableur', 'normal'), ('notion', 'reference'),
+                                                 ('airtable', 'reference')]),
 ])
 def test_expressions_de_reference(banc, texte, attendu):
     requete = banc.rd.analyser_requete(texte)
@@ -292,10 +306,12 @@ def test_possessif_suivi_de_propre(banc):
 
 def test_variantes_feminines_des_mots_libres(corpus):
     rd = corpus.rd
-    assert [rd.feminin(m) for m in ('interactif', 'premier', 'ancien', 'reel', 'createur', 'local', 'gratuit')] == [
-        'interactive', 'premiere', 'ancienne', 'reelle', 'createuse', 'locale', 'gratuite']
-    assert [rd.feminin(m) for m in ('structure', 'gerer', 'data', 'git', 'v2')] == ['structure', 'gerer', 'data',
-                                                                                      'git', 'v2']
+    assert [rd.feminin(m) for m in ('interactif', 'premier', 'ancien', 'reel', 'createur')] == [
+        'interactive', 'premiere', 'ancienne', 'reelle', 'createuse']
+    # aucun « e » ajouté après une consonne (seconde revue) : « test » + e rejoindrait « testé »
+    assert [rd.feminin(m) for m in ('structure', 'gerer', 'data', 'git', 'v2', 'test', 'local', 'gratuit')] == [
+        'structure', 'gerer', 'data', 'git', 'v2', 'test', 'local', 'gratuit']
+    assert '"local"*' in rd._termes_mot('local', libre=True)          # « locale » : par le préfixe
     termes = rd._termes_mot('interactifs', libre=True)
     assert '"interactive"' in termes and '"interactives"' in termes
     assert rd._termes_mot('interactifs') == ['"interactifs"', '"interactif"', '"interactif"*']   # forme du lexique
@@ -409,3 +425,153 @@ def test_requetes_nouvelles_seuils(corpus):
         assert not any(r.niveau == 'forte' for r in reponse.resultats + reponse.sans_depot), ident
     for ident in ('N01', 'N02', 'N03', 'N04', 'N07'):          # attendu en tête au premier rang
         assert mesures[ident][0]['mrr'] == 1.0, ident
+
+# =============================================================================
+# Q. Seconde revue contradictoire
+# =============================================================================
+def test_objet_sans_notion_du_lexique_mot_hors_lexique_present_ailleurs(banc):
+    """R2P-1 : un mot hors lexique (« installer », « tester ») présent dans une fiche sans rapport ne devient
+    plus l'objet du besoin : il ne réduit plus les contraintes à la moitié de son poids et n'est plus exigé
+    pour « forte » ; dockur/windows (« Windows inside a Docker container ») reste premier et fort."""
+    rd = banc.rd
+    pyenv = page('pyenv', 'https://github.com/pyenv/pyenv', props={
+        'Description': p_texte("Permet d'installer plusieurs versions de Python côte à côte."),
+        'Justification': p_texte(JUSTIF)})
+    index_du_corpus(rd, pages_du_corpus() + [pyenv])
+    for texte, mot in (('installer Windows dans un conteneur Docker', 'installer'),
+                       ('tester un logiciel Windows dans Docker', 'tester')):
+        reponse = _chercher(rd, texte)
+        concepts = {c.cle: c for c in reponse.requete.concepts}
+        assert concepts[mot].classe == 'libre' and concepts[mot].df >= 1, texte      # trouvé ailleurs
+        essentiels = rd.ensembles_niveau([c for c in concepts.values() if not c.retire])[0]
+        assert {'windows', 'docker'} <= {c.cle for c in rd.objets_du_besoin(list(concepts.values()), essentiels)}
+        tete = reponse.resultats[0]
+        assert (tete.cle, tete.niveau) == ('dockur/windows', 'forte'), [(r.cle, r.niveau) for r in
+                                                                         reponse.resultats[:3]]
+        assert mot in tete.ne_couvre_pas
+        assert all(r.niveau != 'forte' for r in reponse.resultats[1:]), texte          # pyenv : partielle
+    assert verifier_repond_a(rd, _chercher(rd, 'installer Windows dans un conteneur Docker', tout=True)) >= 2
+
+
+def test_objet_du_lexique_toujours_exige_avec_des_contraintes(corpus):
+    """Une notion essentielle du lexique reste l'objet : pour « un OCR Windows dans Docker », dockur/windows
+    (Windows et Docker, pas d'OCR) reste partiel. Limite documentée (docs/REDECOUVERTE.md, Limites) : une
+    notion générique (« serveur ») est aussi l'objet, faute de pouvoir lire « serveur Windows » comme une
+    édition de Windows."""
+    rd = corpus.rd
+    reponse = _chercher(rd, 'un OCR Windows dans Docker')
+    niveaux = {r.cle: r.niveau for r in reponse.resultats}
+    assert reponse.resultats[0].cle == 'ub-mannheim/tesseract' and niveaux['dockur/windows'] == 'partielle'
+    concepts = {c.cle: c for c in reponse.requete.concepts}
+    assert concepts['windows'].poids == pytest.approx(0.5 * concepts['ocr'].poids)
+    serveur = _chercher(rd, 'un serveur Windows dans Docker')
+    niveaux = {r.cle: r.niveau for r in serveur.resultats}
+    assert serveur.resultats[0].cle == 'awesome-selfhosted/awesome-selfhosted'
+    assert niveaux['awesome-selfhosted/awesome-selfhosted'] == 'forte' and niveaux['dockur/windows'] == 'partielle'
+
+
+@pytest.mark.parametrize('texte', ['test', 'tests unitaires', 'lancer des tests unitaires', 'framework de test'])
+def test_feminin_ne_trouve_plus_teste(corpus, texte):
+    """R2P-2 / R2-1 : « test » + e = « teste », qui rejoignait après repli des accents le participe « Testé »
+    des notes (docling : « Testé pour extraire les tableaux » ; PaddleOCR : « Testé : bon sur les plans
+    scannés ») ; evidently (« de test et de surveillance ») redevient le seul résultat, comme avant
+    l'affinage."""
+    rd = corpus.rd
+    reponse = _chercher(rd, texte, tout=True)
+    assert [r.cle for r in reponse.resultats] == ['evidentlyai/evidently']
+    for r in reponse.affiches:
+        for e in r.repond_a + r.indices_faibles:
+            assert all(rd.gn._fold(o['texte']) != 'teste' for o in e['occurrences']), (r.cle, e)
+    assert verifier_repond_a(rd, reponse, texte) >= 1
+
+
+def test_feminin_aucun_terme_construit_apres_une_consonne(banc):
+    rd = banc.rd
+    assert rd._termes_mot('test', libre=True) == ['"test"']
+    assert rd._termes_mot('tests', libre=True) == ['"tests"', '"test"']
+    for mot in ('post', 'port', 'vent', 'sort', 'edit', 'list'):
+        assert rd._termes_mot(mot, libre=True) == [f'"{mot}"'], mot
+    assert rd._termes_mot('interactifs', libre=True)[-2:] == ['"interactive"', '"interactives"']
+
+
+def test_comparaison_arretee_par_une_preposition(corpus):
+    """R2P-3 : dans « un OCR plus simple que Tesseract pour les plans scannés », seul Tesseract est la
+    référence ; les deux dépôts tesseract (à remplacer) ne sortent plus « forte »."""
+    rd = corpus.rd
+    reponse = _chercher(rd, 'un OCR plus simple que Tesseract pour les plans scannés')
+    niveaux = {r.cle: r.niveau for r in reponse.resultats}
+    assert reponse.resultats[0].cle == 'paddlepaddle/paddleocr' and niveaux['paddlepaddle/paddleocr'] == 'forte'
+    assert niveaux['ub-mannheim/tesseract'] == niveaux['tesseract-ocr/tesseract'] == 'partielle'
+    virgule = _chercher(rd, 'un OCR plus simple que Tesseract, pour les plans scannés')
+    assert [(r.cle, r.niveau) for r in virgule.resultats] == [(r.cle, r.niveau) for r in reponse.resultats]
+
+
+def test_garde_fou_au_premier_sync_apres_changement_de_format(banc, capsys):
+    """R2-2 : un index d'un autre format (version précédente du moteur) dont les fiches et la base se lisent
+    est comparé : une baisse brutale ou une autre base est refusée (code 2, ancien index conservé) ; seul un
+    index illisible est remplacé sans comparaison."""
+    rd = banc.rd
+    banc.notion.pages = pages_numerotees(30)
+    assert banc.lancer('sync') == 0
+
+    def ancien_format(*sql):
+        con = sqlite3.connect(str(banc.index))
+        con.execute('PRAGMA user_version = 1')
+        con.execute("UPDATE meta SET valeur = '1' WHERE cle = 'format_index'")
+        for requete in sql:
+            con.execute(requete)
+        con.commit()
+        con.close()
+        return banc.index.read_bytes()
+
+    avant = ancien_format()
+    banc.notion.pages = pages_numerotees(3)
+    capsys.readouterr()
+    assert banc.lancer('sync') == 2
+    sortie = _sorties(capsys)
+    assert "27 fiches de l'index précédent sont absentes de la lecture" in sortie
+    assert "L'ancien index est conservé" in sortie and banc.index.read_bytes() == avant
+    banc.notion.pages = pages_numerotees(30)
+    avant = ancien_format("UPDATE meta SET valeur = 'ffffffffffffffffffffffffffffffff' WHERE cle = 'database_id'")
+    assert banc.lancer('sync') == 2
+    assert "L'index précédent venait d'une autre base (ffffffff…)" in _sorties(capsys)
+    assert banc.index.read_bytes() == avant
+    ancien_format("UPDATE meta SET valeur = '" + rd.normaliser_id(banc.gn.DATABASE_ID) + "' WHERE cle = 'database_id'")
+    banc.notion.pages = pages_numerotees(3)
+    assert banc.lancer('sync', '--accepter-baisse') == 0
+    sortie = _sorties(capsys)
+    assert "index précédent d'un autre format : remplacé après comparaison des fiches" in sortie
+    assert "baisse acceptée (--accepter-baisse) : 27 fiches disparues" in sortie
+    ancien_format('ALTER TABLE fiches RENAME TO fiches_v1')
+    assert banc.lancer('sync') == 0
+    assert "index précédent d'un autre format : remplacé sans comparaison" in _sorties(capsys)
+    con, meta = rd.ouvrir_index_valide()
+    con.close()
+    assert meta['nb_fiches'] == '3'
+
+
+def test_mot_du_seul_depot_cite_dans_url(corpus):
+    """R2-3 : « mannheim » ne vient que de propriétaire/dépôt (ub-mannheim/tesseract) : il est cité dans le
+    champ URL, tel qu'écrit dans l'adresse (« Mannheim »), plus dans le Nom (« tesseract », « Installeur
+    Tesseract pour Windows ») ; un mot du découpage CamelCase est situé dans le titre."""
+    rd = corpus.rd
+    reponse = _chercher(rd, 'mannheim')
+    r = reponse.resultats[0]
+    assert r.cle == 'ub-mannheim/tesseract'
+    entree = r.repond_a[0]
+    fiche = {f['page_id']: f for f in r.fiches}[entree['page_id']]
+    assert entree['champs'] == ['URL'] and entree['texte'].startswith('mannheim (URL · ')
+    o = entree['occurrences'][0]
+    assert (o['champ'], o['colonne'], o['texte']) == ('URL', 'nom', 'Mannheim')
+    assert fiche['champs']['URL']['texte'][o['debut']:o['fin']] == 'Mannheim'
+    assert 'mannheim' not in fiche['champs']['Nom']['texte'].lower()
+    assert verifier_repond_a(rd, reponse) >= 1
+    paddle = _chercher(rd, 'paddle').resultats[0]
+    nom = next(o for e in paddle.repond_a for o in e['occurrences'] if o['colonne'] == 'nom')
+    assert (nom['champ'], nom['debut'], nom['fin'], nom['texte']) == ('Nom', 0, 6, 'Paddle')
+    tesseract = _chercher(rd, 'tesseract')
+    for r in tesseract.resultats:                      # titre qui contient le mot : Nom, sans URL en double
+        entree = r.repond_a[0]
+        assert 'URL' not in entree['champs'], (r.cle, entree['champs'])
+    assert rd.sources_nom_indexe('PaddleOCR', 'paddlepaddle/paddleocr') == [
+        (0, 9, 'titre', 0), (10, 16, 'titre', 0), (17, 20, 'titre', 6), (21, 43, 'depot', 0)]

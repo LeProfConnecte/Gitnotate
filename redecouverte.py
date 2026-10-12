@@ -95,6 +95,9 @@ MAX_CONCEPTS = 12
 PORTEE_NEGATION = 4
 PORTEE_CONTEXTE = 3
 PORTEE_REFERENCE = 3
+# Mots de liaison (lexique.FIN_NEGATION) qui prolongent la référence au lieu de l'arrêter : « plutôt que
+# Notion ou Excel » (une préposition comme « pour », « avec », « dans » l'arrête)
+_SUITE_REFERENCE = frozenset({'et', 'ou', 'and', 'or'})
 ALPHA = 0.7                          # présence d'un concept 70 %, force BM25 30 %
 FACTEUR_VOISIN = 0.5
 FACTEUR_JUSTIFICATION = 0.35
@@ -1293,6 +1296,25 @@ def texte_nom_indexe(titre: str, cle: str) -> str:
     return ' '.join(morceaux)
 
 
+def sources_nom_indexe(titre: str, cle: str) -> List[Tuple[int, int, str, int]]:
+    """Origine de chaque morceau de texte_nom_indexe(titre, cle) : (début, fin, source, position du morceau
+    dans le texte de sa source), source 'titre' (le titre, puis chaque mot de son découpage CamelCase, repris
+    tel quel du titre) ou 'depot' (owner/repo : la clé, de même longueur)."""
+    sources: List[Tuple[int, int, str, int]] = []
+    pos = 0
+    if titre:
+        sources.append((0, len(titre), 'titre', 0))
+        pos = len(titre) + 1
+    parties = list(_CHAMEAU_RE.finditer(titre))
+    if len(parties) >= 2:
+        for m in parties:
+            sources.append((pos, pos + len(m.group()), 'titre', m.start()))
+            pos += len(m.group()) + 1
+    if est_depot(cle) and '/' in cle:
+        sources.append((pos, pos + len(cle), 'depot', 0))
+    return sources
+
+
 def entrees_notes(autres: Dict[str, str], justification: Optional[str]) -> List[Tuple[str, str]]:
     """(colonne personnelle, valeur) indexées dans la colonne FTS notes, dans l'ordre ; justification : texte
     d'une Justification réécrite par l'utilisateur (None sinon)."""
@@ -1562,20 +1584,22 @@ def _supprimer_tmp(dossier: Path) -> None:
 
 
 def _index_precedent(cible: Path) -> Optional[Dict[str, Any]]:
-    """Index actif (page_id -> nom, meta) pour le garde-fou ; {'illisible': motif} s'il est inutilisable."""
+    """Index actif (page_id -> nom, meta) pour le garde-fou ; {'illisible': motif} s'il est inutilisable.
+    Un index d'un autre format (celui d'une version précédente du moteur) est comparé quand même si ses
+    tables meta et fiches (page_id, nom) se lisent : le premier sync après une mise à jour garde le
+    garde-fou de baisse ; 'autre_format' le signale."""
     if not cible.exists():
         return None
+    autre_format = False
     try:
         with contextlib.closing(ouvrir_index_lecture(cible)) as con:
-            if con.execute('PRAGMA user_version').fetchone()[0] != FORMAT_INDEX:
-                return {'illisible': "index précédent d'un autre format"}
+            autre_format = con.execute('PRAGMA user_version').fetchone()[0] != FORMAT_INDEX
             meta = lire_meta(con)
-            if meta.get('format_index') != str(FORMAT_INDEX):
-                return {'illisible': "index précédent d'un autre format"}
+            autre_format = autre_format or meta.get('format_index') != str(FORMAT_INDEX)
             pages = {page_id: nom for page_id, nom in con.execute('SELECT page_id, nom FROM fiches ORDER BY id')}
     except sqlite3.Error:
-        return {'illisible': 'index précédent illisible'}
-    return {'meta': meta, 'pages': pages}
+        return {'illisible': "index précédent d'un autre format" if autre_format else 'index précédent illisible'}
+    return {'meta': meta, 'pages': pages, 'autre_format': autre_format}
 
 
 def _garde_fou(precedent: Optional[Dict[str, Any]], fiches: List[Fiche], database_id: str,
@@ -1608,6 +1632,8 @@ def _garde_fou(precedent: Optional[Dict[str, Any]], fiches: List[Fiche], databas
         raise Arret(gn.EXIT_INCOMPLETE, f"{sujet} de la lecture (DATABASE_ID changé ? partage de "
                                         "l'intégration retiré ? fiches supprimées ?). L'ancien index est "
                                         f"conservé. {conseil}\n   Absentes : {noms}")
+    if precedent.get('autre_format'):
+        avertissements.append("index précédent d'un autre format : remplacé après comparaison des fiches")
     if baisse:
         avertissements.append(f"baisse acceptée (--accepter-baisse) : {len(disparues)} fiches disparues")
     if ancienne_base and ancienne_base != database_id:
@@ -2293,17 +2319,17 @@ def masculin(t: str) -> str:
 
 
 def feminin(t: str) -> str:
-    """Forme féminine d'un mot masculin au singulier de 4 lettres ou plus, sans chiffre : if/ive, ier/ière,
-    ien/ienne, el/elle, eur/euse, sinon « e » final après une consonne (« interactif » -> « interactive »,
-    « local » -> « locale ») ; le mot lui-même sinon (déjà en « e », voyelle finale, infinitif en « er »)."""
+    """Forme féminine d'un mot masculin au singulier de 4 lettres ou plus, sans chiffre, par ses seuls
+    suffixes : if/ive, ier/ière, ien/ienne, el/elle, eur/euse (« interactif » -> « interactive ») ; le mot
+    lui-même sinon. Jamais de « e » ajouté après une consonne : une fois les accents retirés, « test » + e
+    rejoindrait le participe « testé » (« Testé : bon sur les plans scannés »), « port » « porté » ; à
+    partir de 5 lettres, le préfixe de _termes_mot couvre déjà « local » -> « locale »."""
     if len(t) < 4 or any(c.isdigit() for c in t) or not t.isalpha():
         return t
     for fin, remplacement in (('if', 'ive'), ('ier', 'iere'), ('ien', 'ienne'), ('el', 'elle'), ('eur', 'euse')):
         if t.endswith(fin):
             return t[:-len(fin)] + remplacement
-    if t[-1] in 'aeiouy' or t.endswith('er'):
-        return t
-    return t + 'e'
+    return t
 
 
 @dataclass(frozen=True)
@@ -2522,6 +2548,8 @@ def analyser_requete(texte: str) -> Requete:
                     continue
                 if mot in lexique.FIN_NEGATION:
                     negation = 0
+                    if mot not in _SUITE_REFERENCE:     # « plus simple que Tesseract pour les plans » : les
+                        reference = 0                   # plans décrivent l'objet ; « plutôt que A ou B » : non
                     ignores.append(mot)
                     continue
                 if mot in lexique.POSSESSIFS:
@@ -2770,10 +2798,12 @@ def ensembles_niveau(actifs: List[Concept]) -> Tuple[List[Concept], List[Concept
 
 def _poids_contraintes(actifs: List[Concept]) -> None:
     """Poids d'une contrainte (système, plateforme, langage, déploiement) : la moitié (CLASSES) du poids de la
-    notion la plus lourde de l'objet du besoin (essentielle ou mot libre, rôle normal), multipliée par son
-    rôle, quelle que soit sa rareté : « Windows » (3 fiches) ne pèse plus plus que « OCR » (11 fiches), et
-    « Python » (33 fiches) départage encore deux serveurs MCP. Sans objet nommé : rareté, comme les autres."""
-    objets = [c.poids for c in actifs if c.classe not in ('contrainte', 'faible') and c.role == 'normal']
+    notion la plus lourde de l'objet du besoin (notion essentielle du lexique, rôle normal), multipliée par
+    son rôle, quelle que soit sa rareté : « Windows » (3 fiches) ne pèse plus plus que « OCR » (11 fiches),
+    et « Python » (33 fiches) départage encore deux serveurs MCP. Un mot hors lexique n'est jamais cet
+    objet : souvent un verbe (« installer », « tester »), il réduirait les contraintes à la moitié de son
+    poids dès qu'une fiche sans rapport le contient. Sans objet du lexique : rareté, comme les autres."""
+    objets = [c.poids for c in actifs if c.classe == 'essentiel' and c.role == 'normal']
     if not objets:
         return
     reference = max(objets)
@@ -2785,12 +2815,12 @@ def _poids_contraintes(actifs: List[Concept]) -> None:
 def objets_du_besoin(actifs: List[Concept], essentiels: List[Concept]) -> List[Concept]:
     """Notions dont l'une doit être trouvée directement pour « forte » (une contrainte n'y suffit jamais
     seule : « un OCR pour Windows » n'est pas couvert par « Windows ») :
-    - les essentiels qui ne sont pas des contraintes ;
-    - s'ils sont tous des contraintes, les notions du lexique non contraintes de rôle contexte (« en Python
-      pour mes vidéos ») ;
-    - à défaut, les essentiels eux-mêmes : le besoin n'est fait que de contraintes (« Windows dans un
-      conteneur Docker »), ou son objet est une notion faible déjà exigée (« un LLM en local »)."""
-    objets = [c for c in essentiels if c.classe != 'contrainte']
+    - les essentiels qui sont des notions essentielles du lexique (ni contrainte, ni mot hors lexique) ;
+    - à défaut, les notions essentielles du lexique de rôle contexte (« en Python pour mes vidéos ») ;
+    - à défaut, les essentiels eux-mêmes : le besoin n'est fait que de contraintes et de mots hors lexique
+      (« installer Windows dans un conteneur Docker », même si une fiche contient « installer »), ou son
+      objet est une notion faible déjà exigée (« un LLM en local »)."""
+    objets = [c for c in essentiels if c.classe == 'essentiel']
     if not objets:
         objets = [c for c in actifs if c.classe == 'essentiel' and c.role == 'contexte']
     return objets or list(essentiels)
@@ -3123,6 +3153,9 @@ class _Contexte:
         texte, occurrences = _occurrences(marque)
         if not occurrences:
             return
+        if colonne == 'nom':
+            yield from self._zones_nom(rowid, texte, occurrences)
+            return
         if colonne != 'notes':
             yield self._zone(rowid, colonne, CHAMP_DE_COLONNE[colonne], texte), occurrences
             return
@@ -3130,6 +3163,41 @@ class _Contexte:
             dedans = [(a - debut, b - debut) for a, b in occurrences if debut <= a and b <= fin]
             if dedans:
                 yield self._zone(rowid, 'notes', nom, valeur), dedans
+
+    def _zones_nom(self, rowid: int, texte: str, occurrences: List[Tuple[int, int]]):
+        """Occurrences du nom indexé (d'un même concept) rapportées au texte stocké de leur source : le champ
+        Nom (titre ; un mot du découpage CamelCase est situé dans le titre) ou, pour un mot venu du seul
+        owner/repo, le champ URL, à sa position dans l'adresse (« mannheim » -> « Mannheim » dans
+        .../UB-Mannheim/tesseract)."""
+        f = self.fiches[rowid]
+        titre = (f['champs'].get('Nom') or {}).get('texte', '')
+        url = (f['champs'].get('URL') or {}).get('texte', '')
+        cle = f['cle_depot']
+        sources = sources_nom_indexe(titre, cle)
+        trouve = re.search(re.escape(cle), url, re.IGNORECASE) if cle else None
+        dans_url = trouve.start() if trouve and len(trouve.group()) == len(cle) else -1
+        if texte_nom_indexe(titre, cle) != texte or (dans_url < 0 and any(s[2] == 'depot' for s in sources)):
+            yield self._zone(rowid, 'nom', 'Nom', texte), occurrences   # jamais attendu : nom indexé cité
+            return
+        zones: Dict[str, List[Tuple[int, int]]] = {}
+        for a, b in occurrences:
+            debut = next((s for s in sources if s[0] <= a < s[1]), None)
+            if debut is None:
+                continue
+            fin = next((s for s in sources if s[0] < b <= s[1] and s[2] == debut[2] and s[0] >= debut[0]), None)
+            if fin is None:                                   # expression à cheval sur titre et owner/repo
+                fin, b = debut, debut[1]
+            a, b = debut[3] + a - debut[0], fin[3] + b - fin[0]
+            if debut[2] == 'depot':
+                a, b = a + dans_url, b + dans_url
+            occurrence = (a, b)
+            liste = zones.setdefault('URL' if debut[2] == 'depot' else 'Nom', [])
+            if occurrence not in liste:
+                liste.append(occurrence)
+        if 'Nom' in zones:                                    # owner/repo ne fait que répéter le titre
+            zones.pop('URL', None)
+        for champ, liste in zones.items():
+            yield self._zone(rowid, 'nom', champ, url if champ == 'URL' else titre), liste
 
     def _zone(self, rowid: int, colonne: str, champ: str, texte: str) -> _Zone:
         cle = (rowid, colonne, champ)
@@ -3205,7 +3273,7 @@ def _noms_colonnes(ctx: _Contexte, p: Preuve, colonnes: List[str], concept: str)
 
 def _occurrences_citees(ctx: _Contexte, p: Preuve, colonnes: List[str], concept: str) -> List[Dict[str, Any]]:
     """Première occurrence du concept dans chaque champ cité : texte == texte stocké du champ[debut:fin]
-    (pour le Nom : nom indexé, titre de la fiche suivi de son découpage et de propriétaire/dépôt)."""
+    (colonne nom : titre de la fiche, ou adresse URL pour un mot du seul propriétaire/dépôt, _zones_nom)."""
     citees = []
     for colonne in colonnes:
         for z in ctx.zones_de(p.rowid, colonne, concept):

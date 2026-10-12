@@ -264,19 +264,23 @@ Index     : 62 fiches, 51 dépôts — données lues dans Notion le 2026-10-11 �
 
 - `Concepts` : les notions retenues, avec entre parenthèses des formes et synonymes français ou
   anglais du lexique (`redecouverte_lexique.py`, 119 concepts). `(hors lexique)` : mot cherché tel
-  quel, avec son singulier, son masculin et son féminin construit par règle (« interactifs » trouve
-  aussi « interactives », « créatif » trouve « créative »). `[contrainte]` : système, plateforme,
-  langage de programmation ou déploiement (Windows, Linux, macOS, Android, iOS, Python, JavaScript,
-  TypeScript, Docker, en local, hors ligne, GPU, terminal, ligne de commande) : il pèse la moitié de
-  la notion principale de l'objet du besoin, quelle que soit sa rareté, et ne suffit jamais seul pour
-  une correspondance forte quand le besoin nomme aussi son objet (« un OCR pour Windows » est d'abord
-  un OCR). `[contexte]` : mots (3 au plus) qui suivent « mes », « mon », « ma », « nos », « notre »,
+  quel, avec son singulier, son masculin et son féminin construit par ses suffixes (« interactifs »
+  trouve aussi « interactives », « créatif » trouve « créative »). `[contrainte]` : système,
+  plateforme, langage de programmation ou déploiement (Windows, Linux, macOS, Android, iOS, Python,
+  JavaScript, TypeScript, Docker, en local, hors ligne, GPU, terminal, ligne de commande) : il pèse
+  la moitié de la notion principale de l'objet du besoin (la plus lourde de ses notions essentielles
+  du lexique ; un mot hors lexique, souvent un verbe comme « installer », n'en est jamais une),
+  quelle que soit sa rareté, et ne suffit jamais seul pour une correspondance forte quand le besoin
+  nomme aussi son objet (« un OCR pour Windows » est d'abord un OCR). `[contexte]` : mots (3 au plus)
+  qui suivent « mes », « mon », « ma », « nos », « notre »,
   « my » ou « our » (poids divisé par deux), sauf si le possessif est suivi de « propre » ou « own » :
   dans « mon propre serveur », « my own MCP server », le serveur est l'objet cherché. `[référence]` : mots (3 au plus)
   qui suivent « alternative », « équivalent », « similaire »…, ou une comparaison : « plus simple
   que », « plus facile que », « plutôt que », « au lieu de », « à la place de », « mieux que »,
   « instead of », « rather than », « simpler than », « easier than », « better than » (poids divisé
-  par quatre). Une notion citée à la fois comme objet et comme référence (« dans le terminal, plus
+  par quatre), jusqu'à une ponctuation ou une préposition (« pour », « avec », « dans », « for »…) :
+  dans « un OCR plus simple que Tesseract pour les plans scannés », seul Tesseract est la référence.
+  Une notion citée à la fois comme objet et comme référence (« dans le terminal, plus
   simple que la ligne de commande ») garde le rôle le plus fort.
 - `Ignorés` : mots de la question, sans contenu, et nombres isolés d'un ou deux chiffres
   (« Eurocode 2 » ne cherche pas « 2 », qui trouverait « Apache-2.0 »).
@@ -307,9 +311,12 @@ chaque extrait reste attaché à sa fiche.
   de synthèse vocale qui ne parle que de « local » reste partiel (`Ne couvre pas : LLM (notion
   secondaire)`), et pour « gérer mes commits git depuis le terminal », « terminal » seul ne suffit
   plus. **Une contrainte** (`[contrainte]`) ne compte jamais seule comme notion trouvée directement
-  quand le besoin nomme aussi son objet : pour « un OCR pour les PC Windows », un dépôt qui ne parle
-  que de Windows reste partiel ; quand le besoin n'est fait que de contraintes (« installer Windows
-  dans un conteneur Docker »), elles sont l'objet ;
+  quand le besoin nomme aussi son objet, une notion essentielle du lexique : pour « un OCR pour les
+  PC Windows », un dépôt qui ne parle que de Windows reste partiel. Quand le besoin ne nomme, en plus
+  de ses contraintes, aucune notion essentielle du lexique (« installer Windows dans un conteneur
+  Docker », « tester un logiciel Windows dans Docker »), les contraintes et les mots hors lexique sont
+  l'objet, à égalité : la couverture décide, même si une fiche sans rapport contient « installer » ou
+  « tester » ;
 - `correspondance partielle` : une partie seulement (un concept voisin compte pour moitié) ;
 - les correspondances faibles (notions trouvées seulement dans l'avis du LLM, ou seulement des
   notions secondaires) sont masquées ; `--tout` les affiche.
@@ -322,8 +329,11 @@ les partielles, chacune par score décroissant.
 
 **Répond à** : pour chaque notion, les champs et la fiche qui la contiennent ; un champ n'est cité
 que si son texte contient réellement le mot trouvé (une colonne personnelle : sa valeur). Le JSON
-donne, dans `occurrences`, le mot tel qu'écrit et sa position dans le champ (pour le Nom : dans le
-nom cherché, c'est-à-dire le titre suivi de son découpage CamelCase et de `propriétaire dépôt`).
+donne, dans `occurrences`, le mot tel qu'écrit et sa position dans le texte stocké du champ. Le nom
+cherché réunit le titre, son découpage CamelCase et `propriétaire/dépôt` : un mot du découpage
+(« Paddle » de « PaddleOCR ») est situé dans le titre (`Nom`) ; un mot qui ne vient que de
+`propriétaire/dépôt` est cité dans le champ `URL`, tel qu'écrit dans l'adresse (« mannheim » :
+`URL`, « Mannheim » dans `https://github.com/UB-Mannheim/tesseract`).
 `via « … »` donne les mots trouvés quand ils diffèrent de ceux du besoin. `concept voisin « … »` : correspondance partielle
 par un concept proche (OCR et « scanné », PDF et « document »…), qui compte pour moitié.
 `Indice faible : … seulement dans l'avis du LLM` : la notion n'apparaît que dans la Justification.
@@ -514,7 +524,11 @@ classement local.
 `sync` (`Remove-Item -Recurse .gitnotate_index`, Linux : `rm -r .gitnotate_index`). Un index créé
 par une autre version du moteur n'est jamais converti : `cherche` et `etat` demandent de relancer
 `sync` (c'est le cas d'un index construit avant l'affinage de la pertinence, format 1 : les noms des
-colonnes personnelles y étaient indexés ; le format 2 n'indexe que leurs valeurs). Modifier les concepts, mots vides ou déclencheurs du lexique (`redecouverte_lexique.py`) ne
+colonnes personnelles y étaient indexés ; le format 2 n'indexe que leurs valeurs). Ce `sync` compare
+quand même la lecture à la liste des fiches et à la base de l'ancien index : le garde-fou contre une
+baisse brutale s'applique (bilan : `index précédent d'un autre format : remplacé après comparaison
+des fiches`) ; seul un index illisible est remplacé sans comparaison. Modifier les concepts, mots
+vides ou déclencheurs du lexique (`redecouverte_lexique.py`) ne
 demande aucune synchronisation : l'index garde le texte des fiches. Exception : les gabarits
 `GABARITS_CAS_USAGE_EN` et `GABARITS_CAS_USAGE_FR` sont appliqués à l'indexation (fiabilité des Cas
 d'usage, version de la fiche) ; après les avoir modifiés, relancez `sync` (ou `sync --depuis` une
@@ -582,7 +596,11 @@ résultat, puis ajoutées sans changement au fichier de référence (jeu `nouvel
 refaites après l'affinage de la pertinence (noms des colonnes personnelles non indexés, classe
 « contrainte », comparaisons « plus simple que », « mon propre », féminins des mots hors lexique,
 nombres isolés ignorés, formes « calcul de structures », notion « vie scolaire », affichage des
-concepts absents). Entre parenthèses : la valeur avant l'affinage, quand elle diffère.
+concepts absents). Entre parenthèses : la valeur avant l'affinage, quand elle diffère. Les
+corrections de la seconde revue (un mot hors lexique n'est plus l'objet du besoin, plus de féminin
+en « e » ajouté, comparaison arrêtée par une préposition, citation `URL` d'un mot du seul
+propriétaire/dépôt) laissent toutes ces mesures inchangées (seuls les scores de N07 bougent, sans
+changer les 5 premiers).
 
 | Jeu | Requêtes | nDCG@10 | MRR | P@5 | intrus@3 | intrus@5 | Réussies / partielles / échecs |
 |-----|----------|---------|-----|-----|----------|----------|-------------------------------|
@@ -632,7 +650,9 @@ contrainte matérielle) se retrouvent tels quels dans le texte Notion d'origine,
 de chacun des 542 extraits (marques retirées) est identique au texte cité. Chaque notion de
 `Répond à` (389 lignes, 612 champs cités) correspond à une occurrence réelle du mot dans le texte
 stocké du champ cité ; 10 lignes n'ont pas d'extrait, toutes parce que le mot n'est que dans le nom
-du dépôt (le nom n'est jamais cité en extrait). Avant l'affinage, une recherche contenant « notes »
+du dépôt (le nom n'est jamais cité en extrait). Depuis la seconde revue, un mot venu du seul
+`propriétaire/dépôt` est cité dans `URL`, et non plus dans `Nom`, dont le texte ne le contient pas.
+Avant l'affinage, une recherche contenant « notes »
 ou « tags » citait la colonne « Notes » sans extrait : le mot n'était que dans le nom de la colonne.
 Cet invariant est vérifié sur toutes les requêtes du fichier de référence par
 `tests/test_redecouverte_affinage.py`. Aucun extrait ne vient d'un gabarit ni d'un « Non vérifié ».
@@ -681,9 +701,12 @@ n'ont pas été mesurés. La validation sur la base réelle (partie H de
   « surveillance » n'entre plus dans « veille » par le voisinage avec « monitoring ». Corrigé à
   l'affinage : « calcul de structures » est une forme du lexique (plus de « données structurées »), un
   nombre isolé d'un ou deux chiffres n'est plus cherché, un mot hors lexique au masculin trouve aussi
-  son féminin. Le féminin est construit par règle (if/ive, ier/ière, ien/ienne, el/elle, eur/euse,
-  sinon « e ») : il peut produire une forme qui n'existe pas (« créateur » donne « créateuse », sans effet
-  puisqu'aucune fiche ne la contient) ou, rarement, un autre mot.
+  son féminin. Le féminin est construit par ses seuls suffixes (if/ive, ier/ière, ien/ienne,
+  el/elle, eur/euse) : il peut produire une forme qui n'existe pas (« créateur » donne « créateuse »,
+  sans effet puisqu'aucune fiche ne la contient). Aucun « e » n'est ajouté après une consonne : une
+  fois les accents retirés, « test » + e rejoindrait le participe « Testé » d'une note personnelle
+  (corrigé à la seconde revue) ; en contrepartie, l'anglais « text » ne trouve pas le français
+  « texte ».
 - **Fiches anciennes pauvres** : une fiche v7.0/v7.1 n'apporte que son nom, une phrase de
   description et l'avis du LLM (qui compte peu) ; elle ressort moins qu'une v7.3+. Signalé, non
   compensé : seule une nouvelle analyse l'enrichirait, ce que le moteur ne fait pas (aucune écriture
@@ -707,7 +730,12 @@ n'ont pas été mesurés. La validation sur la base réelle (partie H de
   de la contrainte sort donc après ceux qui parlent de l'objet, mais avant des correspondances plus
   faibles (Q15 « tableau de bord … en Python » : TheAlgorithms/Python, hors sujet, est 3e). Une fiche
   qui couvre l'objet sans la contrainte peut être « forte » (N02 : chatterbox, dont la fiche ne dit pas
-  « hors ligne ») : la contrainte est listée dans `Ne couvre pas`. « Auto-hébergé » et « navigateur »
+  « hors ligne ») : la contrainte est listée dans `Ne couvre pas`. Une notion générique du lexique
+  nommée avec des contraintes reste l'objet : pour « un serveur Windows dans Docker », dockur/windows
+  (« Windows inside a Docker container ») n'est que partiel, derrière awesome-selfhosted
+  (« servers », forte). Le moteur ne distingue pas « serveur Windows » (une édition de Windows) de
+  « un OCR Windows dans Docker », où un dépôt qui ne couvre que Windows et Docker ne doit pas être
+  « fort ». « Auto-hébergé » et « navigateur »
   restent des notions ordinaires, « gratuit » et « open source » des notions secondaires (mesures de
   la [section 10](#10-mesures-sur-le-corpus-synthétique)).
 - **Requêtes en anglais** : les mots de question anglais courants sont ignorés comme les français

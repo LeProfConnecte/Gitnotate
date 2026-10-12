@@ -724,9 +724,9 @@ def test_format_index_different(banc, capsys):
     assert 'Index créé par une autre version du moteur' in _sorties(capsys)
     assert banc.lancer('cherche', 'pdf') == 1
     assert banc.lancer('sync') == 0
-    assert "index précédent d'un autre format : remplacé sans comparaison" in _sorties(capsys)
+    assert "index précédent d'un autre format : remplacé après comparaison des fiches" in _sorties(capsys)
     assert banc.lancer('etat') == 0
-    assert ("Remarque    : index précédent d'un autre format : remplacé sans comparaison (dernière "
+    assert ("Remarque    : index précédent d'un autre format : remplacé après comparaison des fiches (dernière "
             "synchronisation)") in _sorties(capsys)
 
 
