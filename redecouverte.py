@@ -101,8 +101,12 @@ _SUITE_REFERENCE = frozenset({'et', 'ou', 'and', 'or'})
 ALPHA = 0.7                          # présence d'un concept 70 %, force BM25 30 %
 FACTEUR_VOISIN = 0.5
 FACTEUR_JUSTIFICATION = 0.35
-SEUIL_FORTE = 0.60
+SEUIL_FORTE = 0.60                   # strict : couverture > 0,60 (voir depasse_seuil_forte)
 SEUIL_PARTIELLE = 0.25
+# Tolérance de la comparaison au seuil « forte » : l'erreur d'arrondi du quotient de couverture (12 concepts
+# au plus) reste sous 1e-14, alors qu'un écart réel de couverture se lit au millième ; une égalité calculée
+# 0.6000000000000001 n'est donc jamais prise pour un dépassement
+EPSILON_SEUIL = 1e-9
 EXTRAIT_MAX = 220
 EXTRAITS_PAR_RESULTAT = 4
 ETABLI_MAX = 2
@@ -2827,6 +2831,15 @@ def objets_du_besoin(actifs: List[Concept], essentiels: List[Concept]) -> List[C
     return objets or list(essentiels)
 
 
+def depasse_seuil_forte(couverture: float) -> bool:
+    """Seuil « forte » strict (qualification indépendante, I06 et I15) : une couverture égale à SEUIL_FORTE,
+    comme 1,5 / 2,5, reste partielle. Selon le nombre de fiches, cette même égalité se calcule 0.6, mais aussi
+    0.6000000000000001 ou 0.5999999999999999 en flottants : la comparaison se fait à EPSILON_SEUIL près, pour
+    que le niveau ne dépende jamais de l'arrondi. Un calcul exact (fractions) ne suffirait pas : les poids
+    (logarithme de l'idf, facteur 0,3) et les m (0,35) sont déjà arrondis avant le quotient."""
+    return couverture > SEUIL_FORTE + EPSILON_SEUIL
+
+
 def _cle_tri(r: Resultat) -> Tuple[Any, ...]:
     return (-round(r.score, 6), -sum(1 for m in r.m.values() if m >= FACTEUR_VOISIN), r.nom_plie, r.cle)
 
@@ -2934,7 +2947,7 @@ def rechercher(con: sqlite3.Connection, requete: Requete, filtres: Optional[Dict
             direct = any(r.m.get(c.cle, 0.0) >= 1.0 for c in objets)
             objet = all(r.m.get(c.cle, 0.0) >= FACTEUR_VOISIN for c in exiges)
             partiel = any(r.m.get(c.cle, 0.0) >= FACTEUR_VOISIN for c in essentiels)
-            if r.couverture >= SEUIL_FORTE and direct and objet:
+            if depasse_seuil_forte(r.couverture) and direct and objet:
                 r.niveau = 'forte'
             elif partiel or r.couverture >= SEUIL_PARTIELLE:
                 r.niveau = 'partielle'
@@ -3921,7 +3934,7 @@ def en_texte(rep: Reponse, details: bool = False) -> str:
 _MD_SPECIAUX = re.compile(r'([\\`*_\[\]<>|#])')
 # Règle exacte du niveau (rechercher, ensembles_niveau), sans syntaxe Markdown à échapper
 LEGENDE_MARKDOWN = (
-    f"Niveaux : **forte** = au moins {round(SEUIL_FORTE * 100)} % du poids des notions essentielles du besoin, "
+    f"Niveaux : **forte** = plus de {round(SEUIL_FORTE * 100)} % du poids des notions essentielles du besoin, "
     "dont une trouvée directement (pas seulement par un concept voisin ni par l'avis du LLM) ; une "
     "contrainte (système, langage, déploiement : Windows, Python, Docker, en local…) pèse la moitié de la "
     "notion principale et ne suffit jamais seule quand le besoin nomme aussi son objet ; quand le besoin n'a "

@@ -396,7 +396,7 @@ def test_niveaux(corpus, capsys):
             assert abs(r.couverture - couverture) < 1e-9, (q['id'], r.cle)
             objet = all(r.m.get(c.cle, 0) >= 0.5 for c in exiges)
             direct = max((r.m.get(c.cle, 0) for c in objets), default=0) >= 1.0
-            forte = r.couverture >= rd.SEUIL_FORTE and direct and objet
+            forte = r.couverture > rd.SEUIL_FORTE + 1e-9 and direct and objet    # seuil strict (égalité : partielle)
             partielle = max(m, default=0) >= 0.5 or r.couverture >= rd.SEUIL_PARTIELLE
             attendu = 'forte' if forte else ('partielle' if partielle else 'faible')
             assert r.niveau == attendu, (q['id'], r.cle)

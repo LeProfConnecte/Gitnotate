@@ -548,7 +548,7 @@ def test_m12_legende_markdown_exacte(corpus, capsys):
     assert 'toutes les notions importantes' not in sortie and 'concepts voisins) sont masquées' not in sortie
     assert "un concept voisin compte pour moitié" in sortie
     doc = (ROOT / 'docs' / 'REDECOUVERTE.md').read_text(encoding='utf-8')
-    assert 'au moins 60 % du poids des notions essentielles' in doc
+    assert 'plus de 60 % du poids des notions essentielles' in doc
 
 # =============================================================================
 # Mineurs du moteur : P5, P7, P8, SEC-R3, SEC-R4, M2, M3, M4, M6, M7, M10

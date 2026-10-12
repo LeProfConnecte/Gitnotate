@@ -285,8 +285,12 @@ Index     : 62 fiches, 51 dépôts — données lues dans Notion le 2026-10-11 �
 - `Ignorés` : mots de la question, sans contenu, et nombres isolés d'un ou deux chiffres
   (« Eurocode 2 » ne cherche pas « 2 », qui trouverait « Apache-2.0 »).
 - `Non pris en compte (négation)` : mots qui suivent « sans », « pas », « aucun », « no »,
-  « without »… Ils ne sont pas cherchés ; un dépôt qui les mentionne n'est pas écarté pour autant
-  (voir « À vérifier »).
+  « without »… Ils ne sont pas cherchés ; un dépôt qui les mentionne n'est ni écarté ni déclassé.
+  Défaut connu : un mot de liaison placé juste après le déclencheur ferme la négation, si bien que
+  dans « pas pour analyser des PDF », « pas avec Docker » ou « not for PDF analysis », « analyser »,
+  « PDF » ou « Docker » restent cherchés (correction essayée puis retirée : elle dégradait d'autres
+  recherches ; voir docs/QUALIFICATION_INDEPENDANTE_LOT4.md, § 10). Formulez plutôt « sans PDF ».
+  De même, « pas » de « pas à pas » est lu comme une négation.
 - `Aucune fiche ne mentionne` : mots de votre besoin qu'aucune fiche ne contient, même par un
   concept voisin. `Aucune fiche ne mentionne directement : … (trouvé seulement par un concept
   voisin)` : aucune fiche ne contient le mot ni ses synonymes, mais une notion proche est trouvée
@@ -301,7 +305,8 @@ Index     : 62 fiches, 51 dépôts — données lues dans Notion le 2026-10-11 �
 **Niveau.** L'unité de résultat est le dépôt : les preuves de toutes ses fiches sont réunies, et
 chaque extrait reste attaché à sa fiche.
 
-- `correspondance forte` : au moins 60 % du poids des notions essentielles du besoin est couvert, dont
+- `correspondance forte` : plus de 60 % du poids des notions essentielles du besoin est couvert (une
+  égalité exacte, comme 1,5 / 2,5, reste partielle, quel que soit l'arrondi du calcul), dont
   au moins une trouvée directement (pas seulement par un concept voisin ni par l'avis du LLM). Les
   notions essentielles sont celles du lexique qui ne sont pas génériques (« LLM », « IA »,
   « données », « application »… sont des notions secondaires) et les mots hors lexique, hors
@@ -665,7 +670,8 @@ moteur et le corpus : ce n'est **pas** un jeu indépendant. Aucun jeu externe n'
 jour (procédure au § 9).
 
 **Avant et après l'affinage.** « Avant » est le commit `a679661` (dernière version vérifiée avant
-l'affinage de la pertinence) ; « après » est le moteur depuis `16e163f`, inchangé ensuite. Chaque
+l'affinage de la pertinence) ; « après » est le moteur depuis `16e163f`, inchangé ensuite, sauf le
+seuil « forte » strict ajouté après la qualification indépendante (sans effet sur ces mesures). Chaque
 version a été mesurée avec son propre moteur et son propre index, construits depuis la même
 capture, et avec la même définition des mesures (§ 9). L'affinage comprend : noms des colonnes
 personnelles non indexés, classe « contrainte », comparaisons « plus simple que », « mon propre »,
@@ -870,7 +876,8 @@ et la console cp1252 n'ont pas été mesurés. La validation sur la base réelle
   compensé : seule une nouvelle analyse l'enrichirait, ce que le moteur ne fait pas (aucune écriture
   dans Notion).
 - **Heuristiques de la phrase** : la négation porte sur les 4 mots de contenu qui suivent et s'arrête
-  à une ponctuation ou à un mot de liaison ; elle retire le mot de la recherche sans déclasser les
+  à une ponctuation ou à un mot de liaison, même placé juste après le déclencheur (« pas pour X »,
+  « not with X » : X reste cherché, défaut connu) ; elle retire le mot de la recherche sans déclasser les
   dépôts qui le mentionnent (N04 « un OCR qui ne nécessite pas de GPU » : deepseek_ocr_app, qui exige
   un GPU, est 3e, avec la limite `Contrainte matérielle mentionnée`). Le possessif (« mes », « my »…)
   met les 3 mots suivants en contexte, sauf s'il est suivi de « propre » ou « own » ; il reste à tort
