@@ -2,3 +2,4 @@
 # par les tests). Aucune conversion des fins de ligne, même avec core.autocrlf=true sous Windows.
 tests/fixtures/redecouverte/requetes_independantes_lot4.json -text
 tests/fixtures/redecouverte/PROTOCOLE_QUALIFICATION_LOT4.md -text
+tests/fixtures/redecouverte/requetes_controle_lot4.json -text

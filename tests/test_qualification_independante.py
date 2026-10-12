@@ -23,6 +23,11 @@ SHA_ORIGINAL = 'e32f0fc29e75d5db4eef45e2f018ad148004cc941f4a6d5947dfeba6fcb8e6e7
 SHA_PROTOCOLE = 'bbc9aaed67fa0b43bdadd7071182ff41ce1713b49d05aded17ed5d2f4a8f6f0d'
 EMPREINTE_JUGEMENTS = '5444aa4f44b4a40370238d857396917d11f4f48f6866fa3ee76b97bb466f0b8a'
 SANS_REPONSE = ('I01', 'I02', 'I03', 'I26')
+# Jeu de contrôle K01-K24 : rédigé à l'aveugle (sans consulter le moteur) et figé avant toute mesure, puis exécuté
+# une seule fois pour confirmer les corrections choisies sur I01-I26 (docs/QUALIFICATION_INDEPENDANTE_LOT4.md, § 10)
+CONTROLE = FIXTURES / 'requetes_controle_lot4.json'
+SHA_CONTROLE = 'fa233122d046611832b00c9774d4a1b58caceaf4f462621b8b93dfb99a3efe47'
+EMPREINTE_CONTROLE = '5dff44e4d1d6b40d83ee75d2fdb4c051aed74ded06d4ab5866694fd427dadbe3'
 
 
 def _sha(chemin):
@@ -51,7 +56,7 @@ def test_originaux_intacts_a_l_octet():
 
 def test_gitattributes_protege_les_originaux():
     lignes = (ROOT / '.gitattributes').read_text(encoding='utf-8').splitlines()
-    for chemin in (ORIGINAL, PROTOCOLE):
+    for chemin in (ORIGINAL, PROTOCOLE, CONTROLE):
         assert f"{chemin.relative_to(ROOT).as_posix()} -text" in lignes
 
 
@@ -95,3 +100,20 @@ def test_sans_reponse_aucune_correspondance_forte(corpus, capsys):
             assert not any(r.niveau == 'forte' for r in reponse.resultats + reponse.sans_depot), ident
     finally:
         con.close()
+
+
+def test_controle_fige_a_l_octet(load_gn, capsys):
+    assert _sha(CONTROLE) == SHA_CONTROLE and b'\r' not in CONTROLE.read_bytes()
+    load_gn()
+    ev = _evaluateur()
+    assert ev.main([str(CONTROLE), '--empreinte']) == 0
+    sortie = capsys.readouterr().out
+    assert f"Empreinte des jugements (SHA-256) : {EMPREINTE_CONTROLE}" in sortie
+    assert 'controle_lot4 : 24 requêtes' in sortie
+
+
+def test_controle_sans_reponse_aucune_correspondance_forte(corpus, capsys):
+    """Règle du protocole sur les cinq requêtes du contrôle sans dépôt pertinent (aucun_fort: true)."""
+    ev = _evaluateur()
+    assert ev.main([str(CONTROLE)]) == 0
+    assert 'aucun_fort non respecté pour 0 requête sur 5' in capsys.readouterr().out

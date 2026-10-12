@@ -153,7 +153,11 @@ Régressions qualitatives de l'affinage (sans effet sur les mesures) :
   contraintes (Python, terminal) et des mots libres ; résultat fragile ;
 - I09, I10, I04 : des dépôts trouvés par le seul Langage Python ou par « interface » montent dans les rangs.
 
-## 8. Corrections candidates (non appliquées)
+## 8. Corrections candidates
+
+> Statut après l'essai contrôlé (§ 10) : seuil « forte » strict **appliqué** ; négation « pas pour » essayée
+> puis **retirée** ; expressions chevauchantes et repli sans notion **rejetés**. Le tableau ci-dessous est
+> l'état de la proposition avant l'essai.
 
 Mesurées sur des copies du code, sans rien modifier dans le dépôt ; à appliquer seulement après accord, dans
 un commit séparé, puis à comparer sur les mêmes jeux figés :
@@ -179,3 +183,94 @@ pas » (Q10 perd son attendu, folo et awesome-selfhosted disparaissent), suppres
 - Les qualifications « hors sujet » sont celles de deux analystes de cette session (accord élevé, mais même
   équipe que le moteur) ; les jugements de référence de I10, I11, I15 et I04 s'appuient en partie sur une
   connaissance des produits réels absente des fiches.
+
+## 10. Essai contrôlé des quatre corrections (2026-10-12)
+
+Démarche validée par l'utilisateur : référence `3307192` figée (mesures, jeux et évaluateur verrouillés par
+empreintes SHA-256), chaque correction appliquée seule sur une copie isolée du moteur, puis combinée ; mesures
+sur I01-I26 et les 34 requêtes historiques ; double qualification indépendante des faux positifs (accord 90 à
+96 %, kappa 0,85 à 0,94) ; décisions consignées **avant** l'exécution d'un nouveau jeu de contrôle.
+
+### 10.1 Effet de chaque correction (I01-I26 ; les 34 requêtes historiques ne changent pour aucune)
+
+| Correction | Requêtes modifiées | nDCG@10 · MRR · P@5 · R@5 | intrus@3 · intrus@5 | « forte » hors sujet | Hors sujet non listés @5 | Décision |
+|---|---|---|---|---|---|---|
+| Référence | — | 0,897 · 0,869 · 0,236 · 0,917 | 0,385 · 0,577 | 5 | 67 | — |
+| X1 négation « pas pour » | I26 (8 visibles hors sujet → 0) | inchangés | 0,308 · 0,462 | 5 | 65 | conservée, puis **retirée** après le contrôle |
+| X2 seuil « forte » strict | I06, I15 (forte → partielle) | inchangés | inchangés | 4 | 67 | **conservée** |
+| X3 « ligne de commande » | I13 (un hors-sujet non listé remplacé par un intrus listé) | inchangés | 0,385 · 0,615 | 5 | 66 | **rejetée** : bénéfice non confirmé |
+| X4 repli sans notion | I10 (deux fortes hors sujet → partielles) | inchangés | inchangés | 3 | 67 | **rejetée** : casse un test existant (forte légitime de dockur/windows), fortes légitimes perdues sur des paraphrases |
+| Les quatre combinées | I06, I10, I13, I15, I26 (strictement additif) | inchangés | 0,308 · 0,500 | 2 | 64 | non retenue (contient X4) |
+
+Vérifications demandées :
+- **Négation** (X1) : tests de « pas pour », « sans », « ne … pas », « sans GPU », « pas avec », « mais » et des
+  équivalents anglais (`tests/test_redecouverte_negation.py`) ; X1 étant retirée, les cas qu'elle corrigeait
+  restent des défauts connus, marqués `xfail(strict=True)`.
+- **Seuil strict** (X2) : comparaison `couverture > 0,60 + 1e-9` (`depasse_seuil_forte`). Selon le nombre de
+  fiches, l'égalité 1,5 / 2,5 se calcule 0.6, 0.6000000000000001 ou 0.5999999999999999 ; elle reste toujours
+  partielle. L'erreur d'arrondi observée reste sous 1e-15, le plus petit écart réel au seuil est d'environ
+  0,011 : la tolérance ne touche aucun cas réel. La frontière partielle (≥ 0,25) garde l'égalité (quatre
+  dépôts d'I22 sont exactement à 0,25) : signalé, non modifié.
+- **Expressions** (X3) : « en ligne de commande » est bien lu « ligne de commande » et les services « en
+  ligne » restent intacts avec la variante gardée (une seule paire du lexique concernée sur 269 ; la règle
+  littérale en dégradait beaucoup). Rejetée faute de bénéfice mesuré.
+- **Repli sans notion** (X4) : aucun dépôt pertinent masqué sur les 60 requêtes, mais des « forte » légitimes
+  perdues hors des jeux (paraphrases, test R2P-1) et une interaction défavorable avec X1 et X3.
+
+### 10.2 Jeu de contrôle K01-K24
+
+Rédigé à l'aveugle (sans exécuter le moteur ni consulter de résultat), à partir du seul texte des fiches,
+puis figé avant toute mesure : `tests/fixtures/redecouverte/requetes_controle_lot4.json`, SHA-256
+`fa233122d046611832b00c9774d4a1b58caceaf4f462621b8b93dfb99a3efe47`, empreinte des jugements
+`5dff44e4d1d6b40d83ee75d2fdb4c051aed74ded06d4ab5866694fd427dadbe3`. 24 requêtes : 5 sans dépôt pertinent
+(`aucun_fort`), 6 négations ou contrastes, 4 ambiguïtés, 3 contraintes de plateforme, 3 en anglais. Il a été
+rédigé par l'équipe qui a construit le moteur (aveugle aux résultats, pas indépendant au sens strict) et il a
+désormais servi : il ne vaut plus validation indépendante pour une correction future.
+
+| Variante (K01-K24) | nDCG@10 | MRR | P@5 | R@5 | intrus@3 | intrus@5 | Changements |
+|---|---|---|---|---|---|---|---|
+| Référence `3307192` | 0,863 | 0,872 | 0,347 | 0,895 | 0,417 | 0,625 | — |
+| X1 seule | 0,859 | 0,872 | 0,347 | 0,895 | 0,417 | 0,625 | K14 mieux (remotion 1er) ; K15 et K17 moins bien |
+| X2 seule (**retenue**) | 0,863 | 0,872 | 0,347 | 0,895 | 0,417 | 0,625 | aucun |
+| X3 seule (information) | 0,863 | 0,872 | 0,347 | 0,895 | 0,375 | 0,583 | K09 : un intrus en moins |
+| X4 seule (information) | 0,863 | 0,872 | 0,347 | 0,895 | 0,417 | 0,625 | aucun |
+
+Régression de X1 : sur K17 (« … not for clicking through sites like a browser agent »), la portée de quatre
+mots s'arrête avant « browser agent », qui redevient une notion positive : browser-use (à exclure) passe 1er et
+crawl4ai (attendu en tête) perd sa « forte ». Sur K15 (« … pas avec un simple aspirateur de pages web »),
+retirer les mots niés relève les couvertures et gpt-researcher (hors sujet) devient « forte ». Bénéfice non
+confirmé et régression significative : **X1 retirée**, conformément à la règle fixée avant le contrôle.
+
+Faux positifs sur le contrôle (double qualification, accord 96 %, kappa 0,94 ; identiques pour la référence et
+la version retenue) : 52 hors sujet non listés dans les 5 premiers sur 110 dépôts classés, 10 « forte »
+injustifiées, 1er rang hors sujet dans 9 requêtes sur 24 (dont les 5 sans réponse attendue), P@5 selon les
+analystes 0,18 (pertinent seul) et 0,45 (pertinent ou plausible) sur les 19 requêtes avec réponse. Les cinq
+requêtes sans réponse respectent la règle « aucune forte » (0 sur 5), mais affichent 20 dépôts hors sujet dans
+leurs 5 premiers.
+
+### 10.3 Tableau avant / après (référence `3307192` → version retenue, seuil strict seul)
+
+| Jeu | nDCG@10 | MRR | P@5 | R@5 | intrus@3 | intrus@5 | « forte » injustifiées | Hors sujet non listés @5 |
+|---|---|---|---|---|---|---|---|---|
+| I01-I26 (26) | 0,897 → 0,897 | 0,869 → 0,869 | 0,236 → 0,236 | 0,917 → 0,917 | 0,385 → 0,385 | 0,577 → 0,577 | 5 → 4 | 67 → 67 |
+| Historiques (32 sans filtre) | 0,867 → 0,867 | 0,936 → 0,936 | 0,607 → 0,607 | 0,679 → 0,679 | 0,062 → 0,062 | 0,406 → 0,406 | 6 → 6 | 40 → 40 |
+| Contrôle K01-K24 (24) | 0,863 → 0,863 | 0,872 → 0,872 | 0,347 → 0,347 | 0,895 → 0,895 | 0,417 → 0,417 | 0,625 → 0,625 | 10 → 10 | 52 → 52 |
+
+Seuls deux niveaux changent sur les 84 requêtes (I06 open-notebook et I15 huginn, de forte à partielle) ;
+aucun rang, aucune visibilité, aucun dépôt pertinent perdu. Garde Notion en liste blanche, format d'index et
+Notion-Version inchangés ; suite complète verte sous Python 3.10 et 3.13.
+
+## 11. Verdict
+
+- **Capacité à retrouver** : conservée et correcte sur le corpus synthétique (R@5 0,90 à 0,92 ; attendu en tête
+  au 1er rang dans 18 requêtes sur 22 d'I01-I26 ; nDCG@10 0,86 sur le contrôle rédigé à l'aveugle).
+- **Précision** : insuffisante et à peine améliorée. Le seuil strict ne retire que deux « forte » fragiles ;
+  la part de dépôts hors sujet parmi les 5 premiers classés reste de 42 % sur les requêtes historiques, 61 % sur
+  le contrôle et 73 % sur I01-I26 (requêtes sans réponse comprises), avec 10 « forte » injustifiées sur le contrôle,
+  et les requêtes sans réponse affichent toujours des résultats hors sujet (en « partielle »).
+- **Négation « pas pour X »** : défaut confirmé et toujours ouvert ; une correction locale de la portée crée
+  d'autres erreurs. Il faut une refonte (fin de proposition, objet exclu, effet sur la couverture), validée sur
+  un nouveau jeu indépendant.
+- **Validation réelle en lecture seule** : possible sans risque pour les données (garde technique inchangée,
+  jeton limité à « Read content »). Elle est le seul moyen de connaître la qualité sur les 443 fiches v7.1, avec
+  ces défauts connus à l'esprit ; elle ne doit pas être présentée comme une qualification réussie.
