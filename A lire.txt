@@ -12,3 +12,4 @@
    (sous PowerShell, la limite reste active dans la même fenêtre : Remove-Item Env:MAX_NEW_PER_RUN ;
    si vous l'avez écrite dans .env, remettez MAX_NEW_PER_RUN=0 dans .env)
 5. Mode d'emploi complet : lire README.md
+6. Retrouver un dépôt déjà enregistré : python redecouverte.py sync  puis  python redecouverte.py cherche "votre besoin" (docs/REDECOUVERTE.md)

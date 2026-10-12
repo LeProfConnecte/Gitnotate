@@ -5,10 +5,12 @@ dépôt ses métadonnées et son README (API GitHub), demande à un LLM une desc
 cas d'usage, une catégorie et cinq jugements notés sur des échelles courtes, en déduit une note de
 pertinence de 0 à 10 (calcul fait par le script, voir [Notation](#notation)), puis crée une fiche
 par dépôt dans une base Notion. Il cherche surtout des dépôts qui pourraient devenir des composants
-réutilisables dans vos applications, même sans besoin immédiat. Version 7.3
-(`python gitnotate.py --version`).
+réutilisables dans vos applications, même sans besoin immédiat. Version 7.4
+(`python gitnotate.py --version`). Le moteur `redecouverte.py` retrouve ensuite, hors ligne, les
+dépôts déjà enregistrés qui répondent à un besoin (voir
+[Retrouver un dépôt déjà enregistré](#retrouver-un-dépôt-déjà-enregistré)).
 
-Avant la première utilisation réelle de la v7.3, suivez [docs/VALIDATION.md](docs/VALIDATION.md)
+Avant la première utilisation réelle de la v7.4, suivez [docs/VALIDATION.md](docs/VALIDATION.md)
 (essais sur une base de test, sans risque pour la base principale).
 
 ## Prérequis
@@ -26,6 +28,9 @@ Avant la première utilisation réelle de la v7.3, suivez [docs/VALIDATION.md](d
   la v7.2 reste utilisable telle quelle.
 - Une clé API Mistral (fournisseur principal). Une clé OpenRouter est facultative (secours).
 - Facultatif : un jeton GitHub en lecture seule (sans jeton : 60 requêtes GitHub par heure).
+- Pour `redecouverte.py` seulement : SQLite avec le module FTS5 (inclus dans le Python de
+  python.org) ; recommandé, une seconde intégration Notion limitée à « Read content »
+  (`NOTION_READONLY_TOKEN`, voir [docs/REDECOUVERTE.md](docs/REDECOUVERTE.md)).
 
 ## Installation (environnement virtuel)
 
@@ -102,6 +107,34 @@ lue en partie) n'y figure pas ; son code de sortie et sa cause s'affichent seule
 Depuis la v7.3, le bilan affiche aussi la répartition des notes (`Pertinence`) et le nombre de fiches
 par catégorie, et chaque entrée de `gitnotate_stats.json` contient `profile_version`,
 `scores_distribution`, `categories_count` et `optional_columns` (colonnes facultatives trouvées).
+Depuis la v7.4, une fiche non notée (voir [Notation](#notation)) s'affiche `∅ non notée (aucune
+information)` dans la console et `non notée ×n` dans la ligne `Pertinence:` du bilan ; dans
+`scores_distribution`, elle est comptée sous la clé `aucun`.
+
+`SCORE_MIN_THRESHOLD` (0 par défaut, recommandé) écarte, sans fiche, les dépôts dont la note est
+inférieure au seuil. Il n'écarte jamais une fiche non notée. Comme un dépôt sans `Brique pour` est
+plafonné à 8 (voir [Notation](#notation)), un seuil de 9 ou 10 écarte tous ces dépôts, y compris en
+repli lexical.
+
+## Retrouver un dépôt déjà enregistré
+
+`redecouverte.py` cherche, **hors ligne**, parmi les fiches déjà créées dans votre base Notion, les
+dépôts qui peuvent répondre à un besoin, même sans projet actif associé. Il ne fait que lire Notion
+(deux appels de lecture seulement, vérifiés avant tout envoi) et n'appelle jamais GitHub.
+
+```text
+python redecouverte.py sync                                   copie locale des fiches (lecture seule)
+python redecouverte.py cherche "extraire des données de PDF"  recherche hors ligne
+python redecouverte.py etat                                   état de la copie locale
+```
+
+Chaque résultat cite mot pour mot les champs de la fiche qui répondent au besoin, avec leur fiabilité
+(README, GitHub, LLM, saisi par vous), la version et la date de la fiche, et signale ce qui est à
+vérifier, notamment les champs fabriqués par les premières versions de Gitnotate (jamais pris en
+compte par la recherche). Les étoiles, la Pertinence et le Statut n'entrent pas dans le classement.
+L'avis d'un LLM est facultatif (`--llm`) et n'envoie rien sans confirmation. La copie locale
+(dossier `.gitnotate_index` du dossier de données) est régénérable et ignorée par git ; relancez
+`sync` après chaque run de `gitnotate.py`. Mode d'emploi : [docs/REDECOUVERTE.md](docs/REDECOUVERTE.md).
 
 ## Profil de pertinence (`user_profile.json`)
 
@@ -121,14 +154,14 @@ et de projets (empreinte fictive dans l'exemple) :
 
 | Clé | Format | Rôle |
 |-----|--------|------|
-| `languages`, `frameworks`, `infra` | listes de textes | technologies que vous utilisez déjà : le LLM les reçoit comme simple contexte (un autre langage n'est jamais un défaut), et le score lexical de secours s'en sert |
+| `languages`, `frameworks`, `infra` | listes de textes | technologies que vous utilisez déjà : le LLM les reçoit comme simple contexte (un autre langage n'est jamais un défaut) ; le score lexical de secours se sert de `frameworks` et `infra` (`languages` n'y sert plus depuis la v7.4) |
 | `domains`, `interests` | listes de mots-clés courts (anglais, minuscules) | score lexical de secours ; ils servent de domaines au LLM seulement si `domaines` est absent (profil v1) |
 | `profile_version` | texte, par exemple `"2026-10-11"` | version affichée au démarrage et dans la Justification ; `v1` si la clé est absente |
 | `contexte` | texte court | qui vous êtes et ce que vous cherchez |
 | `environnement` | objet `{materiel, systemes, services, contraintes}`, chacun une liste de textes | sert au critère « compatibilité » |
 | `domaines` | liste d'objets `{nom, description}` | vos domaines d'intérêt (critère « potentiel futur ») ; leurs noms peuvent apparaître dans `Brique pour` |
 | `projets` | liste d'objets `{nom, statut, description, besoins}`, avec `statut` = `actif` ou `envisagé` | vos projets ; un besoin listé d'un projet actif justifie l'utilité immédiate maximale ; leurs noms peuvent apparaître dans `Brique pour` |
-| `exclusions` | liste de textes | sujets écartés : le LLM a pour consigne de mettre alors l'utilité immédiate et le potentiel futur à 0 ; s'il la suit, la note est plafonnée à 2. Ce n'est pas un filtre du script : la fiche est quand même créée |
+| `exclusions` | liste de textes | sujets écartés : le LLM a pour consigne de mettre alors l'utilité immédiate et le potentiel futur à 0 ; s'il la suit, la note est plafonnée à 2. En repli lexical, seule une exclusion écrite comme un topic GitHub exact (minuscules, chiffres et tirets, par exemple `game-engine`) est appliquée : un dépôt qui porte ce topic voit son score lexical plafonné à 2. Ce n'est pas un filtre du script : la fiche est quand même créée |
 | `licences` | objet `{preferees, avec_contraintes}`, identifiants SPDX | critère « licence » (voir [Notation](#notation)) ; `avec_contraintes` est indicatif et n'entre pas encore dans le calcul |
 | `ponderations` | objet `{valeur, interet, integration, compatibilite, maturite, licence}`, nombres ≥ 0 | poids des critères ; un poids de 0 retire un critère du calcul |
 | `categories` | liste de textes (facultative) | remplace la liste par défaut des catégories proposées au LLM |
@@ -143,7 +176,16 @@ Le fichier livré (`profile_version` « 2026-10-11 ») contient des points **à 
 de VRAM du GPU (8 Go, « à confirmer » dans `environnement.materiel`), les descriptions et besoins des
 quatre projets (marqués `_a_valider`), et les exclusions. Il n'exclut que « jeux vidéo et moteurs
 de jeu » ; les applications mobiles natives sont seulement suggérées dans `_exclusions_a_valider`,
-sans être appliquées.
+sans être appliquées. Cette exclusion est une phrase : seul le LLM l'applique, le repli lexical ne
+la lit pas (il faudrait ajouter des topics exacts comme `game-engine`).
+
+Le commentaire `_lisez_moi` du fichier livré date de la v7.3 : il indique encore que les 5 listes
+historiques, dont `languages`, servent au score lexical de secours. Depuis la v7.4, `languages` n'y
+sert plus (voir [Notation](#notation)). Ce commentaire n'est jamais lu par le script ; si vous le
+corrigez, l'empreinte du profil change (comme pour toute modification de son contenu).
+
+Un profil sans aucun projet ni domaine affiche au démarrage `⚠️  Profil : ni projet ni domaine :
+« Brique pour » restera vide et toute note sera plafonnée à 8`.
 
 **Ajouter un projet** : ajoutez un objet à la liste `projets`, avec une virgule entre deux objets.
 
@@ -226,6 +268,15 @@ Garde-fous appliqués par le script :
   statut recopié du prompt (« Gitnotate (actif) ») est reconnu, et si le LLM cite plus de 3 noms, les
   projets actifs sont gardés en premier.
 - Valeur nulle (U = P = 0) : la note ne dépasse pas 2.
+- **Plafond sans rattachement (v7.4)** : une note de 9 ou 10 exige que `Brique pour` nomme au moins
+  un projet ou un domaine du profil, après validation de la réponse (les noms absents du profil sont
+  retirés). Sinon, la note est ramenée à 8, sur toutes les voies : réponse du LLM, repli lexical
+  (qui n'établit jamais de brique, donc jamais plus de 8), réponse partielle avec
+  `REQUIRE_LLM=false` et traduction seule. Quand le plafond change la note, la Justification garde
+  la note calculée : `U0·P3·T2·I2·C2·M2·L2 = 10, plafonnée à 8 (aucune brique du profil) — …`
+  (repli lexical : `[LEXICAL · profil …] Note 10, plafonnée à 8 (aucune brique du profil).`). Seule
+  compte la réponse validée, jamais le schéma de la base : sans colonne `Brique pour` (ou sans
+  l'option voulue), une note de 9 ou 10 reste possible, mais la brique n'apparaît pas dans la fiche.
 - La note reste entre 0 et 10. Les poids viennent du profil (nombres ≥ 0) ; si les poids des
   critères présents ont une somme nulle, les poids par défaut sont utilisés.
 
@@ -237,43 +288,58 @@ dans la Justification montre d'où vient chaque note.
 **Neutralité du langage** : le prompt précise qu'un autre langage ou un autre framework n'est jamais
 un défaut. Un dépôt en Go, Rust, Java ou C++ utilisable par une CLI, une API, une image Docker ou
 comme service est intégrable. Le langage n'entre pas dans le calcul, et la colonne `Langage` reste
-une simple information. Le score lexical de secours ne retire plus de points pour un langage absent
-du profil, ni pour le topic `blockchain`. Il garde son bonus pour un langage du profil, et sa pénalité
-pour les topics jeu et mobile, comparés exactement (`game`, `games`, `gamedev`, `game-engine`,
-`mobile-app`, `ios`, `android`… ; `game-theory` ou `financial-ratios` ne sont pas pénalisés).
+une simple information. Depuis la v7.4, le score lexical de secours est lui aussi neutre : le
+langage n'y donne ni bonus ni pénalité, et il n'applique plus aucune pénalité codée en dur (jeu,
+mobile, blockchain). Sa seule pénalité vient du profil : un topic GitHub égal à une exclusion écrite
+comme un topic exact (`game-engine`) plafonne le score lexical à 2 (comparaison exacte : `game-theory`
+n'est pas `game`).
 
 **« Non vérifié »** : une information que ni les métadonnées GitHub ni le README ne prouvent est
 écrite « Non vérifié » (« Non vérifiée » pour la licence), jamais devinée. Une maturité ou une
-licence inconnue est notée `?` et sort du calcul. Un dépôt sans description, sans topics et sans
-README reçoit « Non vérifié » en `Description` et en `Cas d'usage`, quoi que réponde le LLM (le
-prompt lui demande d'ailleurs « Non vérifié » dans ce cas) ; sa note, jugée sur le seul nom du
-dépôt, est à prendre avec prudence.
+licence inconnue est notée `?` et sort du calcul.
+
+**Dépôt sans information : fiche non notée (v7.4)**. Un dépôt sans description, sans topics et sans
+README exploitable n'est pas envoyé au LLM et ne reçoit aucune note : une note, une catégorie ou une
+description seraient devinées d'après le seul nom. Un README est exploitable si, une fois nettoyé
+(balises, images, badges et liens retirés), il contient au moins une ligne avec une lettre ou un
+chiffre autre qu'un titre égal au nom du dépôt : pour le dépôt `mon-outil`, un README réduit au
+titre `# mon-outil` et à des badges ne l'est pas. Avec `README_LLM_CHARS=0`, le README n'est pas
+envoyé au LLM et compte comme absent. La fiche est quand même créée (elle n'est jamais reportée par
+le mode reprise, ni écartée par `SCORE_MIN_THRESHOLD`) avec les faits GitHub (nom, URL, étoiles,
+licence, dates, extraits du README s'il y en a), `Pertinence` vide, `Description` et `Cas d'usage`
+« Non vérifié », ni `Catégorie` ni `Brique pour`, et la Justification
+`[NON NOTÉ] Ni description, ni topics, ni README exploitable : Pertinence laissée vide.` (si la base
+a la colonne `Justification`).
 
 **Repli lexical** : dans trois cas, la note est un score lexical de 0 à 10, calculé localement à
 partir des mots-clés du profil : `REQUIRE_LLM=false` sans réponse LLM valide,
 `LLM_SCORING_ENABLED=false`, ou `TRANSLATION_ENABLED=false`. La Justification commence alors par
-`[LEXICAL · profil …]`, et ni `Catégorie` ni `Brique pour` ne sont écrites.
+`[LEXICAL · profil …]`, et ni `Catégorie` ni `Brique pour` ne sont écrites. Sans brique, ce score ne
+dépasse jamais 8 (voir le plafond ci-dessus).
 
-Les notes de la v7.3 ne se comparent pas à celles des versions précédentes, qui suivaient une autre
-grille. Le préfixe de la Justification permet de distinguer les deux.
+Les notes de la v7.3 et de la v7.4 suivent la même grille à 7 critères ; la v7.3 n'appliquait pas
+encore le plafond de 8 sans `Brique pour`. Elles ne se comparent pas à celles des versions
+précédentes, qui suivaient une autre grille. Le préfixe de la Justification permet de distinguer les
+fiches ; l'empreinte du profil intègre les règles de notation, si bien qu'un même profil donne une
+empreinte différente en v7.3 et en v7.4.
 
 ## Contenu des fiches
 
-| Colonne | Valeur écrite (v7.3) |
+| Colonne | Valeur écrite (v7.4) |
 |---------|----------------------|
 | `Nom`, `URL`, `Stars` | nom, adresse et étoiles du dépôt (GitHub) |
-| `Description` | description française du LLM (1 à 2 phrases demandées) ; sans LLM, description GitHub d'origine, ou « Non vérifié » si le dépôt n'en a pas |
+| `Description` | description française du LLM (1 à 2 phrases demandées) ; sans LLM, description GitHub d'origine, ou « Non vérifié » si le dépôt n'en a pas ; « Non vérifié » pour une fiche non notée |
 | `Cas d'usage` | une puce « • » par cas d'usage du LLM (0 à 3, 200 caractères au plus chacun ; le prompt exige des usages propres au dépôt, tirés de sa description ou de son README) ; « Non vérifié » si la liste est vide, en traduction seule (`LLM_SCORING_ENABLED=false`) ou sans LLM. Plus aucune liste générique |
 | `Installation` | extrait mot pour mot du README : premier bloc de code d'une section installation, install, getting started, quick start, setup, démarrage ou mise en route |
 | `Exemple` | extrait mot pour mot du README : premier bloc de code d'une section usage, example(s), exemple(s), utilisation ou how to use |
 | `Prérequis` | extrait mot pour mot du README : premières lignes de liste d'une section requirements, prerequisites, prérequis, dependencies ou dépendances, sinon son premier bloc de code |
-| `Pertinence` | note de 0 à 10 (voir [Notation](#notation)) |
+| `Pertinence` | note de 0 à 10 (voir [Notation](#notation)) ; 8 au plus sans `Brique pour` ; vide pour une fiche non notée (dépôt sans description, sans topics et sans README exploitable) |
 | `Langage` | Python, JavaScript, TypeScript, Go ou Autre (simple information) |
 | `Type` | Agent IA, ML/AI ou Web, seulement d'après des topics GitHub exacts (`agent`, `agents`, `ai-agent`, `ai-agents` ; `machine-learning`, `ai` ; `web`, `frontend`) ; vide sinon |
 | `Statut` | « À explorer » |
 | `Dernière MAJ` | date du dernier push (`pushed_at`), à défaut `updated_at` |
 | `Analysé le` | date du run |
-| `Justification` | `[LLM <modèle réellement servi> · profil <version>/<empreinte>] U2·P3·T1·I2·C2·M2·L2 = 10 — <justification>` (faits tirés du dépôt ; 40 mots demandés au LLM, 400 caractères gardés au plus) ; `M?` ou `L?` si la donnée manque ; `[LEXICAL · profil <version>/<empreinte>]` en repli lexical ; 800 caractères au plus en tout |
+| `Justification` | `[LLM <modèle réellement servi> · profil <version>/<empreinte>] U2·P3·T1·I2·C2·M2·L2 = 10 — <justification>` (faits tirés du dépôt ; 40 mots demandés au LLM, 400 caractères gardés au plus) ; `M?` ou `L?` si la donnée manque ; quand le plafond sans brique change la note : `… = 10, plafonnée à 8 (aucune brique du profil) — <justification>` ; `[LEXICAL · profil <version>/<empreinte>]` en repli lexical, suivi de `Note 10, plafonnée à 8 (aucune brique du profil).` si le plafond a joué ; `[NON NOTÉ] Ni description, ni topics, ni README exploitable : Pertinence laissée vide.` pour une fiche non notée ; 800 caractères au plus en tout |
 | `Licence`, `Catégorie`, `Brique pour` | colonnes facultatives, voir ci-dessous |
 
 `Langage`, `Type` et `Statut` ne reçoivent que des options **déjà présentes** dans la base (celles
@@ -314,7 +380,7 @@ avec leur type.
 |---------|----------------|---------------|
 | `Licence` | Texte ou Sélection | identifiant SPDX donné par GitHub (`license.spdx_id`, par exemple `MIT`, `Apache-2.0`, `GPL-3.0`) ; « Non renseignée » si le dépôt n'a pas de licence ; « Non vérifiée » si GitHub ne l'identifie pas (NOASSERTION) ou si la donnée manque |
 | `Catégorie` | Sélection ou Texte | catégorie choisie par le LLM dans la liste du profil (ou la liste par défaut) ; rien si la catégorie est inconnue ou en repli lexical |
-| `Brique pour` | Sélection multiple ou Texte | 0 à 3 noms de projets ou de domaines **du profil** (les autres noms proposés par le LLM sont retirés) ; en Texte, noms séparés par « , » ; rien si la liste est vide |
+| `Brique pour` | Sélection multiple ou Texte | 0 à 3 noms de projets ou de domaines **du profil** (les autres noms proposés par le LLM sont retirés) ; en Texte, noms séparés par « , » ; rien si la liste est vide. Le plafond de 8 dépend des noms validés, pas de cette colonne (voir [Notation](#notation)) |
 
 - **Créez ces colonnes vous-même dans Notion si vous les voulez** : Gitnotate ne modifie jamais le
   schéma d'une base existante. Une colonne d'un autre type (par exemple `Licence` en Sélection
@@ -335,17 +401,23 @@ avec leur type.
 
 ## Codes de sortie
 
-| Code | `gitnotate.py` | `clean_page_duplicates.py` | `scripts/check_llm.py` |
-|------|----------------|----------------------------|------------------------|
-| 0 | succès, même avec des dépôts reportés | terminé sans problème | clés utilisables |
-| 1 | configuration (option invalide, page source introuvable…) ou erreur fatale, aucune fiche créée | configuration, page ou journal introuvable | aucune clé, clé refusée, modèle absent, réseau |
-| 2 | au moins une erreur, ou lecture partielle | abandon, lecture partielle ou échec | — |
-| 130 | interruption (Ctrl-C) | — | — |
+| Code | `gitnotate.py` | `clean_page_duplicates.py` | `scripts/check_llm.py` | `redecouverte.py` |
+|------|----------------|----------------------------|------------------------|-------------------|
+| 0 | succès, même avec des dépôts reportés | terminé sans problème | clés utilisables | terminé, même sans résultat (et avis LLM annulé, ou non demandé hors terminal sans `--oui`) |
+| 1 | configuration (option invalide, page source introuvable…) ou erreur fatale, aucune fiche créée | configuration, page ou journal introuvable | aucune clé, clé refusée, modèle absent, réseau | configuration (jeton, `DATABASE_ID`, base refusée ou introuvable), commande ou option invalide, recherche sans mot significatif, capture introuvable ou illisible, index absent ou illisible, FTS5 absent |
+| 2 | au moins une erreur, ou lecture partielle | abandon, lecture partielle ou échec | — | lecture Notion incomplète ou interrompue, baisse brutale refusée, autre synchronisation en cours, index ouvert par un autre programme (dans tous ces cas, l'ancien index est conservé) ; capture ou fichier `--sortie` non écrit ; avis LLM demandé impossible ou réponse inexploitable |
+| 130 | interruption (Ctrl-C) | — | — | interruption (Ctrl-C) ; pendant `sync`, l'ancien index est conservé tant que le nouveau ne l'a pas remplacé |
 
 ## Sûreté des données
 
 - **`gitnotate.py` ne fait qu'ajouter des fiches** : il ne modifie ni ne supprime jamais rien dans
   Notion. Avec une intégration limitée à Read + Insert, Notion refuserait d'ailleurs toute modification.
+- **`redecouverte.py` ne fait que lire** : seuls `GET /v1/databases/{id}` et
+  `POST /v1/databases/{id}/query` sont autorisés, vérifiés par une liste blanche avant tout envoi ;
+  tout autre appel est bloqué avant le réseau. Il n'écrit que sa copie locale (remplacée d'un bloc,
+  l'ancienne est conservée à la moindre erreur) et, sur demande, une capture ou un fichier de
+  résultats dans `exports/`. Aucun jeton n'y est écrit ; les colonnes personne, e-mail, téléphone et
+  fichiers ne sont jamais conservées.
 - **Aucune modification de schéma ni recalcul** : le schéma d'une base existante n'est jamais
   modifié (les colonnes facultatives ne servent que si vous les avez créées, et aucune option de
   sélection n'est créée : `Langage`, `Statut`, `Type` et les colonnes facultatives de sélection ne
@@ -431,17 +503,24 @@ avec leur type.
 
 - Partent au LLM, pour les dépôts **publics** : nom, langage (« non détecté » s'il manque), topics,
   description, indices calculés par le script (fork, archivé, distribution PyPI, npm ou Docker
-  détectée — un lien ou une commande d'installation compte seulement s'il désigne le paquet du dépôt —,
-  exigence de GPU relevée dans le README, avec la quantité de VRAM quand elle est écrite et la phrase
-  source citée ; une phrase négative ou facultative comme « No GPU required » ou « Optional: a GPU
-  with 6 GB VRAM » n'est jamais lue comme une exigence), et un extrait du README **nettoyé avant
-  d'être tronqué** (`README_LLM_CHARS`, 1 500 caractères). Le nettoyage
-  retire les commentaires HTML, les balises, les images, les badges, les URL et les définitions de
-  liens, et réduit chaque bloc de code à 3 lignes. Ni les étoiles ni la licence ne sont envoyées
-  (pour éviter un biais). Ce contenu est placé entre `<depot>` et `</depot>` ; le prompt le traite
+  détectée — un lien ou une commande d'installation compte seulement s'il désigne le paquet du
+  dépôt ; pour Docker, depuis la v7.4, seule compte une image qui désigne le dépôt : image du même
+  nom que le dépôt (`ghcr.io/huginn/huginn` pour huginn/huginn), ou image `<dépôt>-<suffixe>`
+  publiée sous le nom du propriétaire (`acme/outil-server` pour acme/outil), citée dans une commande
+  `docker run`, `docker create` ou `docker pull`, une adresse de registre, une page ou un badge
+  Docker Hub, ou une ligne `image:` ; une image tierce (`docker run postgres`), une image au seul nom
+  du propriétaire (`ollama/ollama` pour ollama/ollama-python), `docker compose up` ou `docker build`
+  seuls ne comptent pas —, exigence de GPU relevée dans le README, avec la quantité de VRAM quand
+  elle est écrite et la phrase source citée ; une phrase négative ou facultative comme « No GPU
+  required » ou « Optional: a GPU with 6 GB VRAM » n'est jamais lue comme une exigence), et un
+  extrait du README **nettoyé avant d'être tronqué** (`README_LLM_CHARS`, 1 500 caractères). Le
+  nettoyage retire les commentaires HTML, les balises, les images, les badges, les URL et les
+  définitions de liens, et réduit chaque bloc de code à 3 lignes. Ni les étoiles ni la licence ne
+  sont envoyées (pour éviter un biais). Ce contenu est placé entre `<depot>` et `</depot>` ; le prompt le traite
   comme une donnée non fiable (ces balises sont retirées du contenu lui-même, y compris leurs
   variantes accentuées, en pleine chasse ou coupées par un caractère invisible) et interdit d'inventer
-  une commande, une compatibilité ou une fonctionnalité.
+  une commande, une compatibilité ou une fonctionnalité. Un dépôt sans description, sans topics et
+  sans README exploitable (fiche non notée) n'est pas envoyé du tout.
 - Partent aussi, depuis votre profil : `contexte`, `environnement`, les technologies (`languages`,
   `frameworks`, `infra`), les domaines, les projets avec leurs besoins, les exclusions et la liste
   des catégories. Ne partent jamais : les clés commençant par `_`, `profile_version`, `licences` et
@@ -456,10 +535,40 @@ avec leur type.
   collectent les données (moins de modèles gratuits). Les en-têtes d'attribution, qui rendent
   l'application visible publiquement, ne partent qu'avec `OPENROUTER_ATTRIBUTION=true`.
 - Jetons et clés ne sont jamais affichés en clair (au plus leurs 4 premiers et 4 derniers caractères).
+- `redecouverte.py` n'envoie rien à un LLM, sauf avec `cherche --llm` : votre recherche et, pour les
+  premiers dépôts trouvés (8 par défaut), leur nom, `propriétaire/dépôt`, leur description et, pour les
+  fiches v7.3 et suivantes, leurs cas d'usage et leur catégorie ; jamais de lien Notion, de Statut, de
+  colonne personnelle, de `Brique pour` ni de Justification. Le résumé de l'envoi s'affiche avant une
+  confirmation (« oui ») ; `--llm-apercu` montre le texte exact sans rien envoyer.
+
+## Migration depuis la v7.3
+
+Validez d'abord la v7.4 sur une base de test : [docs/VALIDATION.md](docs/VALIDATION.md).
+
+- **Code** : `gitnotate.py` passe en 7.4.0 (`python gitnotate.py --version`) ; seules les règles de
+  notation changent (plafond de 8 sans `Brique pour`, fiche non notée, indice Docker, repli lexical
+  neutre : voir [Notation](#notation)). `clean_page_duplicates.py` et `scripts/check_llm.py` sont
+  inchangés. Nouveaux fichiers : `redecouverte.py`, `redecouverte_lexique.py`,
+  `scripts/evaluer_redecouverte.py` et [docs/REDECOUVERTE.md](docs/REDECOUVERTE.md).
+- **`.env`** : aucune nouvelle variable pour `gitnotate.py`. Trois variables facultatives servent à
+  `redecouverte.py` : `NOTION_READONLY_TOKEN`, `REDECOUVERTE_RESULTATS` et `REDECOUVERTE_LLM_MAX`
+  (section « REDÉCOUVERTE » de `env.example`).
+- **`user_profile.json`** : inchangé. Une exclusion n'agit sur le repli lexical que si elle est écrite
+  comme un topic GitHub exact (voir [Profil de pertinence](#profil-de-pertinence-user_profilejson)).
+- **Base Notion** : rien à changer, schéma inchangé. Une fiche non notée est créée avec `Pertinence`
+  vide : triez sur `Pertinence` en sachant que ces fiches n'ont pas été jugées.
+- **Anciennes fiches** : jamais modifiées ni recalculées. Une fiche v7.3 notée 9 ou 10 sans
+  `Brique pour` garde sa note ; elle aurait 8 en v7.4. L'empreinte du profil change avec la v7.4,
+  même si le profil est identique.
+- **Cache GitHub** : son format passe de 3 à 4 ; les entrées écrites par la v7.3 sont relues sur
+  GitHub une fois, quand le dépôt est traité. Aucune action n'est nécessaire.
+- **Retour à la v7.3** : voir l'étape G de [docs/VALIDATION.md](docs/VALIDATION.md). Aucune donnée
+  Notion n'est à restaurer.
 
 ## Migration depuis la v7.2
 
-Validez d'abord la v7.3 sur une base de test : [docs/VALIDATION.md](docs/VALIDATION.md).
+Validez d'abord la version actuelle sur une base de test : [docs/VALIDATION.md](docs/VALIDATION.md).
+Les points ci-dessous décrivent le passage à la v7.3 ; ceux de la section précédente s'y ajoutent.
 
 - **Code** : seul `gitnotate.py` change (`python gitnotate.py --version` affiche 7.3.0).
   `scripts/check_llm.py` et `clean_page_duplicates.py` sont inchangés.
@@ -525,6 +634,11 @@ Validez d'abord la v7.3 sur une base de test : [docs/VALIDATION.md](docs/VALIDAT
 au réseau ni à votre `.env` : les API Notion, GitHub, Mistral et OpenRouter sont simulées.
 `tests/test_lot3.py` couvre la v7.3 : compatibilité avec le schéma de la v7.1, colonnes facultatives,
 absence de toute modification (seulement des lectures et des créations), extraits mot pour mot du
-README, métadonnées GitHub absentes, stabilité de la note et validation des réponses du LLM. Ces
-tests ne remplacent pas la validation sur une vraie base de test décrite dans
+README, métadonnées GitHub absentes, stabilité de la note et validation des réponses du LLM.
+`tests/test_lot4_notation.py` couvre les règles de la v7.4 (plafond sans brique, fiche non notée,
+indice Docker, repli lexical neutre). `tests/test_redecouverte_sync.py`, `test_redecouverte_fiches.py`
+et `test_redecouverte_recherche.py` couvrent `redecouverte.py` sur un corpus synthétique
+(`tests/fixtures/redecouverte/`) : liste blanche des appels Notion, pagination, interruption,
+conservation de l'index, versions des fiches, extraits mot pour mot, classement et requêtes de
+référence. Ces tests ne remplacent pas la validation sur une vraie base de test décrite dans
 [docs/VALIDATION.md](docs/VALIDATION.md).
