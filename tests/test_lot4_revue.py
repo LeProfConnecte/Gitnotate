@@ -755,7 +755,9 @@ def test_m5_options_et_erreurs_de_fichier(corpus, tmp_path, capsys):
     virgule = tmp_path / 'virgule.json'
     virgule.write_text('{"requetes": [\n {"id": "X", "requete": "pdf"},\n]}', encoding='utf-8')
     assert evaluer.main([str(virgule)]) == 1
-    assert 'JSON invalide ligne 2' in capsys.readouterr().err
+    # La ligne signalée dépend de la version de Python (3.13 : ligne 2, 3.10 : ligne 3, colonne 1)
+    erreur = capsys.readouterr().err
+    assert re.search(r'JSON invalide ligne [23]\b', erreur) and 'virgule en trop' in erreur
     faute = tmp_path / 'faute.json'
     faute.write_text(json.dumps({'requetes': [dict(requete, options={}, en_tete=['Docling-Project/Docling'])]}),
                      encoding='utf-8')
