@@ -1,0 +1,406 @@
+{
+  "version": 1,
+  "description": "Qualification indépendante du classement Gitnotate lot 4 sur le corpus SYNTHÉTIQUE existant. Ces jugements sont définis à partir des descriptions des fiches, sans exécuter le moteur de recherche. Ne pas présenter les résultats comme une mesure sur la base Notion réelle.",
+  "corpus": "tests/fixtures/redecouverte/corpus.json",
+  "reference_du_code": "a679661a2fcadd9ce07cb6d63d947b1740aeb2c8",
+  "requetes": [
+    {
+      "id": "I01",
+      "jeu": "qualification_independante",
+      "requete": "Gérer les notes et les absences de mes élèves dans un logiciel de vie scolaire",
+      "options": {},
+      "en_tete": [],
+      "acceptables": [],
+      "a_exclure": [
+        "caviraoss/pagelm",
+        "docling-project/docling",
+        "marimo-team/marimo"
+      ],
+      "objectif": "Négation de pertinence : notes scolaires ≠ notes documentaires"
+    },
+    {
+      "id": "I02",
+      "jeu": "qualification_independante",
+      "requete": "Calculer des poutres en béton armé et vérifier Eurocode 2",
+      "options": {},
+      "en_tete": [],
+      "acceptables": [],
+      "a_exclure": [
+        "evidentlyai/evidently",
+        "paddlepaddle/paddleocr",
+        "docling-project/docling"
+      ],
+      "objectif": "Négation de pertinence : structures porteuses ≠ données structurées"
+    },
+    {
+      "id": "I03",
+      "jeu": "qualification_independante",
+      "requete": "Transcrire en texte les paroles enregistrées pendant une réunion",
+      "options": {},
+      "en_tete": [],
+      "acceptables": [],
+      "a_exclure": [
+        "ohf-voice/piper1-gpl",
+        "resemble-ai/chatterbox",
+        "remotion-dev/remotion"
+      ],
+      "objectif": "Reconnaissance vocale ≠ synthèse vocale"
+    },
+    {
+      "id": "I04",
+      "jeu": "qualification_independante",
+      "requete": "Créer une leçon interactive avec des calculs Python exécutables dans le navigateur",
+      "options": {},
+      "en_tete": [
+        "marimo-team/marimo"
+      ],
+      "acceptables": [
+        "caviraoss/pagelm"
+      ],
+      "a_exclure": [
+        "tesseract-ocr/tesseract",
+        "docling-project/docling"
+      ],
+      "objectif": "Objet central : environnement Python interactif, et non seulement « cours »"
+    },
+    {
+      "id": "I05",
+      "jeu": "qualification_independante",
+      "requete": "Contrôler la dérive des données et mesurer la qualité d’un modèle de machine learning",
+      "options": {},
+      "en_tete": [
+        "evidentlyai/evidently"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "huginn/huginn",
+        "rssnext/folo",
+        "invest-composer/composer-trade-mcp"
+      ],
+      "objectif": "Dérive ML et monitoring de données, pas monitoring de flux"
+    },
+    {
+      "id": "I06",
+      "jeu": "qualification_independante",
+      "requete": "Transformer un notebook Python réactif en application réutilisable",
+      "options": {},
+      "en_tete": [
+        "marimo-team/marimo"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "caviraoss/pagelm",
+        "lfnovo/open-notebook"
+      ],
+      "objectif": "Notebook Python exécutable ≠ application de prise de notes"
+    },
+    {
+      "id": "I07",
+      "jeu": "qualification_independante",
+      "requete": "Identifier des boutons et champs de formulaire dans une capture d’écran pour un agent GUI",
+      "options": {},
+      "en_tete": [
+        "microsoft/omniparser"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "docling-project/docling",
+        "tesseract-ocr/tesseract",
+        "paddlepaddle/paddleocr"
+      ],
+      "objectif": "Analyse d’interface graphique ≠ OCR de documents"
+    },
+    {
+      "id": "I08",
+      "jeu": "qualification_independante",
+      "requete": "Reconnaître la disposition et extraire les équations et tableaux de pages scannées",
+      "options": {},
+      "en_tete": [
+        "bytedance/dolphin"
+      ],
+      "acceptables": [
+        "paddlepaddle/paddleocr",
+        "allenai/olmocr"
+      ],
+      "a_exclure": [
+        "microsoft/omniparser",
+        "unclecode/crawl4ai"
+      ],
+      "objectif": "Mise en page et éléments documentaires"
+    },
+    {
+      "id": "I09",
+      "jeu": "qualification_independante",
+      "requete": "Organiser un rebase Git et gérer les branches dans une interface de terminal",
+      "options": {},
+      "en_tete": [
+        "jesseduffield/lazygit"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "sharkdp/bat",
+        "anomalyco/opencode"
+      ],
+      "objectif": "Gestion Git ≠ visionneuse de fichiers, ni assistant de codage"
+    },
+    {
+      "id": "I10",
+      "jeu": "qualification_independante",
+      "requete": "Afficher du code source dans le terminal avec coloration syntaxique",
+      "options": {},
+      "en_tete": [
+        "sharkdp/bat"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "jesseduffield/lazygit",
+        "openhands/openhands"
+      ],
+      "objectif": "Visionnage de fichiers source ≠ Git"
+    },
+    {
+      "id": "I11",
+      "jeu": "qualification_independante",
+      "requete": "Créer une bibliothèque de serveurs et clients MCP avec des fonctions Python",
+      "options": {},
+      "en_tete": [
+        "jlowin/fastmcp"
+      ],
+      "acceptables": [
+        "modelcontextprotocol/servers"
+      ],
+      "a_exclure": [
+        "invest-composer/composer-trade-mcp"
+      ],
+      "objectif": "Développement du protocole MCP ≠ serveur métier spécialisé"
+    },
+    {
+      "id": "I12",
+      "jeu": "qualification_independante",
+      "requete": "Donner à un agent accès aux jeux de données gouvernementales françaises via MCP",
+      "options": {},
+      "en_tete": [
+        "datagouv/datagouv-mcp"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "invest-composer/composer-trade-mcp",
+        "jlowin/fastmcp"
+      ],
+      "objectif": "Service de données ouvertes, non serveur MCP générique"
+    },
+    {
+      "id": "I13",
+      "jeu": "qualification_independante",
+      "requete": "Configurer et superviser des sessions Claude Code en ligne de commande",
+      "options": {},
+      "en_tete": [
+        "davila7/claude-code-templates"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "openhands/openhands",
+        "anomalyco/opencode"
+      ],
+      "objectif": "Gestion d’une CLI précise ≠ agent de code concurrent"
+    },
+    {
+      "id": "I14",
+      "jeu": "qualification_independante",
+      "requete": "Déclencher des actions et alertes quand une page ou un flux surveillé change",
+      "options": {},
+      "en_tete": [
+        "huginn/huginn"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "rssnext/folo",
+        "firefly-iii/firefly-iii"
+      ],
+      "objectif": "Automatisation événementielle ≠ simple lecteur de veille"
+    },
+    {
+      "id": "I15",
+      "jeu": "qualification_independante",
+      "requete": "Lire et regrouper au même endroit mes flux d’actualité RSS",
+      "options": {},
+      "en_tete": [
+        "rssnext/folo"
+      ],
+      "acceptables": [
+        "huginn/huginn"
+      ],
+      "a_exclure": [
+        "firefly-iii/firefly-iii"
+      ],
+      "objectif": "Agrégation et lecture de veille ≠ monitoring événementiel uniquement"
+    },
+    {
+      "id": "I16",
+      "jeu": "qualification_independante",
+      "requete": "Intégrer une recherche sémantique documentaire dans une application",
+      "options": {},
+      "en_tete": [
+        "neuml/txtai"
+      ],
+      "acceptables": [
+        "infiniflow/ragflow"
+      ],
+      "a_exclure": [
+        "ohf-voice/piper1-gpl",
+        "ggml-org/llama.cpp"
+      ],
+      "objectif": "Retrieval sémantique ≠ inférence LLM"
+    },
+    {
+      "id": "I17",
+      "jeu": "qualification_independante",
+      "requete": "Parcourir un très long PDF avec un index hiérarchique sans créer de base vectorielle",
+      "options": {},
+      "en_tete": [
+        "vectifyai/pageindex"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "neuml/txtai",
+        "infiniflow/ragflow"
+      ],
+      "objectif": "Contrainte sans base vectorielle et navigation hiérarchique"
+    },
+    {
+      "id": "I18",
+      "jeu": "qualification_independante",
+      "requete": "Fabriquer des séquences vidéo par programmation avec des composants React",
+      "options": {},
+      "en_tete": [
+        "remotion-dev/remotion"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "gyoridavid/short-video-maker",
+        "caviraoss/pagelm"
+      ],
+      "objectif": "Vidéo programmée en React, pas seulement production de Shorts"
+    },
+    {
+      "id": "I19",
+      "jeu": "qualification_independante",
+      "requete": "Produire automatiquement des vidéos verticales courtes via une API REST",
+      "options": {},
+      "en_tete": [
+        "gyoridavid/short-video-maker"
+      ],
+      "acceptables": [
+        "remotion-dev/remotion"
+      ],
+      "a_exclure": [
+        "resemble-ai/chatterbox"
+      ],
+      "objectif": "Sortie audiovisuelle par API, exclure le TTS seul"
+    },
+    {
+      "id": "I20",
+      "jeu": "qualification_independante",
+      "requete": "Produire une narration parlée localement et hors ligne sans service cloud",
+      "options": {},
+      "en_tete": [
+        "ohf-voice/piper1-gpl"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "tesseract-ocr/tesseract",
+        "ggml-org/llama.cpp"
+      ],
+      "objectif": "Synthèse vocale locale ≠ moteur de reconnaissance ou de LLM"
+    },
+    {
+      "id": "I21",
+      "jeu": "qualification_independante",
+      "requete": "Apprendre les algorithmes classiques avec des implémentations Python",
+      "options": {},
+      "en_tete": [
+        "thealgorithms/python"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "microsoft/generative-ai-for-beginners",
+        "jlowin/fastmcp"
+      ],
+      "objectif": "Algorithmes généralistes ≠ cours d’IA générative"
+    },
+    {
+      "id": "I22",
+      "jeu": "qualification_independante",
+      "requete": "Découvrir un catalogue d’applications libres à auto-héberger sur mon VPS",
+      "options": {},
+      "en_tete": [
+        "awesome-selfhosted/awesome-selfhosted"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "dockur/windows",
+        "rssnext/folo"
+      ],
+      "objectif": "Liste de services auto-hébergeables, pas un service unique"
+    },
+    {
+      "id": "I23",
+      "jeu": "qualification_independante",
+      "requete": "Backtester des stratégies en envoyant des instructions MCP au service Composer",
+      "options": {},
+      "en_tete": [
+        "invest-composer/composer-trade-mcp"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "firefly-iii/firefly-iii",
+        "ai4finance-foundation/finrobot"
+      ],
+      "objectif": "MCP et backtesting sur Composer, pas gestion de budget"
+    },
+    {
+      "id": "I24",
+      "jeu": "qualification_independante",
+      "requete": "Tenir un budget familial avec une application de finances personnelles auto-hébergée",
+      "options": {},
+      "en_tete": [
+        "firefly-iii/firefly-iii"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "invest-composer/composer-trade-mcp",
+        "ai4finance-foundation/finrobot"
+      ],
+      "objectif": "Finances personnelles ≠ trading et analyse de marché"
+    },
+    {
+      "id": "I25",
+      "jeu": "qualification_independante",
+      "requete": "Which tool evaluates data drift and ML quality, rather than watching RSS news feeds?",
+      "options": {},
+      "en_tete": [
+        "evidentlyai/evidently"
+      ],
+      "acceptables": [],
+      "a_exclure": [
+        "huginn/huginn",
+        "rssnext/folo"
+      ],
+      "objectif": "English contrast: ML drift vs RSS monitoring"
+    },
+    {
+      "id": "I26",
+      "jeu": "qualification_independante",
+      "requete": "Je cherche une solution open source pour saisir des présences et des absences à l’école, pas pour analyser des PDF",
+      "options": {},
+      "en_tete": [],
+      "acceptables": [],
+      "a_exclure": [
+        "caviraoss/pagelm",
+        "docling-project/docling",
+        "paddlepaddle/paddleocr"
+      ],
+      "objectif": "Absence de réponse pertinente + négation explicite"
+    }
+  ]
+}

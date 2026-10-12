@@ -1,0 +1,4 @@
+# Jeu de qualification indépendant et son protocole : conservés à l'octet près (empreintes SHA-256 vérifiées
+# par les tests). Aucune conversion des fins de ligne, même avec core.autocrlf=true sous Windows.
+tests/fixtures/redecouverte/requetes_independantes_lot4.json -text
+tests/fixtures/redecouverte/PROTOCOLE_QUALIFICATION_LOT4.md -text
