@@ -858,3 +858,21 @@ def test_documentation_corrigee():
     assert 'apostrophe' in validation.split('## H.')[1]
     assert 'README, modifié dans Notion — à vérifier' in doc                                        # P3
     assert 'README_LLM_CHARS=0' in (ROOT / 'README.md').read_text(encoding='utf-8')                # PA-2
+
+
+# =============================================================================
+# Âge de l'index en jours de calendrier (lecture de la veille : pas « aujourd'hui »)
+# =============================================================================
+def test_age_index_en_jours_de_calendrier(load_gn, monkeypatch):
+    load_gn()
+    import redecouverte as rd
+    rd = importlib.reload(rd)
+    maintenant = datetime.now(timezone.utc).astimezone()
+    veille = (maintenant - timedelta(days=1)).replace(hour=23, minute=59, second=0, microsecond=0)
+    if (maintenant - veille).total_seconds() >= 86400:      # instant présent après 23 h 59 : rien à vérifier ici
+        veille = maintenant - timedelta(minutes=maintenant.hour * 60 + maintenant.minute + 1)
+    monkeypatch.setattr(rd, '_lecture', lambda meta: veille)
+    assert rd._age_jours({}) == 1
+    assert rd._il_y_a(rd._age_jours({})) == 'il y a 1 jour'
+    monkeypatch.setattr(rd, '_lecture', lambda meta: maintenant)
+    assert rd._il_y_a(rd._age_jours({})) == "aujourd'hui"

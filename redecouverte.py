@@ -2024,7 +2024,8 @@ def _age_jours(meta: Dict[str, str]) -> Optional[int]:
     lecture = _lecture(meta)
     if lecture is None:
         return None
-    return max(0, int((datetime.now(timezone.utc) - lecture).total_seconds() // 86400))
+    # Jours de calendrier (heure locale) : une lecture de la veille au soir n'est pas « aujourd'hui »
+    return max(0, (datetime.now(timezone.utc).astimezone().date() - lecture.astimezone().date()).days)
 
 
 def _il_y_a(jours: Optional[int]) -> str:
