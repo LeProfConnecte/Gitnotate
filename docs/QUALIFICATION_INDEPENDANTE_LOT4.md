@@ -64,3 +64,118 @@ Requêtes sans réponse attendue (jeu dérivé) : `aucun_fort non respecté pour
 | I24 | 1,00 | 0,20 | 1,00 | 1,00 | 0 | 1 | 1 | 12 | firefly-iii/firefly-iii (F), awesome-selfhosted/awesome-selfhosted (P), huginn/huginn (P), virattt/dexter (P), invest-composer/composer-trade-mcp (P) |
 | I25 | 1,00 | 0,20 | 1,00 | 1,00 | 0 | 0 | 1 | 1 | evidentlyai/evidently (F) |
 | I26 | — | — | — | — | 2 | 3 | 0 | 9 | lfnovo/open-notebook (P), caviraoss/pagelm (P), docling-project/docling (P), vectifyai/pageindex (P), paddlepaddle/paddleocr (P) |
+
+Les dépôts « visibles » sont les correspondances forte et partielle (les faibles sont masquées par défaut).
+
+## 3. Avant et après l'affinage, sur ce jeu
+
+« Avant » : moteur de `a679661` (dernière version vérifiée avant l'affinage), avec son propre index ; « après » :
+moteur actuel (identique depuis `16e163f`). Même capture du corpus, mêmes jugements, mêmes définitions (la
+fonction `mesurer()` actuelle appliquée aux classements des deux versions).
+
+| Mesure (22 requêtes avec attendus ; intrus sur 26) | Avant | Après |
+|---|---|---|
+| nDCG@10 | 0,857 | 0,897 |
+| MRR | 0,836 | 0,869 |
+| P@5 | 0,236 | 0,236 |
+| R@5 | 0,917 | 0,917 |
+| Attendu en tête au 1er rang | 17 / 22 | 18 / 22 |
+| intrus@3 (total / moyenne) | 15 / 0,58 | 10 / 0,38 |
+| intrus@5 (total / moyenne) | 19 / 0,73 | 15 / 0,58 |
+| Correspondances « forte », toutes requêtes | 24 | 24 |
+
+Seules I25 (« rather than » reconnu comme comparaison : nDCG 0,50 → 1,00) et I04 (nDCG 0,14 → 0,52) changent les
+mesures. La baisse des intrus vient surtout des requêtes sans réponse (I01, I02, I26) et de I25.
+
+## 4. Faux positifs non listés (double qualification)
+
+Les listes `a_exclure` ne sont pas exhaustives. Deux analystes ont qualifié **indépendamment** chaque dépôt
+visible des 5 premiers rangs (et toute « forte » au-delà) d'après le texte des fiches : pertinent, plausible
+ou hors sujet. Accord : 226 éléments sur 230 (98,3 %, kappa de Cohen 0,96) ; les 2 désaccords (I16 ragflow,
+I24 awesome-selfhosted) ont été tranchés en relisant les fiches. Ce sont des jugements d'analyste, distincts
+des jugements de référence, qui restent inchangés.
+
+| Mesure (26 requêtes) | Avant | Après |
+|---|---|---|
+| Hors sujet **non listés** dans les 3 premiers | 36 | 35 |
+| Hors sujet **non listés** dans les 5 premiers | 71 | 67 |
+| Hors sujet, listés ou non, dans les 5 premiers | 89 | 81 |
+| « forte » donnée à un dépôt hors sujet | 7 | 5 |
+| 1er rang hors sujet | 8 | 5 |
+| P@5 selon les analystes (pertinent seul / pertinent ou plausible) | 0,16 / 0,23 | 0,16 / 0,23 |
+
+L'évaluateur ne voit que les intrus listés : dans les 5 premiers, il manque environ 4,5 fois plus de faux
+positifs qu'il n'en compte. « forte » hors sujet après l'affinage : I06 open-notebook (nouvelle), I10
+claude-code-templates et opencode, I11 datagouv-mcp et composer-trade-mcp. Causes récurrentes : un seul mot
+libre suffit pour une correspondance partielle (« modèle », « interface », « long », « texte »,
+« implémentation »), homonymies (notebook / Notebook LM, notes, « source » dans « open source », « code » dans
+« Claude Code »), contrainte « Python » trouvée par le seul Langage GitHub.
+
+## 5. Les quatre requêtes sans réponse attendue (jeu dérivé `aucun_fort`)
+
+Règle du protocole : aucune correspondance forte sans preuve pertinente. Elle est respectée (0 sur 4, avant
+comme après, fiches sans dépôt comprises). Mais **tous** les dépôts encore visibles sont hors sujet :
+
+| Requête | Visibles avant → après | « forte » avant → après | intrus@3 après | Ce qui remonte (après) et pourquoi |
+|---|---|---|---|---|
+| I01 notes et absences des élèves | 7 → 1 | 0 → 0 | 1 | pagelm (partielle) : homonymie « notes structurées » |
+| I02 poutres en béton armé, Eurocode 2 | 2 → 0 | 0 → 0 | 0 | rien (« 2 » n'est plus cherché ; notion génie civil absente du corpus) |
+| I03 transcrire les paroles d'une réunion | 6 → 6 | 0 → 0 | 2 | piper1-gpl et chatterbox : synthèse vocale au lieu de reconnaissance ; OCR via « texte » |
+| I26 présences et absences à l'école, « pas pour analyser des PDF » | 12 → 9 | 2 → 0 | 2 | 8 outils PDF : la négation n'est pas appliquée (§ 6) |
+
+## 6. Négations et ambiguïtés
+
+| Cas | Traitement | Effet | Gravité |
+|---|---|---|---|
+| I26 « pas pour analyser des PDF » | **défaut** : « pour » figure dans `FIN_NEGATION` et ferme la négation ouverte par « pas » avant tout mot ; « analyser » et « PDF » restent cherchés (identique avant et après) | 8 outils PDF visibles, dont 2 intrus listés dans les 3 premiers | élevée |
+| I17 « sans créer de base vectorielle » | « créer » et « base vectorielle » retirés et affichés | pageindex 1er (forte) ; aucun porteur visible | aucune |
+| I20 « hors ligne », « sans service cloud » | « hors ligne » reconnu comme expression (non nié) ; « service », « cloud » retirés | piper 1er (forte) | aucune |
+| I25 « rather than watching RSS news feeds » | après : comparaison reconnue (rôle référence) ; avant : non | huginn passe de forte au rang 1 à faible masqué | corrigé par l'affinage |
+| Toutes | un mot nié est seulement retiré ; un dépôt qui porte la propriété exclue n'est ni déclassé ni signalé (choix de conception documenté) | limite connue | modérée |
+
+Ambiguïtés : notes (scolaires / documentaires, I01), notebook (Python / Notebook LM, I06 et I04), parole
+(reconnaissance / synthèse, I03), texte (format cible / mode texte / OCR, I03), surveillance (dérive ML / flux,
+I05 et I25 : correctement départagées après l'affinage), structures (I02 : aucune confusion), « en ligne de
+commande » lu comme « en ligne » (site web) avant « ligne de commande » (I13).
+
+## 7. Échecs et régressions qualitatives
+
+Échecs du moteur actuel (attendu en tête absent du 1er rang) : I10 (bat absent : sa fiche ne contient que
+« A cat(1) clone with wings. » ; le jugement repose sur une connaissance extérieure à la fiche), I04 (marimo
+9e : fiche pauvre, « interactifs » seulement dans la Justification), I15 (folo 2e derrière huginn : fiche
+réduite à « Suivez tout au même endroit »), I22 (awesome-selfhosted 2e : « auto-héberger » et « catalogue »
+absents du lexique). Les échecs I10 et I15 tiennent au texte des fiches plus qu'au classement.
+
+Régressions qualitatives de l'affinage (sans effet sur les mesures) :
+- I06 : open-notebook (à exclure, homonymie « Notebook LM ») passe de partielle à **forte** ;
+- I15 : huginn (acceptable) passe de partielle à **forte**, devant l'attendu en tête ;
+- les deux atteignent exactement le seuil (couverture = 0,600 = 1,5 / 2,5) : effet du poids fixe des
+  contraintes (Python, terminal) et des mots libres ; résultat fragile ;
+- I09, I10, I04 : des dépôts trouvés par le seul Langage Python ou par « interface » montent dans les rangs.
+
+## 8. Corrections candidates (non appliquées)
+
+Mesurées sur des copies du code, sans rien modifier dans le dépôt ; à appliquer seulement après accord, dans
+un commit séparé, puis à comparer sur les mêmes jeux figés :
+
+| Piste | Effet mesuré sur copie | Risque |
+|---|---|---|
+| Négation : un mot de `FIN_NEGATION` placé juste après le déclencheur ne la ferme pas (I26) | I26 : « analyser » et « PDF » affichés comme niés, intrus@3 2 → 0 (moyenne du jeu 0,38 → 0,31) ; aucun autre changement sur les 26 + 34 requêtes (contre-vérifié une seconde fois, indépendamment) | faible |
+| Seuil « forte » strict (couverture > 0,60) | retire les fortes d'I06 et I15 ; aucun changement sur les 34 requêtes de référence | faible |
+| Expressions : une expression plus longue commençant dans la correspondance courante l'emporte (« ligne de commande ») | seule I13 change | faible |
+| Sans notion du lexique dans le besoin, « forte » exige tous les essentiels | I10 : les 2 fortes hors sujet deviennent partielles ; rien d'autre ne change | faible |
+| Lexique : « code source » / « coloration syntaxique », « narration » / « parlée », « auto-héberger » / « catalogue » | I10 : 17 → 3 visibles ; I20 : preuve réelle ; I22 : 1er rang mais un intrus entre dans les 5 premiers | faible à modéré |
+
+Écartées : pondération des mots libres à 0,75 (régresse H04, Q06, Q09, H02), « un mot libre seul ne suffit
+pas » (Q10 perd son attendu, folo et awesome-selfhosted disparaissent), suppression du voisinage Claude Code
+(« alternative à Claude Code » ne trouverait plus de concurrents).
+
+## 9. Limites de cette qualification
+
+- Corpus synthétique de 62 fiches : aucune mesure sur la base réelle de 443 fiches (v7.1), qui n'a pas été lue
+  depuis Claude Code (aucun jeton en lecture seule dans la session). La validation réelle reste **non réalisée**.
+- 21 requêtes sur 22 n'ont qu'un ou deux dépôts pertinents : P@5 est plafonné et peu informatif ; R@5 et MRR
+  sont sensibles à une seule requête.
+- Les qualifications « hors sujet » sont celles de deux analystes de cette session (accord élevé, mais même
+  équipe que le moteur) ; les jugements de référence de I10, I11, I15 et I04 s'appuient en partie sur une
+  connaissance des produits réels absente des fiches.
