@@ -190,7 +190,8 @@ def test_valeurs_separees_sans_expression_a_cheval(banc):
 # =============================================================================
 # N. Requête : contraintes, références, possessifs, variantes, nombres
 # =============================================================================
-CONTRAINTES = {'windows', 'linux', 'macos', 'gpu', 'cli', 'docker', 'local', 'python', 'javascript', 'systeme_mobile'}
+CONTRAINTES = {'windows', 'linux', 'macos', 'gpu', 'cli', 'docker', 'kubernetes', 'local', 'python', 'javascript',
+               'systeme_mobile'}
 
 
 def test_classe_contrainte_dans_le_lexique(banc):

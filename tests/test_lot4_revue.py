@@ -195,8 +195,14 @@ def test_p2_sorties_texte_markdown_json(corpus, capsys):
     assert piper['niveau'] == 'partielle' and piper['ne_couvre_pas'] == ['LLM (notion secondaire)']
 
 
-def test_p2_reference_jamais_dans_ne_couvre_pas(corpus):
-    reponse = _chercher(corpus.rd, PAR_ID['Q11']['requete'])
+@pytest.mark.parametrize('requete', [
+    # Q11 (« alternative à Claude Code ») n'a plus de concept de référence depuis le lot 5 : le produit à remplacer
+    # devient sa catégorie (agent de code), déjà demandée en rôle normal
+    "Un OCR plus simple que Tesseract pour des plans scannés",
+    "Une plateforme d'automatisation no-code, alternative à Zapier",
+])
+def test_p2_reference_jamais_dans_ne_couvre_pas(corpus, requete):
+    reponse = _chercher(corpus.rd, requete)
     assert any(c.role == 'reference' for c in reponse.requete.concepts)
     assert not any('[référence]' in n for r in reponse.affiches for n in r.ne_couvre_pas)
 

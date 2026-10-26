@@ -285,6 +285,30 @@ def pages_du_corpus(corpus=None):
     return [c['page'] for c in corpus if c['version_attendue'] != 'corbeille']
 
 
+def pages_du_supplement(nom):
+    """Fiches fictives v7.3+ d'un supplément du lot 5 (format gitnotate-supplement-lot5/1), en pages Notion : mêmes
+    champs et mêmes dates que l'outil de conversion utilisé pour les mesures (docs/QUALIFICATION_LOT5.md)."""
+    donnees = json.loads((FIXTURES / nom).read_text(encoding='utf-8'))
+    assert donnees['format'] == 'gitnotate-supplement-lot5/1'
+    pages = []
+    for f in donnees['fiches']:
+        justification = ("[LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — "
+                         + f['justification'].strip())
+        prerequis = '\n'.join('- ' + x for x in f['prerequis']) if f['prerequis'] else 'Non vérifié'
+        pages.append(page(f['nom'], 'https://github.com/' + f['depot'], id=str(uuid.uuid5(uuid.NAMESPACE_URL,
+                          'gitnotate-lot5/' + f['id'])), cree='2026-10-20T10:00:00.000Z', props={
+            'Description': p_texte(f['description']),
+            "Cas d'usage": p_texte('\n'.join('• ' + x for x in f['cas_usage'])),
+            'Installation': p_texte(f['installation']), 'Exemple': p_texte(f['exemple']),
+            'Prérequis': p_texte(prerequis), 'Stars': p_nombre(f['stars']), 'Pertinence': p_nombre(7),
+            'Langage': p_select(f['langage']), 'Statut': p_select('À explorer'), 'Type': p_multi(*f.get('type', [])),
+            'Dernière MAJ': p_date('2026-09-15'), 'Analysé le': p_date('2026-10-20'),
+            'Justification': p_texte(justification), 'Licence': p_select(f['licence']),
+            'Catégorie': p_select(f['categorie']), 'Brique pour': p_multi(*f['brique_pour']),
+            'Notes': p_texte(f['notes']) if f.get('notes') else p_texte()}))
+    return pages
+
+
 def index_du_corpus(rd, pages=None, secrets=()):
     """Index construit depuis les pages hors corbeille des 3 bases (sans V7, propre à la lecture)."""
     bases = charger_bases()

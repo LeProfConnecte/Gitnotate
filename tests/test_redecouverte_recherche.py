@@ -197,9 +197,12 @@ def test_contexte_et_reference(banc):
     rd = banc.rd
     assert [(c.cle, c.role) for c in rd.analyser_requete('pour mes supports de cours').concepts] == [
         ('cours', 'contexte')]
-    concepts = _concepts(rd, PAR_ID['Q11']['requete'])
-    assert concepts['claude_code'].role == 'reference'
-    assert concepts['agent_code'].role == 'normal'
+    # « alternative à Claude Code » (lot 5) : le produit à remplacer devient sa catégorie (agent de code, déjà
+    # demandée en rôle normal) et une exclusion implicite ; il ne cherche plus seul
+    requete = rd.analyser_requete(PAR_ID['Q11']['requete'])
+    concepts = {c.cle: c for c in requete.concepts}
+    assert 'claude_code' not in concepts and concepts['agent_code'].role == 'normal'
+    assert [(e['cible'], e['source']) for e in requete.exclusions] == [('claude_code', 'reference')]
     assert rd.ROLES['reference'] < rd.ROLES['contexte'] < rd.ROLES['normal']
 
 
