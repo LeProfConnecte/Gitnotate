@@ -406,6 +406,9 @@ dev (204 champs, 80 requêtes), qui a servi à corriger, et t1 (211 champs, 69 r
 regardée, puis utilisée elle aussi. Second jeu t2 (360 champs, 139 requêtes), rédigé par d'autres agents sur d'autres
 domaines, mesuré une seule fois, code figé : c'est la mesure finale. Mesure : état du champ calculé comme pour une
 recherche qui exclut la technologie (_preuves_exclusions, etat_exclusion) ; rôle de chaque technologie de la requête.
+Les versions du tableau sont des commits d'une branche d'essai non publiée : leur code est conservé en patchs
+enchaînés (`banc/versions/`, empreintes vérifiées par les tests) et chaque ligne se remesure avec
+`tests/test_redecouverte_banc.py` (`banc/LISEZMOI.md`).
 
 | Version | t1 : champs exacts | t1 : précision / rappel de « requis » | t1 : faux « requis » | t1 : rôles justes | t2 : champs exacts | t2 : précision / rappel de « requis » | t2 : faux « requis » | t2 : rôles justes |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -486,7 +489,7 @@ dit qu'il exige un GPU : intrus inchangés), I18, K02, K23 (ordre ou dépôts no
 
 ## 8. Contrôles
 
-- Tests : 2 563 réussis, 4 xfail (défauts encore connus) sous Python 3.13 et 3.10 (avant le lot 5 : 1 660 et 11),
+- Tests : 2 564 réussis, 4 xfail (défauts encore connus) sous Python 3.13 et 3.10 (avant le lot 5 : 1 660 et 11),
   dont les cas des revues 2 à 6 (`tests/test_redecouverte_revue2.py` à `revue6.py`) et le banc
   (`tests/test_redecouverte_banc.py`) ; Ruff (E9, F63, F7, F82, F401, F811, F841, B) sans constat. Temps de
   recherche inchangé (corpus de 5 000 fiches : 0,15 à 1,2 s par requête, comme avant la cinquième revue).

@@ -5,11 +5,13 @@
   tous les appels ; pannes injectables par numéro de réponse ; toute URL hors Notion est refusée.
 - Fabriques de propriétés, de pages et de schémas au format Notion-Version 2022-06-28.
 - Chargement des fixtures (corpus synthétique de 63 fiches, 3 bases) et index du corpus.
+- Application des patchs de variantes mesurées (qualification du lot 5).
 """
 import copy
 import hashlib
 import importlib
 import json
+import re
 import threading
 import uuid
 from pathlib import Path
@@ -366,3 +368,36 @@ def lignes(rd, sql, parametres=(), chemin=None):
         return con.execute(sql, parametres).fetchall()
     finally:
         con.close()
+
+
+# --- Variantes mesurées (patchs unifiés) -------------------------------------------------------------
+def appliquer_patch(code, patch):
+    """Applique un patch unifié (« --- a/<nom> », blocs à contexte exact) à {nom de fichier: texte} ; renvoie la
+    nouvelle version."""
+    code = dict(code)
+    for partie in re.split(r'^--- a/', patch, flags=re.MULTILINE)[1:]:
+        nom = partie.split('\n', 1)[0].strip()
+        lignes, sortie, i = code[nom].splitlines(keepends=True), [], 0
+        for bloc in re.finditer(r'^@@ -(\d+)(?:,\d+)? \+\d+(?:,\d+)? @@.*\n((?:[ +\-\\].*\n?)*)', partie,
+                                re.MULTILINE):
+            debut = int(bloc.group(1)) - 1
+            sortie += lignes[i:debut]
+            i = debut
+            for ligne in bloc.group(2).splitlines(keepends=True):
+                if ligne.startswith('\\'):
+                    sortie[-1] = sortie[-1].rstrip('\n')
+                elif ligne.startswith('+'):
+                    sortie.append(ligne[1:])
+                else:
+                    assert lignes[i] == ligne[1:], (nom, i, ligne)
+                    if ligne.startswith(' '):
+                        sortie.append(lignes[i])
+                    i += 1
+        code[nom] = ''.join(sortie + lignes[i:])
+    return code
+
+
+def empreinte_code(code):
+    """16 premiers caractères du SHA-256 de redecouverte.py puis redecouverte_lexique.py (octets UTF-8)."""
+    brut = code['redecouverte.py'].encode('utf-8') + code['redecouverte_lexique.py'].encode('utf-8')
+    return hashlib.sha256(brut).hexdigest()[:16]

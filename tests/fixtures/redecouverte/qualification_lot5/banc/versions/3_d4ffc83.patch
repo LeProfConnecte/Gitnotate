@@ -1,0 +1,730 @@
+--- a/redecouverte.py
++++ b/redecouverte.py
+@@ -147,7 +147,17 @@ _PERMIS = frozenset({'allowed', 'autorise', 'autorises', 'autorisee', 'autorisee
+                      'accepte', 'acceptes', 'acceptee', 'acceptees'})
+ _LIENS_INTERDICTION = frozenset({'is', 'are', 'be', 'being', 'was', 'were', 'est', 'sont', 'etre', 'strictly',
+                                  'strictement', 'totalement', 'completely', 'formellement', 's', 'also', 'aussi',
+-                                 'here', 'ici'})
++                                 'here', 'ici', 'malheureusement', 'vraiment', 'egalement', 'desormais', 'toujours',
++                                 'encore', 'actuellement', 'maintenant', 'y', 'unfortunately', 'really', 'still', 'now',
++                                 'currently', 'actually', 'absolutely', 'definitely', 'simply', 'totally'})
++# Mots d'installation : « without installation on Windows », « sans installation sur Linux » disent où l'outil
++# tourne (Windows reste une contrainte cherchée) ; « without relying on Windows » l'exclut
++_INSTALLATIONS = frozenset({'installation', 'installer', 'installing', 'install', 'installant', 'installed', 'setup'})
++# Après « Comme <produit> » en tête de segment : une comparaison (« Comme Zapier mais open source », « Comme n8n en
++# version libre ») ; un autre mot ouvre une cause (« Comme n8n a déjà un nœud HTTP », « Comme React me plaît »)
++_SUITE_COMPARAISON = frozenset({'mais', 'but', 'en', 'in', 'pour', 'for', 'avec', 'with', 'sans', 'without', 'qui',
++                                'that', 'which', 'version', 'open', 'opensource', 'libre', 'gratuit', 'free', 'auto',
++                                'self', 'local', 'plus', 'more', 'moins', 'less', 'et', 'and', 'ou', 'or'})
+ # Seule une préposition de portée introduit le code où l'on cherche (« dans mon code », « over the codebase »,
+ # « de code ») : « with code examples », « I want to code a semantic search » ne composent pas
+ _PORTEE_CODE = frozenset({'dans', 'sur', 'de', 'du', 'des', 'd', 'in', 'on', 'over', 'across', 'through', 'of', 'for',
+@@ -2586,6 +2596,22 @@ def _identifiant_suivant(unites: List[Tuple[Tuple[str, ...], str, Optional[str]]
+     return False
+ 
+ 
++_NEGATIONS_FRANCAISES = frozenset({'pas', 'plus', 'jamais', 'aucun', 'aucune', 'rien', 'point'})
++
++
++def _verbe_regi(unites: List[Tuple[Tuple[str, ...], str, Optional[str]]], k: int, t: int) -> List[str]:
++    """Mots du verbe que régit la négation de la k-ième unité : en français, entre « ne » / « n' » et la négation
++    (« je ne me souviens plus », « ça ne me dérange pas »), ou le mot juste avant sans « ne » (« je trouve plus le
++    dépôt ») ; en anglais, le mot juste après (« I can't find », « doesn't matter », « I don't care »)."""
++    mots = [u[0][0] if u[2] is None else '' for u in unites]
++    if mots[k] in _NEGATIONS_FRANCAISES:
++        for j in range(k - 1, max(-1, k - 4), -1):
++            if mots[j] in ('ne', 'n'):
++                return [m for m in mots[j + 1:k] if m]
++        return [m for m in mots[k - 1:k] if m]
++    return [m for m in mots[k + 1 + t:k + 2 + t] if m]
++
++
+ def _cible_suivante(unites: List[Tuple[Tuple[str, ...], str, Optional[str]]], k: int) -> Optional[str]:
+     """Identifiant de l'unité qui suit la k-ième, articles mis à part (None sinon)."""
+     lex = lexique_compile()
+@@ -2618,8 +2644,10 @@ def _produit_reference(unites: List[Tuple[Tuple[str, ...], str, Optional[str]]],
+             return False                        # « I'd like a React component library »
+         if mot in _MIGRATIONS_REQUETE and not set(liens) <= _LIEN_MIGRATION:
+             return False                        # « migrating to n8n » : la destination
+-        if mot == 'comme' and suite and suite[0] in _VERBES_APRES_PRODUIT:
+-            return False                        # « Comme n8n est installé » : causal (pas « Comme Zapier, mais »)
++        if mot == 'comme' and suite and (suite[0] in _VERBES_APRES_PRODUIT
++                                         or (j == 0 and suite[0] not in _SUITE_COMPARAISON)):
++            return False                        # « Comme n8n est installé », « Comme n8n a déjà… » : causal ; pas
++                                                # « Comme Zapier, mais open source », « un outil comme n8n »
+         return True
+     return False
+ 
+@@ -2641,15 +2669,17 @@ def _interdit_apres(unites: List[Tuple[Tuple[str, ...], str, Optional[str]]], k:
+     """La technologie de la k-ième unité est le sujet d'une interdiction (« les conteneurs sont interdits », « Docker is
+     not allowed », « containers aren't allowed », « Docker n'est pas autorisé ») : seuls des copules, auxiliaires,
+     négations et adverbes les séparent. Pas « car le cloud est interdit » (autre nom), ni « Docker n'est pas
+-    interdit »."""
+-    nie = False
+-    for seq, _, cid in unites[k + 1:k + 6]:
++    interdit », mais « Docker n'est malheureusement pas autorisé », « Docker is still not allowed », « Docker n'est
++    plus autorisé »."""
++    nie = ne = False
++    for seq, _, cid in unites[k + 1:k + 7]:
+         mot = seq[0] if cid is None else ''
+         if mot in _INTERDITS:
+             return not nie
+         if mot in _PERMIS:
+             return nie
+-        if mot in _NEGATIONS_REQUETE or mot in _CONTRACTIONS or mot in ('ne', 'n', 't'):
++        if mot in _NEGATIONS_REQUETE or mot in _CONTRACTIONS or mot in ('ne', 'n', 't') or (mot == 'plus' and ne):
++            ne = ne or mot in ('ne', 'n')
+             nie = nie or mot not in ('ne', 'n')
+             continue
+         if mot in _LIENS_INTERDICTION:
+@@ -2719,9 +2749,9 @@ def analyser_requete(texte: str) -> Requete:
+     for numero, (decalage, segment) in enumerate(_segments_requete(texte)):
+         paires = _mots_du_segment(segment)
+         gardees = []
+-        for i, p in enumerate(paires):          # « Ai-je », « j'ai » ; ailleurs « ai » = IA
++        for i, p in enumerate(paires):          # « Ai-je », « j'ai », « je n'ai pas » ; ailleurs « ai » = IA
+             if p[0] == 'ai' and ((i + 1 < len(paires) and paires[i + 1][0] == 'je')
+-                                 or (i > 0 and paires[i - 1][0] == 'j')):
++                                 or (i > 0 and paires[i - 1][0] in ('j', 'n'))):
+                 ignores.append('ai')
+                 continue
+             gardees.append(p)
+@@ -2744,7 +2774,7 @@ def analyser_requete(texte: str) -> Requete:
+                 unites.append(((gardees[i][0],), _forme_saisie(texte, debut, gardees[i][1]), None))
+                 i += 1
+         negation = contexte = reference = preposition = sauter = apres_liaison = 0
+-        indifferent = garde_identifiant = nie_identifiant = fermer = False
++        indifferent = indifference = garde_identifiant = nie_identifiant = fermer = False
+         premier_nie = True                      # la négation n'a encore touché aucune unité de contenu
+         sujet = False                           # un sujet (_SUJETS) déjà cité dans le segment (« un cours sur React »)
+         for k, (seq, original, cid) in enumerate(unites):
+@@ -2789,18 +2819,32 @@ def analyser_requete(texte: str) -> Requete:
+                         ignores.extend([mot, suite[0]])     # « pas que pour n8n », « not only Docker » : rien de nié
+                         sauter = 1 + t
+                         continue
+-                    # négation qui ne nie pas l'objet : mémoire ou indifférence (« I can't find the n8n workflow I
+-                    # saved », « je ne retrouve plus le dépôt n8n », « doesn't matter if it's React or Vue », « ça ne
+-                    # me dérange pas d'utiliser Docker »), ou verbe de qualité suivi d'un contexte (« qui ne plante
+-                    # jamais sous Windows », « doesn't crash on Linux ») : rien n'est nié
+-                    autour = {u[0][0] for u in unites[max(0, k - 3):k + 3 + t] if u[2] is None}
++                    # négation qui ne nie pas l'objet, d'après le verbe qu'elle régit (jamais « sans » / « without ») :
++                    # mémoire (« I can't find the n8n workflow I saved », « je ne retrouve plus le dépôt n8n », « je ne
++                    # sais pas quel outil n8n »), verbe de qualité suivi d'un contexte (« qui ne plante jamais sous
++                    # Windows », « doesn't crash on Linux ») : rien n'est nié ; indifférence (« doesn't matter if it's
++                    # React or Vue », « ça ne me dérange pas d'utiliser Docker ») : la portée est indifférente
++                    regis = set() if mot in _SANS else set(_verbe_regi(unites, k, t))
++                    anglais = mot not in _NEGATIONS_FRANCAISES
++                    apres_verbe = [u[0][0] for u in unites[k + 1 + t + anglais:k + 4 + t + anglais] if u[2] is None]
++                    apres_verbe = [x for x in apres_verbe if x not in ('a', 'to', 'de', 'd')][:1]
+                     prepositions = lexique.PREPOSITIONS_CONTEXTE | lexique.LIAISONS_EXCLUSION
+-                    if autour & lexique.VERBES_SANS_NEGATION or (
+-                            autour & lexique.VERBES_QUALITE and set(suite) & prepositions):
++                    memoire = regis & lexique.VERBES_SANS_NEGATION or (
++                        regis & lexique.VERBES_CAPACITE and set(apres_verbe) & (
++                            lexique.INTERROGATIFS | lexique.VERBES_SANS_NEGATION)) or (
++                        regis & lexique.VERBES_QUALITE and set(suite) & prepositions)
++                    indifference = bool(regis & lexique.VERBES_INDIFFERENCE)
++                    if memoire or indifference:
++                        # le verbe régi n'est pas une notion du besoin (« ne retrouve plus », « doesn't matter »)
++                        for v in regis:
++                            if v in par_cle and par_cle[v].lexique is None and par_cle[v].surface == [v]:
++                                del par_cle[v]          # français : déjà lu, avant la négation
++                                positions.pop(v, None)
++                        ignores.extend(regis)
++                    sauter = t + (1 if anglais and regis and (memoire or indifference) else 0)
++                    if memoire:
+                         ignores.append(mot)
+-                        sauter = t
+                         continue
+-                    sauter = t
+                     if contraction:
+                         ignores.append(mot)
+                     if mot == 'no' and suite[:1] == ['longer']:
+@@ -2809,9 +2853,13 @@ def analyser_requete(texte: str) -> Requete:
+                     negation = PORTEE_NEGATION
+                     garde_identifiant = nie_identifiant = False
+                     suivants = [x for x in suite if x not in _ARTICLES_REQUETE]
+-                    premier_nie = not ((mot not in _SANS and set(suivants[:2]) & _EXPERIENCE)
++                    # « I haven't used n8n », « je n'ai jamais installé n8n » : le participe juste après la négation
++                    # (deux mots après « jamais », « never ») ; pas « no GPU installed », « Aucun GPU installé »
++                    jamais = mot in ('jamais', 'never')
++                    experience = _EXPERIENCE if jamais else _EXPERIENCE - {'installe', 'installed'}
++                    premier_nie = not ((mot not in _SANS and set(suivants[:2 if jamais else 1]) & experience)
+                                        or set(avant) & _CONNAISSANCE or set(suivants[:1]) & _CONNAISSANCE)
+-                    indifferent = mot in _SANS and (avant in _AVEC_OU or suite in _OU_AVEC)
++                    indifferent = indifference or (mot in _SANS and (avant in _AVEC_OU or suite in _OU_AVEC))
+                     if mot in _SANS and suite in _OU_AVEC:
+                         ignores.extend(suite)
+                         sauter = 2
+@@ -2821,7 +2869,12 @@ def analyser_requete(texte: str) -> Requete:
+                     # juste après le déclencheur, ou après des mots d'usage seulement (VERBES_EXCLUSION), ne ferme
+                     # pas la négation devant un identifiant, ni « ou » entre deux identifiants (« without GPU or
+                     # Docker ») ; ailleurs, règle inchangée (« pas pour analyser »)
+-                    systeme = _cible_suivante(unites, k) in ('windows', 'linux', 'macos')
++                    if negation and indifference and mot in _COORDINATIONS:
++                        ignores.append(mot)         # « doesn't matter if it's React or Vue » : les deux
++                        continue
++                    precedents = [u[0][0] for u in unites[max(0, k - 3):k] if u[2] is None]
++                    systeme = _cible_suivante(unites, k) in ('windows', 'linux', 'macos') and bool(
++                        set(precedents) & _INSTALLATIONS)    # « without installation on Windows » : pas « relying »
+                     immediat = negation == PORTEE_NEGATION or (negation > 0 and premier_nie and not systeme)
+                     if (immediat and mot in lexique.LIAISONS_EXCLUSION) or (negation and nie_identifiant
+                                                                             and mot in _COORDINATIONS):
+@@ -2874,7 +2927,10 @@ def analyser_requete(texte: str) -> Requete:
+                 premier_nie = premier_nie and cible not in lexique.IDENTIFIANTS and (
+                     mot in lexique.VERBES_EXCLUSION or singulier(mot) in lexique.VERBES_EXCLUSION)
+                 nie_identifiant = cible in lexique.IDENTIFIANTS and touche
+-                if indifferent:
++                if indifference and cible not in lexique.IDENTIFIANTS:
++                    nies.pop()
++                    ignores.append(mot or original)     # « doesn't matter if… », « about GPU acceleration »
++                elif indifferent:
+                     indifferents.append(original)
+                 elif nie_identifiant and cible not in [e['cible'] for e in exclusions]:
+                     exclusions.append({'cible': cible, 'mot': original, 'nature': lexique.IDENTIFIANTS[cible][0],
+@@ -2941,6 +2997,9 @@ def analyser_requete(texte: str) -> Requete:
+     # identifiant à la fois demandé et nié (« a React web app, not React Native », « avec Docker mais pas Docker
+     # Desktop ») : la variante niée n'est pas l'identifiant, aucune exclusion
+     exclusions = [e for e in exclusions if e['source'] != 'exclusion' or e['cible'] not in par_cle]
++    # produit à la fois cible et référence (« Comme n8n a déjà un nœud HTTP, je cherche des workflows n8n ») : on ne
++    # peut pas chercher des workflows n8n et exclure ce qui dépend de n8n
++    exclusions = [e for e in exclusions if e['source'] != 'reference' or not cibles.get(e['cible'])]
+     concepts = composer(list(par_cle.values()), positions)
+     gardes, tronques = concepts[:MAX_CONCEPTS], [c.nom for c in concepts[MAX_CONCEPTS:]]
+     presents = {c.lexique for c in gardes if c.lexique}
+@@ -3051,18 +3110,26 @@ def _occurrences(marque: str) -> Tuple[str, List[Tuple[int, int]]]:
+     return ''.join(morceaux), intervalles
+ 
+ 
++# Après « no », « sans », « non » : l'objet nié lui-même, pas le début d'une portée (« No-code workflow automation »,
++# « No coding required to build workflows », « sans programmation », « non officiel », « not affiliated »)
++_NIE_SANS_PORTEE = frozenset({'code', 'coding', 'coder', 'codage', 'programming', 'programmation', 'programmer',
++                              'officiel', 'officielle', 'official', 'affiliated', 'affilie', 'affiliee', 'commercial',
++                              'commerciale'})
++
++
+ def occurrence_niee(texte: str, debut: int, fin: int) -> bool:
+     """Négation dans une fiche (§ 16.2) : un déclencheur dans la même proposition, au plus PORTEE_NEGATION
+-    mots de contenu avant l'occurrence, non suivi de « seulement »/« only » ; « no-code », « sans code » ne nient
+-    rien (« No-code workflow automation platform » parle de workflows)."""
++    mots de contenu avant l'occurrence, non suivi de « seulement »/« only » ; « no-code », « sans code », « No coding
++    required », « non officiel » ne nient rien d'autre (_NIE_SANS_PORTEE : « No-code workflow automation platform »
++    parle de workflows)."""
+     avant = _BORNES.split(texte[:debut])[-1]
+     mots = _MOT_RE.findall(gn._fold(avant))
+     contenu = 0
+     for k in range(len(mots) - 1, -1, -1):
+         if mots[k] in lexique.NEGATIONS:
+             suivant = mots[k + 1] if k + 1 < len(mots) else next(iter(_MOT_RE.findall(gn._fold(texte[debut:fin]))), '')
+-            if suivant == 'code' and k + 1 < len(mots):
+-                continue                        # « no-code », « sans code » : pas un déclencheur
++            if suivant in _NIE_SANS_PORTEE and k + 1 < len(mots):
++                continue                        # « no-code », « No coding required » : pas un déclencheur
+             return suivant not in lexique.NEGATION_ANNULEE
+         if mots[k] not in lexique.MOTS_VIDES:
+             contenu += 1
+@@ -3211,18 +3278,22 @@ _POSSESSIFS_FICHE = frozenset({'your', 'my', 'our', 'their', 'vos', 'votre', 'no
+ # (« ou équivalent » en est une)
+ _VERSIONS_RE = re.compile(r"\b(?:ou|or)\s+(?:plus(?:\s+recente?s?)?|superieure?s?|ulterieure?s?|later|newer|higher"
+                           r"|above|greater|better|mieux)\b")
++# « RTX 3060 or equivalent », « RTX 3070 ou équivalente » : après un modèle chiffré, l'équivalent est le même matériel
++_MODELE_EQUIVALENT_RE = re.compile(r"(?<=\d)[a-z]*\s+(?:ou|or)\s+(?:an?\s+|une?\s+)?equivalente?s?\b")
+ # CPU possible pour un GPU : « GPU ou CPU », « fonctionne sur CPU », « CPU-only », « CPU fallback », « mode CPU
+-# disponible », « CPU inference supported », « Runs on both GPU and CPU », « GPU and CPU supported », « Supports CUDA,
+-# ROCm and CPU » ; jamais nié avant ou après (« aucun repli sur CPU », « CPU not supported »). « an NVIDIA GPU and a
+-# CPU with AVX2 » n'en est pas une.
++# disponible », « CPU inference supported », « Runs on both GPU and CPU », « Runs on GPU and CPU », « GPU, CPU »,
++# « Supports CUDA, ROCm and CPU » ; jamais nié avant ou après (« aucun repli sur CPU », « CPU not supported »).
++# « an NVIDIA GPU and a CPU with AVX2 », « NVIDIA GPU and CPU with AVX2 » n'en sont pas.
+ _CPU_RE = re.compile(r"\b(?:(?:ou|or|sur|on|en)\s+(?:(?:le|la|un|une|a|the|your|votre)\s+)?cpu\b|cpu[- ]?only\b"
+                      r"|cpu\s+(?:seul|seulement|uniquement|fallback|suffit|works|also\s+works|aussi)\b"
+                      r"|(?:mode|repli)\s+cpu\b|cpu\s+(?:mode|inference|supported|pris\s+en\s+charge|compatible)\b"
+                      r"|cpu\s+(?:and|et|or|ou)\s+gpu\b|both\s+(?:the\s+)?gpu\s+and\s+(?:the\s+)?cpu\b"
+-                     r"|gpu\s+(?:and|et)\s+cpu\s+(?:supported|pris\s+en\s+charge|compatible|support)\b"
++                     r"|gpus?\s*(?:,|and|et)\s*cpus?\b(?!\s+(?:with|avec|supporting|that|qui|having|ayant)\b)"
+                      r"|support(?:s|e|ent)?\s+(?:[\w-]+\s*,\s*)+[\w-]+\s+(?:and|et)\s+cpu\b)")
+ # Premier membre d'une énumération (« un workflow n8n, Make ou Zapier », « Docker, Podman, or any OCI runtime »)
+-_ENUMERATION_RE = re.compile(r"\s*,(?:\s*[\w.+-]+){1,3}(?:\s*,(?:\s*[\w.+-]+){1,3})*(?:\s*,)?\s+(?:ou|or)\s+(?!\d)\w")
++# (chaque membre : un à trois mots séparés par des espaces ; une seule lecture possible, donc un coût linéaire)
++_ENUMERATION_RE = re.compile(r"\s*,\s*[\w.+-]+(?:\s+[\w.+-]+){0,2}(?:\s*,\s*[\w.+-]+(?:\s+[\w.+-]+){0,2})*(?:\s*,)?"
++                             r"\s+(?:ou|or)\s+(?!\d)\w")
+ _APRES_SOUPLE = 10              # mots (vides compris) examinés après la mention pour « facultatif »
+ # Familles d'un identifiant exclu (formes de FORMES_EXCLUSION, marque NVIDIA) : « GPU with CUDA (optional) » parle d'un
+ # seul identifiant, « Docker Compose » aussi ; une autre marque (AMD) est un autre matériel
+@@ -3249,20 +3320,28 @@ _UNITES = frozenset({'gb', 'go', 'mb', 'mo', 'tb', 'to', 'ram', 'cores', 'coeurs
+ _APRES_PRODUIT_COLLE = frozenset({'like', 'style', 'inspired', 'esque'})
+ _APRES_PRODUIT_REFERENCE = frozenset({'alternative', 'alternatives', 'clone', 'clones', 'replacement', 'killer'})
+ # Produit proposé en plus, pas exigé : « Also ships an n8n node », « Intégrations : nœud n8n », « wrappers for React »,
+-# « Un exemple de workflow n8n est fourni », « Comes with ready-to-use n8n workflows »
++# « Comes with ready-to-use n8n workflows » ; « Un exemple de workflow n8n est fourni » par _OFFERTS (une collection
++# d'exemples de workflows n8n en dépend)
+ _OFFRES = frozenset({'also', 'aussi', 'egalement', 'integration', 'integrations', 'wrapper', 'wrappers', 'adaptateur',
+-                     'adaptateurs', 'connecteur', 'connecteurs', 'bindings', 'exemple', 'exemples', 'example',
+-                     'examples', 'sample', 'samples', 'demo', 'bonus', 'comes'})
++                     'adaptateurs', 'connecteur', 'connecteurs', 'bindings', 'bonus', 'comes'})
+ _OFFERTS = frozenset({'fourni', 'fournie', 'fournis', 'fournies', 'provided', 'included', 'inclus', 'incluse',
+                       'incluses', 'offert', 'offerts'})
++# Intégration livrée en plus : « Ships with an n8n community node », « Includes an n8n node and a Zapier integration »,
++# « inclut un nœud n8n » (pas « Fournit des workflows n8n », dont le dépôt est fait)
++_VERBES_OFFRE = frozenset({'ships', 'ship', 'includes', 'include', 'provides', 'provide', 'offers', 'offer', 'inclut',
++                           'incluent', 'propose', 'proposent', 'fournit', 'fournissent'})
++_INTEGRATIONS = frozenset({'node', 'nodes', 'noeud', 'noeuds', 'nœud', 'nœuds', 'plugin', 'plugins', 'integration',
++                           'integrations', 'connector', 'connectors', 'connecteur', 'connecteurs'})
+ # Bénéfice : l'identifiant aide sans être exigé (« - NVIDIA GPU (for faster inference) », « - CUDA 11.8+ (for GPU
+ # acceleration) », « a GPU speeds things up »)
+ _BENEFICES = frozenset({'faster', 'quicker', 'accelerer', 'accelere', 'acceleree', 'acceleres', 'accelerate',
+                         'accelerates', 'accelerated', 'accelerating', 'acceleration', 'speedup', 'boost'})
+ _VERBES_BENEFICE = frozenset({'speeds', 'accelerates', 'accelere', 'accelerent', 'boosts'})
+ # Fonction de l'identifiant, sujet d'une exigence conditionnelle : « GPU acceleration requires CUDA », « l'accélération
+-# GPU nécessite CUDA », « - GPU support requires CUDA 11.8+ »
++# GPU nécessite CUDA », « - GPU support requires CUDA 11.8+ », « Offline mode requires a GPU » ; « The backend requires
++# Docker » est une exigence (backend, support, acceleration : seulement d'une technologie, _FONCTIONS_TECH)
+ _FONCTIONS = frozenset({'acceleration', 'support', 'backend', 'mode'})
++_FONCTIONS_TECH = frozenset({'acceleration', 'support', 'backend'})
+ # Condition en tête d'un élément de liste : « - If you have an NVIDIA GPU, install CUDA », « - Si vous avez un GPU »
+ _CONDITIONS = frozenset({'if', 'si', 'when', 'lorsque', 'quand', 'optionally', 'optionnellement', 'facultativement',
+                          'eventuellement'})
+@@ -3275,7 +3354,32 @@ _ADJECTIFS_MATERIEL = frozenset({'dedicated', 'dedie', 'dediee', 'discrete', 'po
+ # Entre une négation et l'exigence qui suit : « not a hard requirement » (sinon, un autre nom est l'objet nié :
+ # « aucune clé d'API nécessaire », « no other dependency needed »)
+ _INTENSIFS = frozenset({'hard', 'strict', 'real', 'vrai', 'vraie', 'absolute', 'strong', 'forcement', 'necessarily',
+-                        'actually', 'really', 'obligatoirement'})
++                        'actually', 'really', 'obligatoirement', 'necessairement'})
++# Adverbes entre une négation et l'exigence, ou devant un « facultatif » : « no longer required », « pas vraiment
++# nécessaire », « not always required », « (strongly recommended) » ; aussi les mots en -ly (_adverbe)
++_ADVERBES = frozenset({'longer', 'always', 'even', 'yet', 'still', 'really', 'strictly', 'necessarily', 'technically',
++                       'entirely', 'absolutely', 'actually', 'truly', 'totally', 'completely', 'fully', 'strongly',
++                       'highly', 'generally', 'usually', 'normally', 'currently', 'all', 'toujours', 'meme', 'encore',
++                       'vraiment', 'necessairement', 'absolument', 'strictement', 'forcement', 'obligatoirement',
++                       'reellement', 'totalement', 'entierement', 'completement', 'techniquement', 'fortement',
++                       'vivement', 'hautement', 'generalement', 'normalement', 'actuellement', 'tout', 'tres', 'very',
++                       'bien', 'plutot'})
++_PAS_ADVERBES_LY = frozenset({'only', 'family', 'assembly', 'supply', 'anomaly', 'reply', 'apply', 'early', 'daily',
++                              'monthly', 'weekly', 'nightly', 'friendly'})
++# « Aucune dépendance sauf Docker », « No requirements beyond Docker » : la négation exclut tout sauf l'identifiant
++_EXCEPTIONS = frozenset({'sauf', 'except', 'excepte', 'hormis', 'beyond', 'besides', 'apart', 'part', 'outre', 'other'})
++# « non officiel pour n8n », « not affiliated with n8n GmbH », « Not an official Docker image » : la négation vise le
++# lien avec l'éditeur, pas la technologie
++_AFFILIATION = frozenset({'affiliated', 'affilie', 'affiliee', 'affilies', 'affiliees', 'official', 'officiel',
++                          'officielle', 'officiels', 'officielles', 'officially', 'officiellement', 'endorsed',
++                          'sponsored', 'associated', 'associe', 'associee', 'partner', 'partenaire'})
++# « Docker 20.10+ (older versions are not supported) », « (les versions antérieures ne sont pas prises en charge) » :
++# la négation vise une version
++_VERSIONS_NIEES = frozenset({'version', 'versions', 'older', 'earlier', 'previous', 'legacy', 'ancienne', 'anciennes',
++                             'anterieure', 'anterieures', 'precedente', 'precedentes', 'release', 'releases'})
++# Négations d'absence, qui peuvent suivre une autre mention du même mot : « - GPU: not required (runs fine without a
++# GPU) »
++_ABSENCES = frozenset({'sans', 'without', 'no', 'aucun', 'aucune', 'ni', 'nor', 'neither', 'none'})
+ _RANG_SORTE = {'requis': 0, 'non_requis': 1, 'mention': 2}
+ _BORNES_PROPOSITION = re.compile(r"[;:!?()\[\]{}|•—–\n,]|[.](?=\s|$)| - ")    # « Python 3.10 » : pas une borne
+ # Groupe d'une mention : ni parenthèse ni deux-points ne le coupent (« GPU (optionnel) »), ni la ligne en retrait qui
+@@ -3305,7 +3409,7 @@ def _proposition(texte: str, a: int, b: int) -> Tuple[int, int]:
+ 
+ 
+ def _mots(texte: str) -> List[str]:
+-    return _MOT_RE.findall(_VERSIONS_RE.sub(' ', gn._fold(texte)))
++    return _MOT_RE.findall(_VERSIONS_RE.sub(' ', _MODELE_EQUIVALENT_RE.sub(' ', gn._fold(texte))))
+ 
+ 
+ def _contenu(mots: Iterable[str]) -> List[str]:
+@@ -3321,7 +3425,7 @@ _VERBES_NIES = lexique.EXIGENCES_VERBES | frozenset({'supporte'})      # « ne s
+ 
+ def _negation_en(mots: List[str], k: int) -> bool:
+     """mots[k] est une négation : NEGATIONS, formes anglaises découpées (« doesn » + « t »), « can't », « won't », ou
+-    « plus » de « ne … plus » ; pas « can » ni « won » seuls (« You can run it without a GPU »)."""
++    « plus » de « ne … plus » ; pas « can » ni « won » seuls (« it can run on Docker », « won » d'un titre)."""
+     m = mots[k]
+     if m in ('can', 'won') or m in ('doesn', 'don', 'isn', 'aren', 'wasn', 'weren'):
+         return mots[k + 1:k + 2] == ['t'] or (m not in ('can', 'won') and k + 1 == len(mots))
+@@ -3335,34 +3439,48 @@ def _famille(texte: str, a: int, b: int) -> FrozenSet[str]:
+ 
+ 
+ def _neutre(m: str) -> bool:
+-    """Mot qui ne compte pas entre une négation et l'identifiant : vide, copule, version, marque, adjectif du matériel,
+-    verbe d'exigence (« does not require a dedicated NVIDIA GPU »)."""
+-    return (m in lexique.MOTS_VIDES or m in _COPULES or _qualificatif(m) or m in _ADJECTIFS_MATERIEL
+-            or m in lexique.EXIGENCES_VERBES or m in lexique.PRISE_EN_CHARGE)
++    """Mot qui ne compte pas entre une négation et l'identifiant : vide, copule, version, marque, adjectif du matériel
++    (« does not require a dedicated NVIDIA GPU »)."""
++    return m in lexique.MOTS_VIDES or m in _COPULES or _qualificatif(m) or m in _ADJECTIFS_MATERIEL
++
++
++def _adverbe(m: str) -> bool:
++    """Adverbe (_ADVERBES, ou mot en -ly) : « no longer required », « (strongly recommended) »."""
++    return m in _ADVERBES or (len(m) > 4 and m.endswith('ly') and m not in _PAS_ADVERBES_LY)
+ 
+ 
+ def _niee_avant(avant: List[str], memes: FrozenSet[str] = frozenset()) -> bool:
+-    """Déclencheur juste avant l'occurrence, au plus un mot de contenu entre les deux (« sans Docker », « pas de
+-    GPU », « ne nécessite pas de GPU », « doesn't require Docker », « Does not require a dedicated NVIDIA GPU »,
+-    « No NVIDIA GPU required », « Neither Docker nor a GPU », « ne nécessite plus Docker », « Incompatible avec
+-    Windows ») ; « no-code », « sans code », « not only » ne nient rien, ni « ne … que » ; la négation qui suit une
+-    autre mention du même mot vise celle-ci (« Docker Desktop n'est pas nécessaire : Docker Engine suffit »)."""
+-    contenu = 0
++    """Déclencheur juste avant l'occurrence, au plus un mot de contenu entre les deux, ou seulement des verbes et noms
++    d'exigence (« sans Docker », « pas de GPU », « ne nécessite pas de GPU », « doesn't require Docker », « Does not
++    require a dedicated NVIDIA GPU », « Doesn't require or need a GPU », « No NVIDIA GPU required », « Neither Docker
++    nor a GPU », « ne nécessite plus Docker », « Incompatible avec Windows ») ; « no-code », « sans code », « not
++    only » ne nient rien, ni « ne … que », ni une négation qui vise un autre nom (« no cloud: requires an NVIDIA
++    GPU »), une exception (« Aucune dépendance sauf Docker ») ou l'affiliation (« not affiliated with n8n GmbH ») ;
++    la négation qui suit une autre mention du même mot vise celle-ci (« Docker Desktop n'est pas nécessaire : Docker
++    Engine suffit »), sauf une absence après une mention qui n'est pas exigée (« - GPU: not required (runs fine
++    without a GPU) » ; pas « A GPU is required: without a GPU, … »)."""
++    contenu = exigences = 0
+     for k in range(len(avant) - 1, -1, -1):
+-        if avant[k] in lexique.INCOMPATIBLES:
++        m = avant[k]
++        if m in lexique.INCOMPATIBLES:
+             return True
+-        if avant[k] in ('que', 'qu') or avant[k] in memes:
++        if m in ('que', 'qu') or m in memes or m in _EXCEPTIONS or m in _AFFILIATION:
+             return False                        # « ne fonctionne que sous Linux » : restrictif
+         if _negation_en(avant, k):
+             suivant = avant[k + 1] if k + 1 < len(avant) else ''
+-            if set(avant[:k]) & memes and avant[k] not in ('sans', 'without', 'no', 'aucun', 'aucune', 'ni', 'nor',
+-                                                            'neither', 'none'):
+-                return False                    # « Docker Desktop n'est pas nécessaire : Docker Engine »
++            anterieur = avant[:k]
++            if set(anterieur) & memes:
++                exige = bool(set(anterieur) & lexique.EXIGENCES) and not any(
++                    _negation_en(anterieur, j) for j in range(len(anterieur)))
++                if exige or m not in _ABSENCES:
++                    return False                # « Docker Desktop n'est pas nécessaire : Docker Engine »
+             return suivant not in lexique.NEGATION_ANNULEE and suivant != 'code'
+-        if not _neutre(avant[k]):
++        if m in lexique.EXIGENCES_VERBES or m in lexique.PRISE_EN_CHARGE:
++            exigences += 1
++        elif not _neutre(m):
+             contenu += 1
+-            if contenu > 1:
+-                return False
++        if contenu > 1 or (contenu and exigences):
++            return False
+     return False
+ 
+ 
+@@ -3376,9 +3494,10 @@ def _double_negation(avant: List[str], apres: List[str]) -> bool:
+     for k in range(len(avant) - 1, -1, -1):
+         if avant[k] in ('sans', 'without'):
+             # le verbe juste avant, nié : « ne fonctionne pas sans », « won't work without », « cannot run without »,
+-            # « impossible à utiliser sans » (au plus un mot de contenu entre la négation et « sans », qui n'est ni une
+-            # exigence ni un facultatif : pas « not needed (works without Docker) »)
+-            fenetre = avant[max(0, k - 5):k]
++            # « You can't run the app without », « doesn't work properly without », « impossible à utiliser sans »
++            # (au plus trois mots de contenu entre la négation et « sans », aucun n'étant une exigence ni un
++            # facultatif : pas « not needed (works without Docker) »)
++            fenetre = avant[max(0, k - 7):k]
+             for j in range(len(fenetre) - 1, -1, -1):
+                 x = fenetre[j]
+                 if x in _COORDINATIONS_FICHE:
+@@ -3387,7 +3506,7 @@ def _double_negation(avant: List[str], apres: List[str]) -> bool:
+                     fenetre[j + 1:j + 2] == ['t']
+                 if contracte or x in _NEGATIONS_FICHE or x in ('cannot', 'impossible', 'unable', 'incapable'):
+                     entre = [w for w in fenetre[j + 1:] if w != 't' and w not in lexique.MOTS_VIDES]
+-                    if len(entre) <= 1 and not set(entre) & (lexique.EXIGENCES_ADJECTIFS | lexique.PRISE_EN_CHARGE
++                    if len(entre) <= 3 and not set(entre) & (lexique.EXIGENCES_ADJECTIFS | lexique.PRISE_EN_CHARGE
+                                                               | lexique.SOUPLES):
+                         return True
+                     break
+@@ -3414,13 +3533,25 @@ def _membre_tiers(mots: List[str], propres: FrozenSet[str] = frozenset()) -> boo
+     return False
+ 
+ 
++def _meme_non_coordonne(mots: List[str], memes: FrozenSet[str]) -> bool:
++    """Autre mention du même mot, non coordonnée à la nôtre : « Docker Engine (Docker Desktop not required) » ; pas
++    « Docker and Docker Compose (optional) », où le prédicat vaut pour les deux."""
++    for j, x in enumerate(mots):
++        if x in memes:
++            precedents = [y for y in mots[:j] if y not in _ARTICLES][-1:]
++            if not precedents or precedents[0] not in _COORDINATIONS_FICHE | {'with', 'avec'}:
++                return True
++    return False
++
++
+ def _niee_apres(apres: List[str], propres: FrozenSet[str] = frozenset(), memes: FrozenSet[str] = frozenset()) -> bool:
+     """Négation après la mention, dans son groupe, suivie d'une exigence ou d'une prise en charge sans objet
+     (« Docker n'est pas requis », « GPU non nécessaire », « non pris en charge », « not supported », « n'est pas un
+     prérequis », « not a hard requirement », « is not required for basic use »), ou seule en fin de groupe (« GPU :
+     non », « GPU: none ») ; « incompatible », « unsupported ». Pas « does not support Windows » (objet), « aucune
+     clé d'API nécessaire » (autre nom nié), « Docker: Windows not supported » (autre identifiant), « Docker Desktop is
+-    not required » (variante)."""
++    not required » (variante), « Docker 20.10+ (older versions are not supported) » (une version) ; les adverbes ne
++    séparent pas (« no longer required », « pas vraiment nécessaire »)."""
+     if apres[:1] and apres[0] in _VARIANTES:
+         return False
+     fenetre = apres[:8]
+@@ -3429,9 +3560,14 @@ def _niee_apres(apres: List[str], propres: FrozenSet[str] = frozenset(), memes:
+             return not _membre_tiers(fenetre[:k], propres)
+         if not _negation_en(fenetre, k):
+             continue
+-        if _membre_tiers(fenetre[:k], propres) or set(fenetre[:k]) & memes:
++        if _membre_tiers(fenetre[:k], propres) or _meme_non_coordonne(fenetre[:k], memes):
+             return False                        # « Docker Engine (Docker Desktop not required) » : l'autre mention
+         suite = fenetre[k + 1:]
++        objet = next((x for x in suite if x not in _ARTICLES and x not in _COPULES and x != 't' and not _adverbe(x)
++                      and x not in _INTENSIFS), '')
++        if (set(fenetre[:k]) & _VERSIONS_NIEES or (fenetre[:1] and fenetre[0][:1].isdigit() and k <= 3)) \
++                and objet not in lexique.EXIGENCES_ADJECTIFS:
++            return False                        # « Docker 20.10+ (older versions are not supported) » : la version
+         for j, x in enumerate(suite):
+             if x in _VERBES_NIES:               # verbe : sans objet ou suivi d'un but (« does not require root »)
+                 reste = [y for y in suite[j + 1:] if y not in _ARTICLES]
+@@ -3439,7 +3575,7 @@ def _niee_apres(apres: List[str], propres: FrozenSet[str] = frozenset(), memes:
+             if x in lexique.EXIGENCES_ADJECTIFS or x in lexique.PRISE_EN_CHARGE:
+                 return True                     # « n'est plus nécessaire depuis la v2 », « not supported on ARM »
+             if x not in _ARTICLES and x not in _COPULES and x not in _INTENSIFS and x not in propres \
+-                    and x not in lexique.MOTS_VIDES and x != 't':
++                    and x not in lexique.MOTS_VIDES and x != 't' and not _adverbe(x):
+                 return False                    # « aucune clé d'API nécessaire » : la négation vise la clé
+         return not _contenu(suite)
+     return False
+@@ -3469,14 +3605,15 @@ def _sans_parentheses_fermees(texte: str) -> str:
+ 
+ 
+ def _souple(avant: List[str], apres: List[str], texte_apres: str = '', propres: FrozenSet[str] = frozenset(),
+-            memes: FrozenSet[str] = frozenset()) -> bool:
++            memes: FrozenSet[str] = frozenset(), mention: str = '') -> bool:
+     """Facultatif tout près : juste avant (« Optional: Docker », « optionally Docker »), ou après (« Docker
+     (recommandé) », « Docker is completely optional », « GPU et Docker facultatifs », « Docker and a GPU are
+     optional », « GPU with CUDA (optional) », « An NVIDIA GPU (RTX 3060 or newer) is recommended ») ; un mot souple
+     placé devant un autre membre (« GPU and optionally Docker ») ne vaut que pour celui-ci ; pas après un autre
+     identifiant (« Docker: GPU optional »), une variante (« Docker Desktop is optional »), une version, une quantité
+-    ou un modèle (« Requires Docker (Compose v2 recommended) »), ni devant la valeur qu'il recommande
+-    (« (recommended: 24+) »)."""
++    ou un modèle (« Requires Docker (Compose v2 recommended) »), un autre nom dans une parenthèse ouverte
++    (« Requires Docker (Compose plugin recommended) », « - NVIDIA GPU (RTX series recommended) »), ni devant la
++    valeur qu'il recommande (« (recommended: 24+) »)."""
+     proche_avant = []
+     for m in reversed(avant):
+         if m in _COORDINATIONS_FICHE or len(proche_avant) >= 3:
+@@ -3491,17 +3628,24 @@ def _souple(avant: List[str], apres: List[str], texte_apres: str = '', propres:
+     for k, m in enumerate(fenetre):
+         expression = _SOUPLES_RE.match(' '.join(fenetre[k:]))
+         if m in lexique.SOUPLES or expression:
+-            if _membre_tiers(fenetre[:k], propres) or set(fenetre[:k]) & memes:
++            if _membre_tiers(fenetre[:k], propres) or _meme_non_coordonne(fenetre[:k], memes):
+                 return False
+             position = next((x.start() for x in re.finditer(r'\b' + re.escape(m) + r'\b', plie)), -1)
+             if position < 0:
+                 return False
+-            ouverte = plie.rfind('(', 0, position) > plie.rfind(')', 0, position)
++            # parenthèse ouverte avant le mot souple, ou dans la mention (le surlignage de « docker compose » couvre
++            # « Docker (Compose »)
++            ouverte = plie.rfind('(', 0, position) > plie.rfind(')', 0, position) or (
++                '(' in mention and plie.rfind(')', 0, position) < 0)
+             if ouverte and re.match(r'\s*:\s*(?:v?\d|[a-z]?\d)', plie[position + len(m):]):
+                 return False                    # « (recommended: 24+) » : le facultatif vise la valeur qui suit
+             entre = _mots(_sans_parentheses_fermees(plie[:position]))
+             if any(_qualificatif(x) and x not in lexique.MARQUES_MATERIEL or x in _UNITES for x in entre):
+                 return False                    # « (Compose v2 recommended) », « (16 GB recommended) »
++            if ouverte and any(x not in propres and x not in lexique.MOTS_VIDES and x not in _COPULES
++                               and x not in _ARTICLES and x not in _COORDINATIONS_FICHE and not _adverbe(x)
++                               for x in entre):
++                return False                    # « (Compose plugin recommended) » : le facultatif vise ce nom
+             coordonne = any(x in _COORDINATIONS_FICHE for x in fenetre[:k])
+             suite = _contenu(fenetre[k + (len(expression.group().split()) if expression else 1):])
+             return not coordonne or not suite         # après un groupe coordonné : seulement en fin de groupe
+@@ -3569,7 +3713,7 @@ def _but_annexe(apres: List[str], propres: FrozenSet[str] = frozenset()) -> Opti
+     « GPU required for training only », « Docker pour les tests d'intégration ») ou bénéfice (« NVIDIA GPU (for
+     faster inference) », « CUDA 11.8+ (for GPU acceleration) », « a GPU speeds things up »). 'non_requis' si un
+     restrictif le borne (« only », « uniquement »), sinon 'mention' (jamais « requis »), None sans but ; pas un usage
+-    coordonné à un usage principal (« for training and inference »)."""
++    coordonné à un usage principal (« for training and inference » ; « for development and testing » reste annexe)."""
+     for k, m in enumerate(apres[:8]):
+         if m in _AUTRES_TECH and m not in propres:
+             return None                         # « Docker and an NVIDIA GPU for faster inference » : le but du GPU
+@@ -3577,7 +3721,14 @@ def _but_annexe(apres: List[str], propres: FrozenSet[str] = frozenset()) -> Opti
+             return 'mention'
+         if m in ('for', 'pour', 'to') or m in ('running', 'run', 'executer', 'lancer'):
+             but = apres[k + 1:k + 6]
+-            if set(but) & lexique.USAGES_ANNEXES and not set(but) & _COORDINATIONS_FICHE:
++            membres: List[List[str]] = [[]]
++            for x in but:
++                if x in _COORDINATIONS_FICHE:
++                    membres.append([])
++                else:
++                    membres[-1].append(x)
++            if set(but) & lexique.USAGES_ANNEXES and all(set(membre) & lexique.USAGES_ANNEXES for membre in membres
++                                                         if _contenu(membre)):
+                 return 'non_requis' if set(apres) & lexique.RESTRICTIFS else 'mention'
+             if set(but) & _BENEFICES or (set(but) & _FAMILLES[0] and 'support' in but):
+                 return 'mention'
+@@ -3626,7 +3777,8 @@ def _exigence_avant(avant: List[str]) -> bool:
+     un autre membre (« Requires Python 3.10 and supports GPU »), un complément prépositionnel (« automation needs
+     with n8n », « requires access to a GPU »), « à la demande », « sur demande », « your needs », une performance
+     (« Le temps de traitement dépend de votre GPU »), ni une fonction comme sujet (« GPU acceleration requires
+-    CUDA » : l'exigence ne vaut que pour cette fonction)."""
++    CUDA », « Offline mode requires a GPU » : l'exigence ne vaut que pour cette fonction ; « The backend requires
++    Docker » est une exigence)."""
+     contenu = 0
+     for k in range(len(avant) - 1, -1, -1):
+         m = avant[k]
+@@ -3636,8 +3788,9 @@ def _exigence_avant(avant: List[str]) -> bool:
+                                                                                                    'on')):
+                 return False
+             sujet = _contenu(avant[:k])[-2:]
+-            if set(sujet) & _FONCTIONS or (m.startswith('depend') and (set(avant[k + 1:]) & _POSSESSIFS_FICHE
+-                                                                        or set(sujet) & _MESURES)):
++            fonction = 'mode' in sujet or (set(sujet) & _FONCTIONS_TECH and set(_contenu(avant[:k])[-3:]) & _AUTRES_TECH)
++            if fonction or (m.startswith('depend') and (set(avant[k + 1:]) & _POSSESSIFS_FICHE
++                                                        or set(sujet) & _MESURES)):
+                 return False
+             return not set(avant[k + 1:]) & _PREPOSITIONS_OBJET
+         if m in _COORDINATIONS_FICHE and any(x not in _ARTICLES and not _qualificatif(x) for x in avant[k + 1:]):
+@@ -3716,11 +3869,13 @@ def _alternative(avant: List[str], apres: List[str], texte: str, a: int, b: int,
+ def _dependance_produit(avant: List[str], apres: List[str], liste: bool = False) -> bool:
+     """« modèles pour n8n », « Collection de workflows n8n, prêts à importer », « nœud n8n », « skills for Claude
+     Code », « Fournit des workflows n8n » ; pas « importez vos workflows Zapier » (migration, possessif de
+-    l'utilisateur), un produit proposé en plus (« Also ships an n8n node », « Intégrations : nœud n8n », « Un exemple
+-    de workflow n8n est fourni », « Comes with n8n workflows ») ni une liste de cibles après « pour / for »
+-    (« wrappers for React, Vue and Angular », « templates for n8n and Make »)."""
++    l'utilisateur), un produit proposé en plus (« Also ships an n8n node », « Ships with an n8n community node »,
++    « Intégrations : nœud n8n », « Un exemple de workflow n8n est fourni », « Comes with n8n workflows ») ni une liste
++    de cibles après « pour / for » (« wrappers for React, Vue and Angular », « templates for n8n and Make »)."""
+     if set(avant[-3:]) & lexique.MIGRATIONS or set(avant[-5:]) & _OFFRES or set(apres[:5]) & _OFFERTS:
+         return False
++    if set(avant[-4:]) & _VERBES_OFFRE and (set(apres[:3]) | set(avant[-2:])) & _INTEGRATIONS:
++        return False                            # « Ships with an n8n community node », « inclut un nœud n8n »
+     precedent = [m for m in avant if m not in _ARTICLES][-1:]
+     if precedent in (['pour'], ['for']):
+         return not (liste or (apres[:1] and apres[0] in _COORDINATIONS_FICHE))
+@@ -3760,6 +3915,16 @@ def _commande(texte: str, a: int) -> bool:
+     return bool(_COMMANDES_RE.match(texte[debut:]))
+ 
+ 
++def _nom_suit(texte: str) -> bool:
++    """Un nom propre ou une technologie ouvre le texte (« Make ou Zapier », « Vue and Angular ») : la virgule
++    sépare deux cibles ; « prêts à importer », « written in TypeScript » : non."""
++    mots = _MOT_RE.findall(texte)
++    if not mots:
++        return False
++    plie = gn._fold(mots[0])
++    return mots[0][:1].isupper() or plie in _AUTRES_TECH or (plie,) in lexique_compile().formes
++
++
+ def sorte_mention(texte: str, a: int, b: int, colonne: str, nature: str) -> str:
+     """Ce qu'une occurrence [a, b) d'un identifiant exclu dit de lui (lexique, « Exclusion d'un identifiant ») :
+     'requis', 'non_requis' ou 'mention'. « requis » n'est retenu que sur une tournure sans ambiguïté ; dans le doute,
+@@ -3779,7 +3944,7 @@ def sorte_mention(texte: str, a: int, b: int, colonne: str, nature: str) -> str:
+                                                  or set(apres) & lexique.SOUPLES):
+         return 'mention'                        # « Docker Desktop n'est pas nécessaire » : la variante seule
+     if (_niee_avant(avant, memes) or _niee_apres(apres, propres, memes)
+-            or _souple(avant, apres, texte[b:g_fin], propres, memes)
++            or _souple(avant, apres, texte[b:g_fin], propres, memes, texte[a:b])
+             or _entete_souple(texte, a, propres, colonne) or _souple_apres_virgule(texte, g_fin)):
+         return 'non_requis'                     # « sans Docker », « GPU : non », « GPU NVIDIA (optionnel) »
+     if nature == 'materiel' and _cpu_possible(gn._fold(texte[slice(*_phrase(texte, a, b))])):
+@@ -3800,7 +3965,9 @@ def sorte_mention(texte: str, a: int, b: int, colonne: str, nature: str) -> str:
+     p_debut, p_fin = _phrase(texte, a, b)
+     if _alternative(avant, apres, texte, a, b, _mots(texte[p_debut:p_fin]), propres):
+         return 'mention'                        # « Windows, macOS ou Linux », « Docker / Podman »
+-    fonction = apres[:1] and apres[0] in _FONCTIONS and exigence_apres != 'requis'
++    # « GPU acceleration requires CUDA », « (for GPU acceleration) » ; pas « - NVIDIA GPU support » (un élément)
++    fonction = apres[:1] and apres[0] in _FONCTIONS and exigence_apres != 'requis' and bool(
++        set(apres[1:4]) & lexique.EXIGENCES_VERBES or set(avant[-3:]) & {'for', 'pour'})
+     if (but == 'mention' or fonction) and not _exigence_avant(avant) and exigence_apres != 'requis':
+         return 'mention'                        # « - NVIDIA GPU (for faster inference) », « GPU acceleration… »
+     if restrictif == 'requis':
+@@ -3809,8 +3976,9 @@ def sorte_mention(texte: str, a: int, b: int, colonne: str, nature: str) -> str:
+         return 'requis'                         # exigence écrite, même avec un bénéfice (« Requires a GPU for faster »)
+     if colonne == 'prerequis' and len(_contenu(avant)) <= 2:
+         return 'requis'                         # « - NVIDIA GPU with CUDA support » : l'élément porte sur lui
+-    if nature == 'produit' and _dependance_produit(avant, apres, not apres and texte[g_fin:g_fin + 1] == ','):
+-        return 'requis'
++    if nature == 'produit' and _dependance_produit(avant, apres, not apres and texte[g_fin:g_fin + 1] == ','
++                                                   and _nom_suit(texte[g_fin + 1:g_fin + 60])):
++        return 'requis'                         # « pour n8n, Make ou Zapier » : une liste ; « pour n8n, prêts à… » : non
+     return 'mention'
+ 
+ 
+@@ -4018,7 +4186,9 @@ def rechercher(con: sqlite3.Connection, requete: Requete, filtres: Optional[Dict
+         # (aucune notion) : états affichés, ordre alphabétique inchangé.
+         preuves_exclusion = _preuves_exclusions(con, requete.exclusions)
+         for r in visibles:
+-            r.exclusions = [etat_exclusion(e, r.rowids, preuves_exclusion) for e in requete.exclusions]
++            # fiche principale d'abord : à état égal, sa preuve est citée (pas celle d'une fiche plus ancienne)
++            ordre = sorted(r.rowids, key=lambda i: not legeres[i]['principale'])
++            r.exclusions = [etat_exclusion(e, ordre, preuves_exclusion) for e in requete.exclusions]
+             if r.niveau == 'forte' and _exclu_requis(r):
+                 r.niveau = 'partielle'
+     if requete.concepts:
+@@ -4502,7 +4672,7 @@ def _limites(ctx: _Contexte, concepts: List[Concept]) -> None:
+     if champs:
+         ajouter('non_verifie', f"{', '.join(champs)} : « {gn.NON_VERIFIE} » par Gitnotate ({_libelle(p)})",
+                 champs=champs, page_id=p['page_id'])
+-    citees = 0
++    citees, vues = 0, set()
+     for c in concepts:
+         for rowid, marques in r.niees.get(c.cle, {}).items():
+             f = ctx.fiches.get(rowid)
+@@ -4518,9 +4688,11 @@ def _limites(ctx: _Contexte, concepts: List[Concept]) -> None:
+                         continue
+                     champ, decalage, texte = segment[0], segment[1], segment[3]
+                 a, b = occurrences[0]
+-                ajouter('negation', f"La fiche précise ({champ} · {_libelle(f)}) : « "
+-                                    f"{_court(texte, a - decalage, b - decalage)} »",
+-                        concept=c.cle, champ=champ, page_id=f['page_id'])
++                phrase = f"La fiche précise ({champ} · {_libelle(f)}) : « {_court(texte, a - decalage, b - decalage)} »"
++                if phrase in vues:
++                    continue                    # deux notions niées par la même phrase : une seule ligne
++                vues.add(phrase)
++                ajouter('negation', phrase, concept=c.cle, champ=champ, page_id=f['page_id'])
+                 citees += 1
+     for entree in r.indices_faibles:
+         ajouter('avis_seul', f"Indice faible : {entree['texte']}", concept=entree['concept'], page_id=entree['page_id'])
+@@ -4678,7 +4850,9 @@ def _exclusions(ctx: _Contexte) -> None:
+             champ, citation, f = citee
+             x['citations'].append({'champ': champ, 'page_id': f['page_id'], 'citation': citation,
+                                    'sorte': preuve['sorte']})
+-            sources.append(f"{champ} · {_libelle(f, date=True)} : « {citation} »")     # quelle fiche du dépôt
++            source = f"{champ} · {_libelle(f, date=True)} : « {citation} »"     # quelle fiche du dépôt
++            if source not in sources:           # deux mentions de la même phrase : citée une fois
++                sources.append(source)
+         sujet = f"Alternative à « {x['mot']} »" if x['source'] == 'reference' else f"« {x['mot']} » exclu"
+         x['texte'] = f"{sujet} : {_PHRASES_EXCLUSION[x['etat']]}" + (f" ({' ; '.join(sources)})" if sources else '')
+ 
+--- a/redecouverte_lexique.py
++++ b/redecouverte_lexique.py
+@@ -452,16 +452,25 @@ FORMES_EXCLUSION = {
+ # part) est un identifiant (« pas avec Docker », « not for Windows ») ; ailleurs, règle inchangée (FIN_NEGATION).
+ # La négation se referme après cet identifiant (« pas avec Docker en Python » cherche Python).
+ LIAISONS_EXCLUSION = frozenset({'pour', 'avec', 'sur', 'sous', 'dans', 'for', 'with', 'on', 'in'})
+-# Négations qui ne nient pas l'objet du besoin (ignorées) : mémoire ou recherche de l'utilisateur (« I can't find the
+-# n8n workflow I saved », « je ne retrouve plus le dépôt n8n », « je ne me souviens plus du nom de l'outil d'OCR »),
+-# indifférence (« doesn't matter if it's React or Vue », « I don't mind using Docker », « ça ne me dérange pas
+-# d'utiliser Docker », « je n'hésite pas à utiliser Docker »)
++# Verbes que régit une négation qui ne nie pas l'objet du besoin (seulement le verbe nié : entre « ne » et « pas »,
++# ou juste après « can't », « don't » ; jamais avec « sans » / « without »). Mémoire de l'utilisateur, négation
++# ignorée : « I can't find the n8n workflow I saved », « je ne retrouve plus le dépôt n8n », « je ne me souviens plus
++# du nom de l'outil d'OCR » ; pas « Find a web scraper without Docker » (« without » n'est pas régi par « find »)
+ VERBES_SANS_NEGATION = frozenset({
+-    'find', 'remember', 'recall', 'recollect', 'locate', 'retrieve', 'figure', 'seem', 'trouve', 'retrouve',
+-    'trouver', 'retrouver', 'souviens', 'souvient', 'souvenir', 'rappelle', 'rappeler', 'sais', 'sait', 'vois',
+-    'voit', 'arrive', 'matter', 'matters', 'care', 'mind', 'importe', 'derange', 'derangent', 'gene', 'genent',
+-    'hesite', 'hesitons', 'embete', 'bother', 'bothers',
++    'find', 'remember', 'recall', 'recollect', 'locate', 'retrieve', 'seem', 'trouve', 'retrouve', 'trouver',
++    'retrouver', 'souviens', 'souvient', 'souvenir', 'rappelle', 'rappeler',
+ })
++# Capacité ou savoir : mémoire seulement devant un interrogatif ou un verbe de mémoire (« je ne sais pas quel outil
++# n8n », « je n'arrive pas à retrouver le dépôt ») ; sinon une vraie négation (« je n'arrive pas à installer Docker »,
++# « je ne sais pas configurer Kubernetes » : la technologie est exclue)
++VERBES_CAPACITE = frozenset({'sais', 'sait', 'savons', 'arrive', 'arrivons', 'parviens', 'parvient', 'able'})
++INTERROGATIFS = frozenset({'quel', 'quelle', 'quels', 'quelles', 'lequel', 'laquelle', 'si', 'comment', 'pourquoi',
++                           'which', 'what', 'where', 'whether', 'how'})
++# Indifférence : les technologies de la portée sont « indifférentes » (ni cherchées ni exclues) : « doesn't matter if
++# it's React or Vue », « I don't care about GPU acceleration », « I don't mind using Docker », « ça ne me dérange pas
++# d'utiliser Docker », « je n'hésite pas à utiliser Docker »
++VERBES_INDIFFERENCE = frozenset({'matter', 'matters', 'care', 'mind', 'importe', 'derange', 'derangent', 'gene',
++                                 'genent', 'hesite', 'hesitons', 'embete', 'bother', 'bothers'})
+ # Verbe nié qui dit la qualité, pas l'usage : sa suite prépositionnelle est un contexte (« un éditeur qui ne plante
+ # jamais sous Windows », « qui ne rame pas sous Windows », « doesn't crash on Linux »)
+ VERBES_QUALITE = frozenset({'plante', 'plantent', 'rame', 'rament', 'crash', 'crashe', 'crashes', 'bug', 'bugue',
+@@ -477,6 +486,8 @@ VERBES_EXCLUSION = frozenset({
+     'through', 'lancer', 'lancant', 'running', 'run', 'tourner', 'deployer', 'deploying', 'deploy', 'configurer',
+     'configuring', 'toucher', 'touching', 'compte', 'account', 'abonnement', 'subscription', 'payer', 'paying',
+     'apprendre', 'learning', 'connaitre', 'knowing', 'exiger', 'demander', 'launching', 'launch', 'setting', 'setup',
++    # permission : « I'm not allowed to install Docker », « je n'ai pas le droit d'installer Docker »
++    'allowed', 'permitted', 'autorise', 'autorisee', 'autorises', 'droit',
+ })
+ INVARIABLES = frozenset({'cours', 'news', 'series', 'corpus', 'status', 'process', 'access', 'analysis', 'windows',
+                          'pandas', 'kubernetes', 'ollama', 'ios', 'gis', 'aws', 'docs', 'sous', 'plus', 'tous',

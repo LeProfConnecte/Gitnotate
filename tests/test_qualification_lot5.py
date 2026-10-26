@@ -17,13 +17,13 @@ Hors ligne : index construit depuis le corpus synthétique et les suppléments, 
 import hashlib
 import importlib.util
 import json
-import re
 import shutil
 import subprocess
 from pathlib import Path
 
 import pytest
-from redecouverte_outils import index_du_corpus, pages_du_corpus, pages_du_supplement, preparer
+from redecouverte_outils import (appliquer_patch, empreinte_code, index_du_corpus, pages_du_corpus,
+                                 pages_du_supplement, preparer)
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURES = ROOT / 'tests' / 'fixtures' / 'redecouverte'
@@ -127,26 +127,6 @@ def test_gitattributes_protege_les_fichiers():
                     and "tests/fixtures/redecouverte/qualification_lot5/** -text" in lignes)), nom
 
 
-def _appliquer(texte, patch):
-    """Applique les blocs d'un patch unifié (contexte exact) à un texte."""
-    lignes, sortie, i = texte.splitlines(keepends=True), [], 0
-    for bloc in re.finditer(r'^@@ -(\d+)(?:,\d+)? \+\d+(?:,\d+)? @@.*\n((?:[ +\-\\].*\n?)*)', patch, re.MULTILINE):
-        debut = int(bloc.group(1)) - 1
-        sortie += lignes[i:debut]
-        i = debut
-        for ligne in bloc.group(2).splitlines(keepends=True):
-            if ligne.startswith('\\'):
-                sortie[-1] = sortie[-1].rstrip('\n')
-            elif ligne.startswith('+'):
-                sortie.append(ligne[1:])
-            else:
-                assert lignes[i] == ligne[1:], (i, ligne)
-                if ligne.startswith(' '):
-                    sortie.append(lignes[i])
-                i += 1
-    return ''.join(sortie + lignes[i:])
-
-
 def test_variantes_reproductibles():
     """Chaque patch de qualification_lot5/variantes, appliqué à f68b656, redonne l'empreinte annoncée."""
     if not shutil.which('git') or subprocess.run(['git', 'cat-file', '-e', 'f68b656^{commit}'], cwd=ROOT,
@@ -156,13 +136,7 @@ def test_variantes_reproductibles():
                                ).stdout.decode('utf-8') for nom in ('redecouverte.py', 'redecouverte_lexique.py')}
     for variante, empreinte in VARIANTES.items():
         patch = (FIXTURES / 'qualification_lot5' / 'variantes' / f'{variante}.patch').read_text(encoding='utf-8')
-        parties = re.split(r'^--- a/', patch, flags=re.MULTILINE)[1:]
-        code = dict(ref)
-        for partie in parties:
-            nom = partie.split('\n', 1)[0].strip()
-            code[nom] = _appliquer(code[nom], partie)
-        brut = code['redecouverte.py'].encode('utf-8') + code['redecouverte_lexique.py'].encode('utf-8')
-        assert hashlib.sha256(brut).hexdigest()[:16] == empreinte, variante
+        assert empreinte_code(appliquer_patch(ref, patch)) == empreinte, variante
 
 
 def _jugements(jeu):

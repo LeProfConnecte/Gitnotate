@@ -10,10 +10,14 @@ Hors ligne, aucune base Notion réelle.
 import hashlib
 import json
 import os
+import shutil
+import subprocess
 
 import pytest
-from redecouverte_outils import index_du_corpus, p_multi, p_select, p_texte, page, preparer
+from redecouverte_outils import (appliquer_patch, empreinte_code, index_du_corpus, p_multi, p_select, p_texte, page,
+                                 preparer)
 
+RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOSSIER = os.path.join(os.path.dirname(__file__), 'fixtures', 'redecouverte', 'qualification_lot5', 'banc')
 EMPREINTES = {
     'brut_t1.json': '0fc60fe05c97415081754c7006393e9aa43ff645db1c0d8f4ea5f2187b7ae245',
@@ -30,6 +34,10 @@ MESURES = {
     'banc_t1.json': ((193, 3, 65, 68), (93, 95)),
     'banc_t2.json': ((292, 27, 94, 121), (147, 176)),       # mesure finale, jamais utilisée pour corriger
 }
+# Versions mesurées (§ 6, tableau du banc), commits d'une branche d'essai non publiée : patchs enchaînés depuis
+# f68b656 (versions/), empreinte du code obtenu ; la dernière est le code de cette branche
+VERSIONS = (('1_fe9fdeb', 'dba417ef5c615e10'), ('2_de04315', '392a52be81aa256c'), ('3_d4ffc83', '6fecb28fd86c551c'),
+            ('4_f8ae513', '8f26f81fea7e68ba'), ('5_eb8106f', '923d79cd8a75a4a8'), ('6_c3f4747', '18b9cf152f2ed425'))
 
 
 @pytest.fixture
@@ -80,6 +88,23 @@ def test_empreintes_du_banc():
     for nom, attendue in EMPREINTES.items():
         with open(os.path.join(DOSSIER, nom), 'rb') as f:
             assert hashlib.sha256(f.read()).hexdigest() == attendue, nom
+
+
+def test_versions_du_banc_reproductibles():
+    if not shutil.which('git') or subprocess.run(['git', 'cat-file', '-e', 'f68b656^{commit}'], cwd=RACINE,
+                                                capture_output=True).returncode:
+        pytest.skip('dépôt git sans le commit f68b656')
+    code = {nom: subprocess.run(['git', 'show', f'f68b656:{nom}'], cwd=RACINE, capture_output=True, check=True
+                                ).stdout.decode('utf-8') for nom in ('redecouverte.py', 'redecouverte_lexique.py')}
+    for version, empreinte in VERSIONS:
+        with open(os.path.join(DOSSIER, 'versions', f'{version}.patch'), encoding='utf-8') as f:
+            code = appliquer_patch(code, f.read())
+        assert empreinte_code(code) == empreinte, version
+    actuel = {}
+    for nom in code:
+        with open(os.path.join(RACINE, nom), encoding='utf-8') as f:      # fins de ligne lues en LF (autocrlf)
+            actuel[nom] = f.read()
+    assert code == actuel                       # la dernière version est le code de cette branche
 
 
 def test_banc_sans_recouvrement():
