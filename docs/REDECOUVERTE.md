@@ -263,7 +263,7 @@ Index     : 62 fiches, 51 dépôts — données lues dans Notion le 2026-10-11 �
 **En-tête.**
 
 - `Concepts` : les notions retenues, avec entre parenthèses des formes et synonymes français ou
-  anglais du lexique (`redecouverte_lexique.py`, 119 concepts). `(hors lexique)` : mot cherché tel
+  anglais du lexique (`redecouverte_lexique.py`, 124 concepts). `(hors lexique)` : mot cherché tel
   quel, avec son singulier, son masculin et son féminin construit par ses suffixes (« interactifs »
   trouve aussi « interactives », « créatif » trouve « créative »). `[contrainte]` : système,
   plateforme, langage de programmation ou déploiement (Windows, Linux, macOS, Android, iOS, Python,
@@ -282,15 +282,106 @@ Index     : 62 fiches, 51 dépôts — données lues dans Notion le 2026-10-11 �
   dans « un OCR plus simple que Tesseract pour les plans scannés », seul Tesseract est la référence.
   Une notion citée à la fois comme objet et comme référence (« dans le terminal, plus
   simple que la ligne de commande ») garde le rôle le plus fort.
+- **Technologies nommées** (lot 5 ; `IDENTIFIANTS` du lexique : n8n, Zapier, FastAPI, React, Claude
+  Code, et les plateformes Docker, Kubernetes, Windows, Linux, macOS, GPU). n8n, Zapier, React et
+  Kubernetes sont des notions à part : citer n8n ne veut plus dire « parler de workflows » (une fiche
+  dont seul le `Brique pour` vaut « Automatisations n8n » ne répond plus directement à « des flux de
+  travail » : seulement par le concept voisin « automatisation », en partielle), et chercher des
+  workflows n'exige pas n8n. Le rôle d'un produit dépend de la phrase : **cible**
+  (« une bibliothèque de workflows pour n8n », « a React component library ») : notion essentielle ;
+  **environnement** (dans les deux mots qui suivent « avec », « sur », « sous », « dans », « en »,
+  « via », « with », « on », « in », « into », « using », ou après un possessif : « des workflows
+  exécutés avec n8n », « dans mon application FastAPI ») : `[contrainte]`, comptée dans la couverture
+  mais jamais suffisante pour « forte » ; « sur », « on », « about » après un cours, un tutoriel, un
+  guide, une formation, des exercices… cités plus tôt dans le même segment annoncent au contraire le
+  sujet (« un tutoriel sur React », « une formation en ligne sur n8n » : cible), et « on » suivi d'un
+  verbe est un pronom (« on cherche des workflows n8n » ; « workflows running on n8n to de-duplicate
+  invoices » reste une contrainte) ; **à remplacer** (« une alternative no-code à n8n », « instead of
+  React », « open-source n8n alternatives », « un outil comme n8n », « something like Zapier »,
+  « similar to Claude Code », « remplacer Zapier », « migrer de Zapier », « a Zapier clone » ; pas « I'd
+  like React », un souhait, ni « migrating to n8n », la destination, ni « Comme n8n est installé », une
+  cause) : remplacé par sa catégorie, son
+  nom compris quand la catégorie n'est demandée qu'en référence (`workflow (comme n8n) [référence]`),
+  et ligne `À remplacer` (voir ci-dessous) ; **exclu** (« sans n8n », « pas avec Docker », « without
+  GPU or Docker », « not with Docker or Kubernetes », « sans passer par n8n », « without installing
+  Docker », « without depending on n8n », « je ne veux plus de Docker », « I no longer use Zapier »,
+  « I don't want n8n », « an OCR that doesn't need a GPU », « neither Docker nor a GPU », « sans
+  Docker : les conteneurs sont interdits », « because Docker is not allowed ») : jamais cherché, ligne
+  `Exclus`. L'exclusion demande que la négation touche la technologie : seuls des mots d'usage
+  (« passer par », « installer », « needing », « relying on », « être obligé de »…) peuvent les
+  séparer ; dans « I'm not sure whether to use n8n », « je n'ai pas encore choisi entre n8n et
+  Zapier », « je n'ai jamais utilisé n8n » ou « je ne connais pas n8n », n8n est seulement non
+  cherché, comme tout mot nié, et « pas que pour n8n », « not only for n8n » ne nient rien. « ne …
+  plus » ne nie que devant une technologie : « je ne me souviens plus du nom de l'outil d'OCR »
+  cherche l'OCR. Une technologie à la fois demandée et niée (« a React web app, not React Native », « avec
+  Docker mais pas Docker Desktop ») n'est pas exclue : la variante niée n'est pas elle. Une
+  préposition referme la négation devant une technologie (« sans GPU sous Windows » cherche Windows ;
+  « sans passer via un service cloud » nie toujours « service » et « cloud »), et la négation se
+  referme après la technologie exclue (« pas avec Docker en Python » cherche Python), sauf devant
+  « ou » suivi d'une autre technologie. Les plateformes (Docker, Kubernetes, Windows…) restent des
+  contraintes ; seule l'exclusion change.
+  Certaines négations ne nient pas la technologie ; seul compte le verbe que la négation régit
+  (entre « ne » et « pas », ou juste après « can't », « don't », deux adverbes mis à part : « I can
+  no longer find… »), jamais « sans » ni « without » (« Find a web scraper without Docker », « Trouve
+  un OCR sans Docker » excluent Docker). Mémoire (« I can't find the n8n workflow I saved », « je ne
+  retrouve plus le dépôt n8n », « je ne sais pas quel outil n8n… », « je n'arrive pas à
+  retrouver… ») : rien n'est nié ; capacité sans mémoire (« je n'arrive pas à installer Docker ») :
+  la technologie touchée est exclue, la tâche reste cherchée (« je n'arrive pas à transcrire mes
+  réunions » cherche la transcription). Indifférence : la technologie est **indifférente**, ni
+  cherchée ni exclue (ligne `Indifférent`), et le reste du besoin est cherché normalement, qu'elle
+  vienne d'une négation (« I don't mind Docker and I want a self-hosted OCR », « Docker doesn't
+  matter as long as… », « I don't care about GPU acceleration », « It doesn't matter if it runs in
+  Docker ») ou d'une tournure sans négation, pour tout le segment (« peu importe React ou Vue »,
+  « Kubernetes ou Docker ça m'est égal », « je me fiche qu'il exploite le GPU », « whether or not
+  there's a GPU », « qu'il tourne dans Docker ou pas », « FastAPI or anything else ») ; un segment
+  qui ne dit que l'indifférence vaut pour le précédent (« React or Svelte, I don't care, … »).
+  Verbe de qualité suivi d'un contexte (« un éditeur qui ne plante jamais sous Windows ») : Windows
+  reste une contrainte. « I haven't used n8n », « je n'ai jamais installé n8n » : n8n seulement non
+  cherché ; « no GPU installed », « Aucun GPU installé », « Je n'ai pas de Mac », « je n'ai pas
+  envie de Kubernetes », « qui évite d'installer Docker », « nothing that needs macOS or Windows »,
+  « A Kubernetes-free way », « without a dedicated GPU », « I'm not allowed to install Docker » :
+  exclusion. Une interdiction ou une absence exclut la technologie qui en est le sujet, adverbes
+  compris (« Docker n'est malheureusement pas autorisé », « Docker is still not allowed », « Docker
+  isn't an option », « Docker n'est pas installé sur mon PC ») ; pas « car le cloud est interdit ».
+  Devant un système, une liaison dit où l'outil tourne (« without installation on Windows », « a
+  password manager without a subscription on macOS » cherchent le système), sauf après un mot de
+  dépendance (« without relying on Windows », « doesn't depend on Windows » : exclu). Produit à
+  remplacer : aussi « A replacement for Zapier », « My company moved off n8n », « stop paying for
+  Zapier » ; renommé ailleurs dans la requête (« une alternative à Zapier, Zapier est trop cher »),
+  il reste à remplacer et n'est pas cherché. « Comme <produit> » ne lit une cause qu'en tête d'une
+  requête qui a d'autres segments et ne parle pas de remplacement, devant un verbe (« Comme n8n a
+  déjà un nœud HTTP, je cherche des workflows n8n ») ; « Comme n8n devient trop cher, je cherche une
+  alternative », « Comme Zapier, mais open source », « un outil open source, comme Zapier par
+  exemple » sont des références.
+- **Recherche sémantique : code ou documents** (lot 5). « recherche de code sémantique », « semantic code search »
+  forment une notion à part, voisine de la recherche sémantique générale (documents, PDF) ; dans les fiches, elle
+  trouve aussi « recherche sémantique dans le code », « semantic search over code »… Un outil de code reste partiel
+  pour « recherche sémantique de PDF », et inversement. « recherche sémantique » et le mot « code » dans le même
+  segment du besoin (entre deux ponctuations : une virgule ou une parenthèse les sépare), à six mots au plus (« une
+  recherche sémantique dans mon code source »), se lisent ensemble comme une recherche de code (`recherche
+  sémantique + code`) si « code » est introduit par une préposition de portée (« dans », « de », « over »,
+  « through », « across », « for »…, articles, possessifs et deux mots au plus entre les deux : « through my source
+  code »), sauf s'il suit une négation (« semantic search but not for source code »), est la référence (« rather
+  than code », « plutôt que de code »), dit une quantité ou des exemples (« en quelques lignes de code », « with
+  little code », « with code examples ») ou désigne autre chose : mot voisin d'une liste du lexique (« QR code »,
+  « VS Code », « tax code », « code comptable », « codes juridiques », « code du travail ») ou « Code » avec une
+  majuscule en cours de phrase (« le Code général des impôts »), sauf devant « source ». « I want to code a semantic
+  search » ne compose pas. Les autres sens restent une liste fermée.
 - `Ignorés` : mots de la question, sans contenu, et nombres isolés d'un ou deux chiffres
   (« Eurocode 2 » ne cherche pas « 2 », qui trouverait « Apache-2.0 »).
 - `Non pris en compte (négation)` : mots qui suivent « sans », « pas », « aucun », « no »,
-  « without »… Ils ne sont pas cherchés ; un dépôt qui les mentionne n'est ni écarté ni déclassé.
-  Défaut connu : un mot de liaison placé juste après le déclencheur ferme la négation, si bien que
-  dans « pas pour analyser des PDF », « pas avec Docker » ou « not for PDF analysis », « analyser »,
-  « PDF » ou « Docker » restent cherchés (correction essayée puis retirée : elle dégradait d'autres
-  recherches ; voir docs/QUALIFICATION_INDEPENDANTE_LOT4.md, § 10). Formulez plutôt « sans PDF ».
-  De même, « pas » de « pas à pas » est lu comme une négation.
+  « without »… Ils ne sont pas cherchés ; un dépôt qui les mentionne n'est ni écarté ni déclassé, sauf
+  la règle des technologies exclues ci-dessous. Devant une technologie nommée, un mot de liaison
+  placé juste après le déclencheur ne ferme plus la négation (« pas avec Docker », « not for
+  Windows »). Défaut connu, ailleurs : dans « pas pour analyser des PDF » ou « not for PDF
+  analysis », « analyser » et « PDF » restent cherchés (correction générale essayée puis retirée au
+  lot 4 : elle dégradait d'autres recherches ; voir docs/QUALIFICATION_INDEPENDANTE_LOT4.md, § 10).
+  Formulez plutôt « sans PDF ». « pas à pas » n'est plus lu comme une négation.
+- `Exclus` : technologies nommées que vous excluez (« sans n8n », « without GPU », « pas avec
+  Docker »). Chaque dépôt affiché porte une ligne `Exclusion` qui dit ce que sa fiche en écrit.
+  `Indifférent` : « avec ou sans GPU », « with or without GPU » : ni exigé, ni exclu.
+- `À remplacer` : produit dont vous cherchez une alternative (« alternative à n8n ») ; un dépôt dont
+  la fiche dit qu'il en dépend (« workflows pour n8n ») n'est pas une alternative.
 - `Aucune fiche ne mentionne` : mots de votre besoin qu'aucune fiche ne contient, même par un
   concept voisin. `Aucune fiche ne mentionne directement : … (trouvé seulement par un concept
   voisin)` : aucune fiche ne contient le mot ni ses synonymes, mais une notion proche est trouvée
@@ -342,6 +433,118 @@ cherché réunit le titre, son découpage CamelCase et `propriétaire/dépôt` :
 `via « … »` donne les mots trouvés quand ils diffèrent de ceux du besoin. `concept voisin « … »` : correspondance partielle
 par un concept proche (OCR et « scanné », PDF et « document »…), qui compte pour moitié.
 `Indice faible : … seulement dans l'avis du LLM` : la notion n'apparaît que dans la Justification.
+**Exclusion** (si le besoin exclut ou remplace une technologie nommée) : ce que la fiche en écrit,
+avec la citation, le champ et la fiche citée (sa date d'analyse : un dépôt peut avoir plusieurs
+fiches) ; la phrase entière jusqu'à 220 caractères, pour que la nuance qui fonde l'état n'en soit pas
+coupée ; à état égal, le champ qui décrit la technologie (Prérequis, Description…) est cité avant le
+titre.
+
+Chaque mention se lit dans son **groupe** : il s'arrête à une virgule, un point-virgule, une fin de
+phrase ou de ligne, mais pas à une parenthèse ni à un deux-points (« - GPU NVIDIA (optionnel) »,
+« Docker: not required »). « requis » n'est retenu que sur une tournure sans ambiguïté ; dans le
+doute, la mention reste `cité sans dire s'il est requis`, qui ne change pas le classement. Une
+adresse, un chemin ou une ligne de commande (« git clone https://…/zapier-app-starter.git », « pip
+install zapier-alternative », « docker compose up -d ») n'est qu'une mention.
+
+- `requis d'après la fiche` : verbe d'exigence au plus deux mots avant (« Nécessite un GPU NVIDIA »,
+  « Requires Python and Docker », « nécessite une installation préalable de Docker » ; pas
+  « Requires Python 3.10 and supports GPU », où l'exigence porte sur Python, ni « automation needs
+  with n8n », « à la demande », « sur demande », « tout le nécessaire »), adjectif d'exigence juste
+  après (« Docker requis », « a GPU is mandatory », « GPU NVIDIA obligatoire », « Docker et
+  Kubernetes requis »), « only », « uniquement » collés à la technologie (« Docker only », « Linux
+  uniquement », « Windows 10 ou 11 uniquement », « Windows only for now », « uniquement sous
+  Windows », « ne fonctionne que sous Linux »), début d'un élément de la colonne Prérequis (« - NVIDIA
+  GPU with CUDA support », « - Docker 24+ » ; pas un élément conditionnel ou de bénéfice : « - If you
+  have an NVIDIA GPU, install CUDA », « - For GPU acceleration: CUDA 11.8+ », « - NVIDIA GPU (for faster
+  inference) », « - Docker (for running the integration tests) »), double négation (« Ne fonctionne
+  pas sans GPU », « won't work without a CUDA GPU », « You can't run the app without Docker »,
+  « doesn't work properly without a GPU », « Running without Docker is not supported » : trois mots
+  au plus entre la négation et « sans »),
+  titre du dépôt qui commence par elle (« n8n-nodes-pdfgen » ;
+  pas « zapier-alternative » ni « gpu-free-ocr », et jamais le seul propriétaire `owner/repo`), ou,
+  pour un produit, « pour n8n », « for React » et « workflows n8n », « nœud n8n », « n8n community
+  node », « skills Claude Code », « Collection of example n8n workflows », « Modèles de workflows
+  pour n8n, prêts à importer » (pas « importez vos workflows Zapier » : une migration, ni une
+  intégration proposée en plus : « Also ships an n8n node », « Ships with an n8n community node »,
+  « inclut un nœud n8n », « Intégrations : nœud n8n », « wrappers for React, Vue and Angular », ni une
+  liste de cibles : « pour n8n, Make ou Zapier »). Une fonction de la technologie comme sujet
+  (« GPU acceleration requires CUDA », « Offline mode requires a GPU », « La variante 32B demande
+  un GPU », « L'intégration au menu contextuel n'est disponible que sous Windows ») ne vaut pas
+  exigence ; « The backend requires Docker » en est une. Une négation qui vise une version ne nie
+  pas la technologie (« - Docker 20.10+ (older versions are not supported) », « - React 18+ (not
+  compatible with React 17) » : requis). Aussi requis : « Prérequis : Docker 24+ et le plugin docker
+  compose v2 » dans une Description, « construit avec React », « Bibliothèque de composants React »,
+  « Nœud communautaire n8n », « A Zapier developer account is required », « Application native
+  macOS », « Conçu pour Linux », « Opérateur Kubernetes », « une application de barre de menus pour
+  macOS ». Un élément de Prérequis n'est requis par sa seule position que si la technologie en est
+  la tête (« - NVIDIA GPU with CUDA support », « - A Mac running macOS 12+ », « - Linux host with
+  Docker installed ») et que rien ne le borne : pas « - Tested on NVIDIA RTX 4090 », « - On Linux,
+  also install libgl1 », « - macOS users: run… », « - Docker image: … », « - NVIDIA GPU … for the
+  real-time transcription mode », « - React 18 (only if you use the optional component) »,
+  « - Training: NVIDIA GPU with 24 GB VRAM », ni un élément sous « - One of: ». Une négation restée
+  ouverte avant la mention (« non utilisable dans une application React »), du code entre accents
+  graves ou le champ Exemple ne prouvent jamais une exigence. **Seul cet
+  état change le classement** : le dépôt n'est jamais « forte » et passe après les autres
+  correspondances partielles.
+- `la fiche ne le présente pas comme requis` : mention niée juste avant (« sans Docker », « ne
+  nécessite pas de GPU », « doesn't require Docker », « Doesn't require or need a GPU », « Neither
+  Docker nor a GPU », « ne nécessite plus Docker », « Incompatible avec Windows » ; pas « no cloud:
+  requires an NVIDIA GPU », où la négation vise le cloud, ni « Aucune dépendance sauf Docker », ni
+  « non officiel », « not affiliated with n8n GmbH ») ou après, dans le groupe (« Docker n'est pas
+  requis », « GPU non nécessaire », « Docker n'est plus nécessaire », « Docker is no longer
+  required », « pas vraiment nécessaire », « GPU : non », « GPU: none », « n'est pas un prérequis »,
+  « not a hard requirement », « non pris en charge », « not supported » ; pas « does not support
+  Windows », qui parle de Windows, ni « Docker: Windows not supported »), facultative
+  (« - GPU NVIDIA (optionnel) », « - Docker, optional », « - NVIDIA GPU, if available », « Optional:
+  Docker », un élément sous « - Optional: », « Recommandé : 16 Go de RAM, GPU », « GPU et Docker
+  facultatifs », « Docker and a GPU are optional », « - NVIDIA GPU with CUDA (optional) », « - If you
+  have an NVIDIA GPU, install CUDA » ; « Requires an NVIDIA GPU and optionally Docker » : le GPU reste
+  requis ; un facultatif qui vise une version, un modèle ou une quantité ne compte pas : « Requires
+  Docker (Compose v2 recommended) », « - CUDA 11.8+ (12.1 recommended) », « (recommended: 24+) », ni
+  celui d'un autre nom dans une parenthèse ouverte : « Requires Docker (Compose plugin recommended) »,
+  « - NVIDIA GPU (RTX series recommended) » ; ni celui d'une variante : « Docker Desktop is
+  optional » ; « - Docker and Docker Compose (optional) » vaut pour les deux), CPU possible (« GPU ou
+  CPU », « Runs on GPU and CPU », « GPU, CPU », « CPU-only », « mode CPU disponible », « CPU inference
+  supported » ; pas « NVIDIA GPU and CPU with AVX2 », « Requires a powerful GPU and CPU », sauf si une négation
+  l'entoure : « aucun repli sur CPU », « ne fonctionne pas sur CPU », « without CPU fallback »), usage
+  restreint (« Docker est uniquement utilisé pour les tests », « only needed for development », « n'est
+  nécessaire que pour l'entraînement », « required only for training », « - Docker (for development
+  only) »), ou produit cité comme celui qu'on remplace (« alternative open source à n8n », « substitute
+  for Zapier », « solution de remplacement pour Zapier », « comme n8n », « like Zapier », « Zapier-like
+  workflows », « n8n-style » ; « comme » et « like » ne valent que pour un produit). « no-code » et
+  « sans code » ne nient rien, ni « not only » ; une négation qui vise une variante (« Docker Desktop
+  n'est pas nécessaire ») ou une autre mention ne vaut pas pour la technologie.
+- `la fiche se contredit` : les deux à la fois (par exemple deux fiches du même dépôt). Une phrase qui
+  porte les deux preuves n'est citée qu'une fois ; à état égal, la preuve de la fiche principale du
+  dépôt est citée avant celle d'une fiche plus ancienne.
+- `cité sans dire s'il est requis, non vérifié` : mention sans indice (« image Docker
+  disponible », « Brique pour : Automatisations n8n », adresse ou chemin : « git clone
+  https://github.com/…/zapier-app-starter.git »), ou une possibilité parmi d'autres (« Windows,
+  macOS ou Linux », « Windows, macOS, Linux », « Fonctionne sous Windows et Linux », « Docker /
+  Podman », « Docker, Podman, or any OCI runtime », « Python 3.10+ ou Docker », « un workflow n8n, Make
+  ou Zapier », « Docker ou équivalent » ; « 3.10 ou plus récent », « RTX 3090 or better », « RTX 3060 or
+  equivalent », « CUDA 11.8 ou 12.1 » et « NVIDIA or AMD GPU » ne sont pas des alternatives), un
+  bénéfice ou un usage annexe sans « only » (« - NVIDIA GPU (for faster inference) », « - Docker to
+  run the tests », « - Docker (for development and testing) » ; pas « for training and inference ») ;
+  un usage annexe restreint est « non requis » (« - Linux, for development only », « Le Dockerfile
+  du dépôt ne sert qu'au développement local », « (only for running the e2e tests against a local
+  Kubernetes cluster) »), de même qu'une alternative à une plateforme (« Alternative simple à
+  Kubernetes »),
+  une performance (« Le temps de traitement
+  dépend de votre GPU ») ; `la fiche n'en parle
+  pas, non vérifié` : information inconnue. Ni l'un ni l'autre ne déclasse : une capacité non
+  renseignée n'est jamais une incompatibilité. Exclure Docker cherche « Docker », « docker compose »
+  et « Dockerfile », pas tout conteneur (Podman) ; exclure le GPU cherche « GPU », « CUDA », « VRAM »,
+  « carte graphique », « carte NVIDIA », « NVIDIA RTX », « GeForce », pas la marque NVIDIA seule (une
+  clé d'API NVIDIA NIM ne prouve pas un GPU).
+- `requis selon le seul avis du LLM, à vérifier` (ou `non requis selon …`) : seule la Justification
+  se prononce ; c'est affiché, jamais compté comme une preuve.
+
+Pour un produit à remplacer, seuls les trois premiers états sont affichés. Les états sont aussi
+calculés pour une liste filtrée (« sans n8n » seul), sans changer son ordre alphabétique. En JSON :
+`exclusions` de chaque résultat (`cible`, `mot`, `source` : `exclusion` ou `reference`, `etat`,
+`texte`, `preuves` avec `champ`, `page_id`, `citation`, `sorte`) et de la requête.
+
 `Ne couvre pas` : notions du besoin absentes de ce dépôt, essentielles ou non ; une notion secondaire
 est suivie de `(notion secondaire)`, une notion de contexte de `[contexte]`. Les mots qui suivent
 « alternative », « équivalent »… (`[référence]`) n'y figurent jamais : un dépôt n'a pas à les
@@ -392,11 +595,14 @@ dans `D'après la fiche` n'est pas répété : `extrait cité ci-dessus`.
   avec `README_LLM_CHARS=0`, son README n'a pas été transmis au LLM) ;
 - champs « Non vérifié » de la fiche principale ;
 - négation dans une fiche : `La fiche précise (…) : « … »` (par exemple « ne nécessite pas de
-  GPU ») ;
+  GPU ») ; « no-code », « sans code », « No coding required », « sans programmation » et « non
+  officiel » n'en sont pas une (« No-code workflow automation platform » parle de workflows) ; une
+  même phrase n'est citée qu'une fois ;
 - contrainte matérielle : GPU, CUDA, VRAM, NVIDIA ou carte graphique mentionné dans une fiche du
   dépôt, avec la citation ; une phrase négative, facultative ou qui propose le CPU (« GPU
   facultatif », « GPU optional », « sans GPU ») n'en est pas une (même règle que l'indice GPU de
-  `gitnotate.py`) ;
+  `gitnotate.py`). Quand le besoin exclut le GPU et que la ligne `Exclusion` cite un champ factuel
+  (ni la seule Justification, ni le seul titre), elle la remplace ;
 - licence absente, non identifiée par Gitnotate (« Non vérifiée »), ou absente selon GitHub
   (« Non renseignée » d'une fiche v7.3+ : aucune licence déclarée, vérifiez les droits de
   réutilisation) ;
@@ -852,6 +1058,15 @@ toutefois confondu avec le rôle des dépôts dans les jugements. L'avis LLM, l'
 et la console cp1252 n'ont pas été mesurés. La validation sur la base réelle (partie H de
 [VALIDATION.md](VALIDATION.md)) reste nécessaire.
 
+**Lot 5** (identifiants techniques selon leur rôle, exclusions prouvées, recherche de code sémantique) : protocole,
+jeux indépendants N01-N40 et M01-M30, qualification en double aveugle et décisions dans
+[QUALIFICATION_LOT5.md](QUALIFICATION_LOT5.md). Sur les 82 requêtes synthétiques ci-dessus, la version du lot 5 ne
+change que Q02, N04, K18, K11, I18, K02 et K23 (nDCG@10 0,8755 → 0,8766, intrus@5 0,524 → 0,512). La lecture des
+exclusions est mesurée à part, sur un banc de champs et de requêtes étiquetés à l'aveugle
+(`tests/fixtures/redecouverte/qualification_lot5/banc/`) : sur la partie qui n'a servi à aucune correction, 81 % des
+champs sont lus dans le bon état, un « requis » sur cinq environ est faux (précision 0,78) et 83 % des rôles de
+requête sont justes ; une ligne `Exclusion` est donc à vérifier avant d'écarter un dépôt.
+
 ## 11. Limites
 
 - **Recherche lexicale** : en dehors du lexique, aucune proximité de sens. Un besoin formulé avec des
@@ -877,9 +1092,14 @@ et la console cp1252 n'ont pas été mesurés. La validation sur la base réelle
   dans Notion).
 - **Heuristiques de la phrase** : la négation porte sur les 4 mots de contenu qui suivent et s'arrête
   à une ponctuation ou à un mot de liaison, même placé juste après le déclencheur (« pas pour X »,
-  « not with X » : X reste cherché, défaut connu) ; elle retire le mot de la recherche sans déclasser les
-  dépôts qui le mentionnent (N04 « un OCR qui ne nécessite pas de GPU » : deepseek_ocr_app, qui exige
-  un GPU, est 3e, avec la limite `Contrainte matérielle mentionnée`). Le possessif (« mes », « my »…)
+  « not for X » : X reste cherché, défaut connu), sauf devant une technologie nommée (« pas avec
+  Docker ») ; elle retire le mot de la recherche sans déclasser les dépôts qui le mentionnent. Pour
+  une technologie nommée exclue, seul un dépôt dont la fiche l'écrit requis est déclassé (N04 « un
+  OCR qui ne nécessite pas de GPU » : deepseek_ocr_app, dont les Prérequis citent un GPU NVIDIA, passe
+  de la 3e à la 11e place depuis le lot 5) ; les preuves sont lues par règles (mêmes limites que
+  toute heuristique de phrase : « not only Docker » serait lu comme une exigence, une exigence
+  formulée hors de ces mots n'est pas vue, l'avis du LLM ne compte pas). « avec ou sans X » est
+  indifférent. Le possessif (« mes », « my »…)
   met les 3 mots suivants en contexte, sauf s'il est suivi de « propre » ou « own » ; il reste à tort
   en contexte quand il désigne l'objet cherché sans ce mot (« pour créer mon serveur MCP »). Quand le
   besoin n'a qu'une notion essentielle, les notions de contexte comptent dans la couverture et les
