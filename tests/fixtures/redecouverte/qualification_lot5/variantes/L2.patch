@@ -1,0 +1,144 @@
+--- a/redecouverte.py
++++ b/redecouverte.py
+@@ -95,9 +95,11 @@
+ PORTEE_NEGATION = 4
+ PORTEE_CONTEXTE = 3
+ PORTEE_REFERENCE = 3
++PORTEE_PREPOSITION = 2               # unités après « avec », « sur », « in »… : rôle contexte d'un produit nommé
+ # Mots de liaison (lexique.FIN_NEGATION) qui prolongent la référence au lieu de l'arrêter : « plutôt que
+ # Notion ou Excel » (une préposition comme « pour », « avec », « dans » l'arrête)
+ _SUITE_REFERENCE = frozenset({'et', 'ou', 'and', 'or'})
++_FIN_PREPOSITION = frozenset({'pour', 'for', 'afin', 'qui', 'mais', 'but'})     # « avec Docker pour n8n » : n8n cible
+ ALPHA = 0.7                          # présence d'un concept 70 %, force BM25 30 %
+ FACTEUR_VOISIN = 0.5
+ FACTEUR_JUSTIFICATION = 0.35
+@@ -2510,6 +2512,7 @@
+     lex = lexique_compile()
+     texte = normaliser(texte or '').strip()
+     par_cle: Dict[str, Concept] = {}
++    cibles: Dict[str, bool] = {}               # produit nommé (IDENTIFIANTS) cité au moins une fois comme cible
+     ignores: List[str] = []
+     nies: List[str] = []
+     vides = lexique.MOTS_VIDES | lexique.MOTS_VIDES_REQUETE
+@@ -2540,7 +2543,7 @@
+             else:
+                 unites.append(((gardees[i][0],), _forme_saisie(texte, debut, gardees[i][1]), None))
+                 i += 1
+-        negation = contexte = reference = 0
++        negation = contexte = reference = preposition = 0
+         for k, (seq, original, cid) in enumerate(unites):
+             if cid == _REFERENCE:                   # « plus simple que », « rather than »
+                 reference = PORTEE_REFERENCE
+@@ -2548,6 +2551,10 @@
+                 continue
+             mot = seq[0] if cid is None else ''
+             if mot:
++                if mot in lexique.PREPOSITIONS_CONTEXTE:
++                    preposition = PORTEE_PREPOSITION
++                elif mot in _FIN_PREPOSITION:
++                    preposition = 0
+                 if mot in lexique.NEGATIONS:
+                     negation = PORTEE_NEGATION
+                     continue
+@@ -2578,14 +2585,32 @@
+                 continue
+             role = 'reference' if reference else ('contexte' if contexte else 'normal')
+             reference, contexte = max(0, reference - 1), max(0, contexte - 1)
++            apres_preposition, preposition = preposition > 0, max(0, preposition - 1)
+             if cid is None:
+                 cid = lex.formes.get((mot,)) or lex.formes.get((singulier(mot),))
++            nature, categorie = lexique.IDENTIFIANTS.get(cid or '', (None, None))
++            # « des workflows exécutés avec n8n », « des vidéos avec des composants React » : le produit est une
++            # contrainte du besoin (comme « un OCR avec Docker »), pas son objet ; rôle inchangé
++            contrainte = nature == 'produit' and role == 'normal' and apres_preposition
++            if nature == 'produit' and role == 'reference' and categorie:
++                # « alternative à n8n » : la catégorie du produit, pas le produit (ni ce qui l'utilise)
++                concept = par_cle.get(categorie)
++                if concept is None:
++                    concept = par_cle[categorie] = Concept(categorie, categorie, [], [], lex.classes[categorie],
++                                                           role)
++                nom = f"{lexique.CONCEPTS[categorie][1][0]} (comme {original})"
++                if not concept.mots or nom not in concept.mots:
++                    concept.mots.append(nom)
++                continue
+             cle = cid or mot
+             concept = par_cle.get(cle)
+             if concept is None:
+                 concept = par_cle[cle] = Concept(cle, cid, [], [], lex.classes[cid] if cid else 'libre', role)
+             elif ROLES[role] > ROLES[concept.role]:
+                 concept.role = role
++            if nature == 'produit':                 # cité au moins une fois comme cible : sa classe ; sinon contrainte
++                cibles[cle] = cibles.get(cle, False) or not (contrainte or role == 'contexte')
++                concept.classe = lex.classes[cid] if cibles[cle] else 'contrainte'
+             surface = ' '.join(seq)
+             if surface not in concept.surface:
+                 concept.surface.append(surface)
+--- a/redecouverte_lexique.py
++++ b/redecouverte_lexique.py
+@@ -14,6 +14,8 @@
+   - Déclencheurs de la requête : NEGATIONS (et FIN_NEGATION, NEGATION_ANNULEE), POSSESSIFS (contexte,
+     sauf suivis de PROPRE : « mon propre serveur » désigne l'objet à créer), REFERENCES et
+     EXPRESSIONS_REFERENCE (« alternative à … », « plus simple que … ») ; ils sont testés avant les mots vides.
++  - IDENTIFIANTS (produits et plateformes nommés : rôle cible, contexte, référence ou exclusion) et
++    PREPOSITIONS_CONTEXTE.
+   - INVARIABLES (jamais mis au singulier) et FAUX_AMIS (formes interdites dans un concept, vérifiées
+     par les tests).
+   - Gabarits de cas d'usage des versions 7.2 et antérieures (annexe C) : textes de remplissage que ces
+@@ -147,8 +149,13 @@
+         'automatiquement', 'automatisé', 'automatisée', 'automatisés', 'automatise', 'automatisent',
+         'automate', 'automates', 'automation', 'automated', 'automating', 'tâches planifiées', 'cron'],
+         ['workflow']),
+-    'workflow': (E, ['workflow', 'workflows', 'flux de travail', 'flux de travaux', 'zapier', 'n8n',
+-        'orchestration'], ['automatisation', 'nocode']),
++    'workflow': (E, ['workflow', 'workflows', 'flux de travail', 'flux de travaux', 'orchestration'],
++        ['automatisation', 'nocode']),
++    # Identifiants de produits (lot 5, voir IDENTIFIANTS) : notions distinctes, sans voisin. Citer n8n ne dit pas
++    # qu'une fiche parle de workflows (« Brique pour : Automatisations n8n »), ni qu'un besoin de workflows
++    # demande n8n.
++    'n8n': (E, ['n8n'], []),
++    'zapier': (E, ['zapier'], []),
+     'nocode': (E, ['no-code', 'sans code', 'low-code', 'nocode', 'lowcode', 'glisser-déposer', 'drag and drop'],
+         ['workflow']),
+     'scraping': (E, ['scraping', 'scraper', 'scrapers', 'scrape', 'scrapes', 'scraped', 'crawler', 'crawlers',
+@@ -165,12 +172,14 @@
+     'appli_web': (E, ['application web', 'applications web', 'web app', 'web apps', 'webapp'],
+         ['frontend', 'site_web']),
+     'frontend': (E, ['frontend', 'front-end', 'front end', 'interface utilisateur', 'user interface', 'ui',
+-        'gui', 'interface graphique', 'react', 'nextjs', 'vuejs', 'svelte'], ['appli_web']),
++        'gui', 'interface graphique', 'nextjs', 'vuejs', 'svelte'], ['appli_web']),
++    'react': (E, ['react', 'reactjs'], ['frontend']),
+     'backend': (E, ['backend', 'back-end', 'back end'], ['api']),
+     'python': (C, ['python'], []),
+     'javascript': (C, ['javascript', 'nodejs', 'typescript'], []),
+     'docker': (C, ['docker', 'conteneur', 'conteneurs', 'container', 'containers', 'docker compose',
+-        'dockerfile', 'kubernetes'], ['auto_heberge']),
++        'dockerfile'], ['auto_heberge']),
++    'kubernetes': (C, ['kubernetes', 'k8s'], ['docker']),
+     'auto_heberge': (E, ['auto-hébergé', 'auto-hébergée', 'auto-hébergés', 'auto-hébergées',
+         'auto-hébergeable', 'auto-hébergeables', 'auto-hébergement', 'self-hosted', 'self-host',
+         'self-hostable', 'selfhosted', 'self hosting', 'on-premise', 'vps'], ['docker', 'local']),
+@@ -295,6 +304,24 @@
+                          "plutôt qu'", 'au lieu de', "au lieu d'", 'au lieu du', 'au lieu des', 'à la place de',
+                          "à la place d'", 'à la place du', 'à la place des', 'mieux que', "mieux qu'",
+                          'instead of', 'rather than', 'simpler than', 'easier than', 'better than')
++# Identifiants techniques nommés (lot 5) : concept -> (nature, catégorie). Leur rôle dépend de la requête :
++#   - cible (« une bibliothèque de workflows pour n8n ») : le concept lui-même ;
++#   - contrainte (après une préposition de PREPOSITIONS_CONTEXTE : « des workflows exécutés avec n8n », « des
++#     vidéos avec des composants React ») ou contexte (après un possessif : « in my React app ») : un produit
++#     devient une contrainte (classe C), jamais suffisante pour « forte » ;
++#   - référence (« une alternative no-code à n8n ») : un produit est remplacé par sa catégorie, rôle référence :
++#     on cherche ce qui le remplace, pas ce qui l'utilise ;
++#   - exclusion (« sans n8n », « pas avec Docker ») : jamais une notion positive (voir le moteur).
++# Nature « produit » : outil ou bibliothèque qu'on cherche ou qu'on remplace ; « plateforme » et « materiel » :
++# déjà des contraintes (classe C), seule l'exclusion change.
++IDENTIFIANTS = {
++    'n8n': ('produit', 'workflow'), 'zapier': ('produit', 'workflow'), 'fastapi': ('produit', 'api'),
++    'react': ('produit', 'frontend'), 'claude_code': ('produit', 'agent_code'),
++    'docker': ('plateforme', None), 'kubernetes': ('plateforme', None), 'windows': ('plateforme', None),
++    'linux': ('plateforme', None), 'macos': ('plateforme', None), 'gpu': ('materiel', None),
++}
++# Formes repliées ; « under » est exclu (hors mots vides, il deviendrait lui-même une notion)
++PREPOSITIONS_CONTEXTE = frozenset({'avec', 'with', 'sous', 'sur', 'on', 'dans', 'in', 'into', 'via', 'using', 'en'})
+ INVARIABLES = frozenset({'cours', 'news', 'series', 'corpus', 'status', 'process', 'access', 'analysis', 'windows',
+                          'pandas', 'kubernetes', 'ollama', 'ios', 'gis', 'aws', 'docs', 'sous', 'plus', 'tous',
+                          'mais'})

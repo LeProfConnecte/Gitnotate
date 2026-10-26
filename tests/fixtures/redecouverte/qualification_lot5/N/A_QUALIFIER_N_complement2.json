@@ -1,0 +1,26 @@
+{
+ "requetes": [
+  {
+   "id": "N08",
+   "requete": "I need incoming order emails turned into JSON records, without depending on n8n or Zapier.",
+   "candidats": [
+    "docling-project/docling",
+    "synth-pdfcraft/pdfcraft"
+   ]
+  },
+  {
+   "id": "N11",
+   "requete": "Une interface web pour gérer les conteneurs Docker de mon VPS : redémarrer, consulter les logs, mettre à jour mes stacks compose.",
+   "candidats": [
+    "synth-openflow/flowpilot"
+   ]
+  },
+  {
+   "id": "N30",
+   "requete": "A web UI to manage the containers on a single VPS, no Kubernetes, just plain Docker.",
+   "candidats": [
+    "synth-openflow/flowpilot"
+   ]
+  }
+ ]
+}

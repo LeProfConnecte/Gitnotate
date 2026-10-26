@@ -1,0 +1,3808 @@
+{
+ "fiches": [
+  {
+   "id": "F1-002",
+   "colonne": "prerequis",
+   "texte": "- Linux (Ubuntu 22.04 recommended)\n- NVIDIA GPU with 24 GB VRAM (RTX 3090/4090 or A5000)\n- CUDA 11.8 and cuDNN 8.6\n- 50 GB free disk space for model weights\n- Hugging Face access token for gated models",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-003",
+   "colonne": "prerequis",
+   "texte": "- NVIDIA GPU (RTX 20xx or newer), 6 GB VRAM minimum\n- NVIDIA driver 535+\n- Windows 10/11",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-006",
+   "colonne": "prerequis",
+   "texte": "- GeForce RTX 3060 12GB or better\n- 32 GB system RAM\n- Windows 11 or Ubuntu 22.04\n- ~30 GB disk for checkpoints",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-009",
+   "colonne": "prerequis",
+   "texte": "- Docker with the NVIDIA Container Toolkit\n- NVIDIA GPU with 10 GB VRAM\n- docker compose v2",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-010",
+   "colonne": "prerequis",
+   "texte": "- Linux x86_64 (macOS is not supported)\n- NVIDIA graphics card with CUDA 12 drivers\n- A Telegram bot token",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-012",
+   "colonne": "prerequis",
+   "texte": "- Python 3.8+\n- Tesseract 5.x installed and on PATH\n- GPU (optional)",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F1-013",
+   "colonne": "prerequis",
+   "texte": "- 8 GB RAM (16 GB recommended)\n- A GPU is recommended but not required\n- Discord bot token",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F1-014",
+   "colonne": "prerequis",
+   "texte": "- Python 3.10+\n- ffmpeg\n- CUDA is optional: the model falls back to CPU automatically if no GPU is detected",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F1-015",
+   "colonne": "prerequis",
+   "texte": "- Node.js 20 LTS\n- Works on any laptop, no graphics card needed",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F1-024",
+   "colonne": "prerequis",
+   "texte": "- Python 3.11+\n- 7B models: 8 GB RAM, runs on CPU\n- 70B models: 2x 24 GB VRAM GPUs",
+   "identifiant": "gpu",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-025",
+   "colonne": "prerequis",
+   "texte": "- Python 3.9+\n- NVIDIA GPU / CUDA setup: see docs/gpu.md",
+   "identifiant": "gpu",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-027",
+   "colonne": "prerequis",
+   "texte": "- Tested on NVIDIA RTX 4090 and RTX 3080 (Ubuntu 22.04)\n- Python 3.10",
+   "identifiant": "gpu",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-032",
+   "colonne": "prerequis",
+   "texte": "- A running Docker daemon (each job is executed in a sandbox container)\n- Go 1.22+ to build from source",
+   "identifiant": "docker",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-034",
+   "colonne": "prerequis",
+   "texte": "- Docker is required; bare-metal installs are not supported\n- 2 vCPU / 4 GB RAM",
+   "identifiant": "docker",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-036",
+   "colonne": "prerequis",
+   "texte": "- Docker Desktop 4.25+ (macOS/Windows) or Docker Engine 24+ (Linux)\n- Git",
+   "identifiant": "docker",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-040",
+   "colonne": "prerequis",
+   "texte": "- Node.js 20+\n- pnpm 8\n- Docker (only needed to run the integration tests)",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F1-041",
+   "colonne": "prerequis",
+   "texte": "- No Docker required: it's a single static binary",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F1-043",
+   "colonne": "prerequis",
+   "texte": "- Rust 1.75+\n- Optional: Docker, for the dev container (.devcontainer/)",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F1-046",
+   "colonne": "prerequis",
+   "texte": "- Docker or Podman\n- 2 GB RAM",
+   "identifiant": "docker",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-054",
+   "colonne": "prerequis",
+   "texte": "- A Kubernetes cluster (EKS, GKE, AKS or k3s)\n- cert-manager installed\n- An ingress controller (ingress-nginx recommended)",
+   "identifiant": "kubernetes",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-056",
+   "colonne": "prerequis",
+   "texte": "- Access to a Kubernetes cluster with at least 3 worker nodes\n- Prometheus Operator (for metrics)\n- A default StorageClass",
+   "identifiant": "kubernetes",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-060",
+   "colonne": "prerequis",
+   "texte": "- One of:\n  - Kubernetes 1.25+ (Helm chart in charts/)\n  - Docker Compose (single host)\n  - systemd service (bare metal)",
+   "identifiant": "kubernetes",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-061",
+   "colonne": "prerequis",
+   "texte": "- Python 3.11\n- Horizontal autoscaling on Kubernetes requires KEDA 2.12+",
+   "identifiant": "kubernetes",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-062",
+   "colonne": "prerequis",
+   "texte": "- PostgreSQL 14+\n- Example Kubernetes manifests are in `deploy/k8s/`",
+   "identifiant": "kubernetes",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-067",
+   "colonne": "prerequis",
+   "texte": "- Runs natively on Windows and macOS; no Linux VM or WSL needed",
+   "identifiant": "linux",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F1-068",
+   "colonne": "prerequis",
+   "texte": "- Python 3.9+\n- Any OS: Linux is not required, the CLI is pure Python",
+   "identifiant": "linux",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F1-070",
+   "colonne": "prerequis",
+   "texte": "- Python 3.9+\n- Works on Linux, macOS and Windows",
+   "identifiant": "linux",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-071",
+   "colonne": "prerequis",
+   "texte": "- macOS 13+ or Linux\n- Homebrew or your distro's package manager",
+   "identifiant": "linux",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-074",
+   "colonne": "prerequis",
+   "texte": "- Python 3.10+\n- On Linux, also install libgl1 and libglib2.0-0",
+   "identifiant": "linux",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-075",
+   "colonne": "prerequis",
+   "texte": "- Windows 10 (build 19041+) or Windows 11\n- .NET 8 Desktop Runtime",
+   "identifiant": "windows",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-076",
+   "colonne": "prerequis",
+   "texte": "- Windows 11 (the tool relies on the Windows.Media.Ocr API)\n- PowerShell 7.4",
+   "identifiant": "windows",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-077",
+   "colonne": "prerequis",
+   "texte": "- Windows only (uses DirectML and WinRT APIs)\n- Any DirectX 12 GPU (AMD, Intel or NVIDIA)",
+   "identifiant": "windows",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-078",
+   "colonne": "prerequis",
+   "texte": "- Windows 10/11 64-bit\n- Microsoft Visual C++ Redistributable 2022\n- AutoHotkey v2",
+   "identifiant": "windows",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-082",
+   "colonne": "prerequis",
+   "texte": "- Linux or macOS\n- Windows is supported via WSL2 only",
+   "identifiant": "windows",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-083",
+   "colonne": "prerequis",
+   "texte": "- Windows, macOS or Linux\n- Python 3.10+\n- Chrome or Chromium",
+   "identifiant": "windows",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-085",
+   "colonne": "prerequis",
+   "texte": "- macOS 13 Ventura or later\n- Apple Silicon (M1/M2/M3)\n- Xcode Command Line Tools",
+   "identifiant": "macos",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-086",
+   "colonne": "prerequis",
+   "texte": "- macOS 14+ (uses the Vision framework for OCR)\n- Swift 5.9",
+   "identifiant": "macos",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-087",
+   "colonne": "prerequis",
+   "texte": "- A Mac running macOS 12+ (the bot uses AppleScript to drive Messages.app)",
+   "identifiant": "macos",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-090",
+   "colonne": "prerequis",
+   "texte": "- Python 3.10+\n- Optional: Xcode on macOS, only to build the iOS companion app",
+   "identifiant": "macos",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F1-094",
+   "colonne": "prerequis",
+   "texte": "- Python 3.11\n- macOS users: run `brew install portaudio` before `pip install`",
+   "identifiant": "macos",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F1-097",
+   "colonne": "prerequis",
+   "texte": "- Claude Code CLI installed and logged in\n- Node.js 18+\n- jq",
+   "identifiant": "claude_code",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F1-098",
+   "colonne": "prerequis",
+   "texte": "- Python 3.10\n- A Zapier account is not required; webhooks can be triggered from any HTTP client",
+   "identifiant": "zapier",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-001",
+   "colonne": "description",
+   "texte": "Moteur de transcription audio basé sur Whisper large-v3 et CTranslate2, pensé pour traiter de longues heures d'enregistrements en local. Nécessite un GPU NVIDIA compatible CUDA 12 avec au moins 8 Go de VRAM.",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-003",
+   "colonne": "description",
+   "texte": "Application de recherche sémantique locale sur vos documents (PDF, Markdown, DOCX), avec embeddings et base vectorielle intégrée. L'accélération GPU nécessite CUDA ou ROCm.",
+   "identifiant": "gpu",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-005",
+   "colonne": "description",
+   "texte": "Interface web auto-hébergée pour entraîner des LoRA sur Flux et SDXL à partir de vos propres images. Prérequis : carte graphique NVIDIA avec 24 Go de VRAM minimum (RTX 3090 ou 4090).",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-008",
+   "colonne": "description",
+   "texte": "Clone vocal en temps réel basé sur RVC, avec interface graphique et sortie vers un micro virtuel. Ne fonctionne pas sans GPU : l'inférence sur processeur est trop lente pour la conversion en direct.",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-009",
+   "colonne": "description",
+   "texte": "Assistant de prise de notes 100 % local : transcription, résumé et recherche dans vos réunions. Pas de cloud, pas de GPU requis, un simple ordinateur portable suffit.",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-010",
+   "colonne": "description",
+   "texte": "Upscaler d'images et de vidéos basé sur Real-ESRGAN, utilisable en ligne de commande ou via une interface graphique. Prend en charge les GPU NVIDIA, AMD et Intel via Vulkan.",
+   "identifiant": "gpu",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-012",
+   "colonne": "description",
+   "texte": "Générateur texte-vers-vidéo open source basé sur un modèle de diffusion de 14 milliards de paramètres. Exige une carte graphique avec 40 Go de VRAM, ou plusieurs GPU en parallèle.",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-014",
+   "colonne": "description",
+   "texte": "Banc d'essai pour LLM locaux qui mesure les tokens par seconde, la latence et la consommation mémoire de différents modèles quantifiés, sur CPU comme sur GPU.",
+   "identifiant": "gpu",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-015",
+   "colonne": "description",
+   "texte": "Distribution de ComfyUI préconfigurée pour la génération d'images avec Flux, avec nœuds et modèles prêts à l'emploi. Prérequis : GPU NVIDIA RTX série 30 ou plus récent et 12 Go de VRAM.",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-017",
+   "colonne": "description",
+   "texte": "Enregistreur vidéo réseau auto-hébergé avec détection d'objets par IA et enregistrement continu de vos caméras. Compatible avec les accélérateurs Coral, OpenVINO et les GPU NVIDIA.",
+   "identifiant": "gpu",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-019",
+   "colonne": "description",
+   "texte": "Transcription de podcasts par lots avec whisper.cpp, sans Python ni dépendances lourdes. Tourne très bien sans GPU, y compris sur les Mac Apple Silicon et les vieux PC.",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-020",
+   "colonne": "description",
+   "texte": "Démonstrateur de LLM multimodal (vision et texte) à exécuter en local avec vLLM, avec une petite interface Gradio. Un GPU d'au moins 16 Go de VRAM est indispensable.",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-021",
+   "colonne": "description",
+   "texte": "Recherche d'images par similarité (CLIP) dans votre photothèque, avec indexation incrémentale. Conçu pour les NAS et les mini-PC : pas besoin de GPU.",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-022",
+   "colonne": "description",
+   "texte": "Studio de doublage automatique qui traduit, synthétise et resynchronise la voix sur vos vidéos. Le mode hors ligne nécessite un GPU ; sinon, des API cloud prennent le relais.",
+   "identifiant": "gpu",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-023",
+   "colonne": "description",
+   "texte": "Gestionnaire de rendu Blender distribué pour fermes de rendu maison, basé sur Cycles et OptiX. Chaque machine de rendu doit embarquer une carte graphique NVIDIA RTX.",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-024",
+   "colonne": "description",
+   "texte": "Embeddings de texte rapides avec ONNX Runtime pour la recherche sémantique locale — optimisé CPU, sans GPU, sans clé d'API ni service externe.",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-026",
+   "colonne": "description",
+   "texte": "Agent de génération de code local qui s'appuie sur Qwen2.5-Coder et un index de votre dépôt. La variante 32B demande un GPU haut de gamme, la variante 7B se contente d'un portable.",
+   "identifiant": "gpu",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-028",
+   "colonne": "description",
+   "texte": "Détection de visages et floutage automatique dans les vidéos, pour anonymiser des tournages avant publication. GPU : optionnel (CUDA détecté automatiquement, repli sur CPU).",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-031",
+   "colonne": "description",
+   "texte": "Moteur de recherche sémantique pour vos notes Obsidian. Contrairement à la plupart des solutions RAG, il ne demande ni GPU ni base vectorielle externe.",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-033",
+   "colonne": "description",
+   "texte": "Lecteur RSS minimaliste écrit en Go et distribué sous forme d'un binaire unique. Léger : aucune dépendance à Docker, à une base de données externe ou à Node.js.",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-035",
+   "colonne": "description",
+   "texte": "Assistant RAG 100 % local pour interroger vos PDF, sans Docker : un simple pip install suffit, Ollama se charge des modèles.",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-036",
+   "colonne": "description",
+   "texte": "Stack d'observabilité préconfigurée (Prometheus, Grafana, Loki) pour superviser un homelab en quelques minutes. Prérequis : Docker 24+ et le plugin docker compose v2.",
+   "identifiant": "docker",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-038",
+   "colonne": "description",
+   "texte": "Moteur de recherche plein texte écrit en Rust, avec tolérance aux fautes de frappe et filtres à facettes. Une image Docker officielle est publiée sur Docker Hub à chaque version.",
+   "identifiant": "docker",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-039",
+   "colonne": "description",
+   "texte": "Gestionnaire de sauvegardes chiffrées avec interface web, planification et règles de rétention. Fonctionne dans un conteneur Docker ou Podman.",
+   "identifiant": "docker",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-041",
+   "colonne": "description",
+   "texte": "Serveur de transcription Whisper empaqueté en un exécutable autonome. Pas de Docker, pas de Python à installer : on télécharge, on lance, c'est prêt.",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-044",
+   "colonne": "description",
+   "texte": "Wiki personnel auto-hébergé qui stocke tout en fichiers Markdown, sans base de données. Docker est optionnel : l'application s'installe aussi avec un simple binaire.",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-047",
+   "colonne": "description",
+   "texte": "Alternative légère à Portainer pour gérer vos services systemd depuis une interface web. Contrairement à Portainer, l'outil ne nécessite pas Docker.",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-048",
+   "colonne": "description",
+   "texte": "Proxy inverse avec certificats HTTPS automatiques et découverte de services. Il détecte les conteneurs Docker grâce à leurs labels, mais accepte aussi une configuration statique en fichier.",
+   "identifiant": "docker",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-049",
+   "colonne": "description",
+   "texte": "API de géocodage hors ligne basée sur les données OpenStreetMap. Le docker compose du dépôt sert uniquement à l'environnement de développement ; en production, un paquet Debian est fourni.",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-050",
+   "colonne": "description",
+   "texte": "Collection de Dockerfiles multi-étapes optimisés pour servir des modèles Hugging Face derrière une API REST. Le projet est conçu exclusivement pour Docker.",
+   "identifiant": "docker",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-052",
+   "colonne": "description",
+   "texte": "Moteur de workflows en Python qui s'exécute dans un seul processus, idéal pour les petites automatisations. Pas besoin de Docker, de Redis ni de file de messages.",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-054",
+   "colonne": "description",
+   "texte": "Interface d'administration pour bases PostgreSQL, accessible depuis le navigateur, avec éditeur SQL et visualisation des schémas. Testé principalement avec Docker.",
+   "identifiant": "docker",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-055",
+   "colonne": "description",
+   "texte": "Serveur de fichiers WebDAV en un seul binaire, multiplateforme. Fonctionne sans Docker ni conteneur, et sans privilèges administrateur.",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-058",
+   "colonne": "description",
+   "texte": "Utilitaire de capture d'écran avec OCR intégré qui copie le texte de n'importe quelle zone de l'écran. Application native réservée à Windows 10 et 11.",
+   "identifiant": "windows",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-059",
+   "colonne": "description",
+   "texte": "Lanceur d'applications avec recherche floue, calculatrice et système de plugins. Disponible pour Windows, macOS et Linux.",
+   "identifiant": "windows",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-060",
+   "colonne": "description",
+   "texte": "Outil de flashage de firmware pour claviers mécaniques QMK, utilisable directement depuis le navigateur. Plus besoin de Windows ni d'installer un pilote propriétaire.",
+   "identifiant": "windows",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-064",
+   "colonne": "description",
+   "texte": "Gestionnaire de presse-papiers avec historique, recherche et épinglage. L'intégration au menu contextuel n'est disponible que sous Windows.",
+   "identifiant": "windows",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-068",
+   "colonne": "description",
+   "texte": "Suite d'outils Unix (grep, sed, awk) réécrite en Go pour fonctionner nativement sous Windows. Pas besoin de Linux ni de WSL.",
+   "identifiant": "linux",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-069",
+   "colonne": "description",
+   "texte": "Démon de gestion de la luminosité et des profils d'alimentation pour ordinateurs portables. Conçu pour Linux : il repose sur systemd et D-Bus.",
+   "identifiant": "linux",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-074",
+   "colonne": "description",
+   "texte": "Utilitaire de barre de menus qui affiche l'usage du processeur, de la mémoire et la température. Application native macOS, compatible Apple Silicon et Intel, à partir de macOS 13.",
+   "identifiant": "macos",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-078",
+   "colonne": "description",
+   "texte": "Gestionnaire de mots de passe en ligne de commande, compatible avec les trousseaux du système. Le déverrouillage par Touch ID n'existe que sur macOS.",
+   "identifiant": "macos",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-081",
+   "colonne": "description",
+   "texte": "Outil d'OCR en ligne de commande qui utilise Vision Framework sur macOS et Tesseract sur les autres systèmes.",
+   "identifiant": "macos",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-084",
+   "colonne": "description",
+   "texte": "Moteur de workflows pour pipelines de données et d'apprentissage automatique. Se déploie sur une seule machine, sur Nomad ou sur Kubernetes.",
+   "identifiant": "kubernetes",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-085",
+   "colonne": "description",
+   "texte": "Tableau de bord en terminal pour surveiller les pods, les journaux et les événements d'un cluster Kubernetes, avec navigation au clavier.",
+   "identifiant": "kubernetes",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-086",
+   "colonne": "description",
+   "texte": "Planificateur de tâches distribué écrit en Go, avec interface web et reprise sur erreur. Pas besoin de Kubernetes : un binaire et une base SQLite suffisent.",
+   "identifiant": "kubernetes",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-088",
+   "colonne": "description",
+   "texte": "Ensemble de manifestes et de charts Helm pour héberger une plateforme RAG complète. Prérequis : un cluster Kubernetes avec un contrôleur Ingress et du stockage persistant.",
+   "identifiant": "kubernetes",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-090",
+   "colonne": "description",
+   "texte": "Outil d'analytics web respectueux de la vie privée, sans cookies. La mise à l'échelle horizontale n'est possible que sur Kubernetes.",
+   "identifiant": "kubernetes",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-091",
+   "colonne": "description",
+   "texte": "Outil de déploiement de conteneurs sur des VPS via SSH, sans orchestrateur. Kubernetes n'est pas nécessaire, même pour plusieurs serveurs.",
+   "identifiant": "kubernetes",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-092",
+   "colonne": "description",
+   "texte": "Nœud communautaire n8n pour interroger une base Notion et créer des pages à partir de modèles.",
+   "identifiant": "n8n",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-094",
+   "colonne": "description",
+   "texte": "API de scraping qui renvoie le contenu des pages web en Markdown propre, prêt pour les LLM. S'intègre aussi avec n8n, Make et LangChain.",
+   "identifiant": "n8n",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-096",
+   "colonne": "description",
+   "texte": "Bibliothèque de composants React pour construire des interfaces de chat IA : bulles de messages, réponses en streaming et pièces jointes.",
+   "identifiant": "react",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-097",
+   "colonne": "description",
+   "texte": "Tableau de bord de supervision écrit en HTML et htmx, sans React ni étape de build.",
+   "identifiant": "react",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-098",
+   "colonne": "description",
+   "texte": "SDK JavaScript pour intégrer un widget de recherche sémantique à votre site. Des adaptateurs sont proposés pour React, Vue et Svelte.",
+   "identifiant": "react",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-100",
+   "colonne": "description",
+   "texte": "Application de gestion de tâches auto-hébergée avec interface web ; une version mobile en React Native est en cours de développement.",
+   "identifiant": "react",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-101",
+   "colonne": "cas_usage",
+   "texte": "• Transcrire des réunions sur un ordinateur portable sans GPU\n• Générer des sous-titres SRT pour des vidéos\n• Archiver des notes vocales consultables",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-102",
+   "colonne": "cas_usage",
+   "texte": "• Étendre une instance n8n avec un nœud dédié à l'OCR de factures\n• Envoyer le texte extrait vers Google Sheets dans le même workflow\n• Déclencher le traitement à la réception d'un e-mail",
+   "identifiant": "n8n",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-104",
+   "colonne": "cas_usage",
+   "texte": "• Héberger un wiki familial sur un Raspberry Pi, sans Docker\n• Prendre des notes en Markdown synchronisées entre appareils\n• Publier une documentation interne simple",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-106",
+   "colonne": "cas_usage",
+   "texte": "• Générer des visuels produits en lot\n• Accélérer le rendu sur GPU pour les grandes séries\n• Retoucher des photos par inpainting",
+   "identifiant": "gpu",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F2-107",
+   "colonne": "cas_usage",
+   "texte": "• Intégrer un chat IA dans une application React existante\n• Prototyper une interface conversationnelle avec les composants React fournis\n• Afficher les réponses du modèle en streaming",
+   "identifiant": "react",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F2-110",
+   "colonne": "cas_usage",
+   "texte": "• Déployer des applications sur un seul VPS, sans Kubernetes\n• Gérer automatiquement les certificats HTTPS\n• Mettre en production sans interruption de service",
+   "identifiant": "kubernetes",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F2-115",
+   "colonne": "cas_usage",
+   "texte": "• Déployer le moteur de recherche sur Kubernetes ou sur une simple VM\n• Indexer des millions de documents\n• Fournir une recherche hybride à vos applications",
+   "identifiant": "kubernetes",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-002",
+   "colonne": "installation",
+   "texte": "In your n8n instance go to Settings > Community Nodes > Install and enter `n8n-nodes-grist`. Requires n8n 1.0+ (self-hosted).",
+   "identifiant": "n8n",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-004",
+   "colonne": "description",
+   "texte": "A curated collection of 300+ n8n workflow templates (JSON) for CRM sync, lead enrichment and AI agents. Every file can be imported straight into the n8n editor.",
+   "identifiant": "n8n",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-008",
+   "colonne": "cas_usage",
+   "texte": "Migrer une équipe de Zapier vers une instance n8n auto-hébergée en convertissant les anciens Zaps en workflows n8n importables.",
+   "identifiant": "n8n",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-009",
+   "colonne": "description",
+   "texte": "Alternative open source et auto-hébergeable à n8n, sous licence MIT, avec un éditeur visuel en Svelte et un historique d'exécutions stocké dans SQLite.",
+   "identifiant": "n8n",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-014",
+   "colonne": "notes",
+   "texte": "n8n is only used in the dev docker-compose to test the webhook receiver, the library itself doesn't need it.",
+   "identifiant": "n8n",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-015",
+   "colonne": "installation",
+   "texte": "`npm install && npm start`. L'intégration n8n est facultative : le serveur fonctionne seul.",
+   "identifiant": "n8n",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-016",
+   "colonne": "description",
+   "texte": "MCP server for managing Stripe invoices from an AI assistant. Also ships an n8n node so invoices can be created from existing workflows.",
+   "identifiant": "n8n",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-017",
+   "colonne": "cas_usage",
+   "texte": "Déclencher un workflow n8n, Make ou Zapier à chaque nouvelle réponse de formulaire, grâce à un webhook générique.",
+   "identifiant": "n8n",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-018",
+   "colonne": "description",
+   "texte": "Orchestrateur de tâches en Rust inspiré de n8n, avec une interface à base de nœuds et des déclencheurs cron ou webhook.",
+   "identifiant": "n8n",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-020",
+   "colonne": "installation",
+   "texte": "Two ways to run it: import `workflows/sync.json` into n8n for the scheduled version, or run `python sync.py` from cron.",
+   "identifiant": "n8n",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-022",
+   "colonne": "notes",
+   "texte": "The docs mention n8n a few times, not sure if it's required or just the author's setup.",
+   "identifiant": "n8n",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-023",
+   "colonne": "description",
+   "texte": "Application Zapier privée, développée avec Zapier Platform CLI, qui ajoute des déclencheurs et des actions pour l'API Lemlist.",
+   "identifiant": "zapier",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-026",
+   "colonne": "notes",
+   "texte": "Ne marche qu'avec un compte Zapier payant, les étapes webhook sont réservées aux plans Pro.",
+   "identifiant": "zapier",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-027",
+   "colonne": "description",
+   "texte": "Collection of Zapier Code steps (JavaScript and Python) for parsing emails, formatting dates and calling APIs inside your Zaps.",
+   "identifiant": "zapier",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-028",
+   "colonne": "cas_usage",
+   "texte": "Surveiller l'historique d'exécution de ses Zaps et relancer les étapes en échec depuis une extension Chrome ; il faut être connecté à son compte Zapier.",
+   "identifiant": "zapier",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-032",
+   "colonne": "installation",
+   "texte": "pip install hookflow\nhookflow init\nYou don't need Zapier or any other SaaS account; the scheduler runs locally.",
+   "identifiant": "zapier",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-034",
+   "colonne": "notes",
+   "texte": "Zapier n'est utilisé que dans les tests d'intégration (webhook simulé), pas au runtime.",
+   "identifiant": "zapier",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-035",
+   "colonne": "description",
+   "texte": "Outil de migration qui convertit des Zaps exportés depuis Zapier en workflows n8n importables.",
+   "identifiant": "zapier",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-038",
+   "colonne": "notes",
+   "texte": "Il y a aussi un exemple d'intégration Zapier dans le wiki, pas testé.",
+   "identifiant": "zapier",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-041",
+   "colonne": "description",
+   "texte": "Bibliothèque de composants React accessibles (boutons, modales, tableaux de données) construite sur Radix UI et stylée avec Tailwind.",
+   "identifiant": "react",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-043",
+   "colonne": "cas_usage",
+   "texte": "Ajouter un éditeur de texte riche à une application React existante, avec mentions @ et pièces jointes.",
+   "identifiant": "react",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-045",
+   "colonne": "notes",
+   "texte": "Uniquement pour React, pas de version Vue ni Svelte.",
+   "identifiant": "react",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-047",
+   "colonne": "installation",
+   "texte": "Copier `src/widgets/` dans votre projet et importer `<ChatWidget />` ; le widget est un composant React et suppose React 17 minimum.",
+   "identifiant": "react",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-049",
+   "colonne": "notes",
+   "texte": "No React needed, it's plain Web Components so it drops into any page.",
+   "identifiant": "react",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-050",
+   "colonne": "cas_usage",
+   "texte": "Construire une interface interactive rendue côté serveur avec htmx, comme alternative à React pour les petites applications internes.",
+   "identifiant": "react",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-051",
+   "colonne": "installation",
+   "texte": "Le paquet `@acme/charts-react` est facultatif : le cœur fonctionne en vanilla JS, sans React.",
+   "identifiant": "react",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-054",
+   "colonne": "description",
+   "texte": "Kit d'interface mobile pour React Native avec thèmes clair et sombre, navigation par onglets et formulaires validés.",
+   "identifiant": "react",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-058",
+   "colonne": "description",
+   "texte": "Serveur de feature flags écrit en Go, avec des SDK pour Python, Node.js et React.",
+   "identifiant": "react",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-059",
+   "colonne": "cas_usage",
+   "texte": "Mobile apps built with React Native that need offline sync with a local SQLite store.",
+   "identifiant": "react",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-060",
+   "colonne": "notes",
+   "texte": "La démo dans /demo est en React, mais je ne sais pas si c'est obligatoire pour utiliser la lib.",
+   "identifiant": "react",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-062",
+   "colonne": "installation",
+   "texte": "pip install fastapi-cache-redis\nThis is a FastAPI extension: add `CacheMiddleware` to your FastAPI app and point it to Redis.",
+   "identifiant": "fastapi",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-064",
+   "colonne": "notes",
+   "texte": "Backend is FastAPI all the way down, can't run it without FastAPI + uvicorn.",
+   "identifiant": "fastapi",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-068",
+   "colonne": "description",
+   "texte": "Micro-framework HTTP en Python présenté comme une alternative plus légère à FastAPI, sans dépendance à Pydantic.",
+   "identifiant": "fastapi",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-071",
+   "colonne": "cas_usage",
+   "texte": "Valider des données avec Pydantic dans des scripts batch, sans FastAPI ni serveur web.",
+   "identifiant": "fastapi",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-075",
+   "colonne": "cas_usage",
+   "texte": "Exposer le moteur de recherche via Flask ou FastAPI, selon ce que l'équipe utilise déjà.",
+   "identifiant": "fastapi",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-076",
+   "colonne": "installation",
+   "texte": "pip install ragkit[server]   # pulls in FastAPI for the HTTP API mode",
+   "identifiant": "fastapi",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-077",
+   "colonne": "notes",
+   "texte": "Ressemble beaucoup à FastAPI dans la syntaxe des décorateurs, à creuser.",
+   "identifiant": "fastapi",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-079",
+   "colonne": "cas_usage",
+   "texte": "Construire des applications en ligne de commande avec une injection de dépendances inspirée de FastAPI.",
+   "identifiant": "fastapi",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-080",
+   "colonne": "installation",
+   "texte": "Quickstart: `pip install acme-ocr`. To try the REST demo: `pip install fastapi uvicorn && uvicorn demo.api:app` (the FastAPI demo lives in demo/).",
+   "identifiant": "fastapi",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-083",
+   "colonne": "cas_usage",
+   "texte": "Give Claude Code persistent project memory across sessions, using hooks that summarise each session into a markdown file.",
+   "identifiant": "claude_code",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-084",
+   "colonne": "notes",
+   "texte": "Plugin pour Claude Code uniquement, inutile sans.",
+   "identifiant": "claude_code",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F3-087",
+   "colonne": "description",
+   "texte": "Alternative open source à Claude Code : agent de programmation en terminal compatible avec n'importe quel modèle exposé via une API compatible OpenAI.",
+   "identifiant": "claude_code",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-089",
+   "colonne": "cas_usage",
+   "texte": "Rédiger des prompts système réutilisables pour n'importe quel assistant ; Claude Code n'est pas nécessaire, un éditeur de texte suffit.",
+   "identifiant": "claude_code",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-091",
+   "colonne": "description",
+   "texte": "CLI agent for refactoring large codebases, positioned as a self-hosted alternative to Claude Code and Cursor.",
+   "identifiant": "claude_code",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-092",
+   "colonne": "notes",
+   "texte": "The CLAUDE.md in the repo is just the author's Claude Code dev setup, not needed to use the tool.",
+   "identifiant": "claude_code",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F3-094",
+   "colonne": "description",
+   "texte": "Serveur MCP pour interroger Jira, utilisable depuis Claude Code, Cursor ou Claude Desktop.",
+   "identifiant": "claude_code",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-095",
+   "colonne": "installation",
+   "texte": "Claude Code : `claude mcp add jira -- npx jira-mcp`. Cursor : ajouter l'entrée dans `~/.cursor/mcp.json`.",
+   "identifiant": "claude_code",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-098",
+   "colonne": "description",
+   "texte": "Bibliothèque de prompts pour agents de code, avec des variantes au format Claude Code, Codex et Gemini CLI.",
+   "identifiant": "claude_code",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F3-100",
+   "colonne": "cas_usage",
+   "texte": "Lancer des refactorings en arrière-plan ; le mode « agent autonome » s'appuie sur Claude Code, le mode manuel non.",
+   "identifiant": "claude_code",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-004",
+   "colonne": "notes",
+   "texte": "Attention : depuis la v0.9, le mode sans GPU n'est plus pris en charge. Il faut une carte NVIDIA avec au moins 8 Go de VRAM, sinon le serveur refuse de démarrer.",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-008",
+   "colonne": "notes",
+   "texte": "Offline mode needs a GPU with 6 GB+ VRAM; the cloud mode runs on anything.",
+   "identifiant": "gpu",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-009",
+   "colonne": "prerequis",
+   "texte": "- Linux 64 bits\n- Carte graphique NVIDIA (GeForce RTX série 30 ou plus récente)\n- Pilotes NVIDIA 535 ou plus",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-010",
+   "colonne": "exemple",
+   "texte": "python generate.py --prompt \"a red fox in the snow\" --device cpu --steps 20\n# works without CUDA, just a lot slower",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-011",
+   "colonne": "description",
+   "texte": "Outil de suppression d'arrière-plan pour photos de produits. Depuis le passage au modèle quantifié, la carte graphique n'est plus nécessaire : tout tourne sur CPU en quelques secondes par image.",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-012",
+   "colonne": "installation",
+   "texte": "Install the NVIDIA Container Toolkit and check that your GPU is visible with `nvidia-smi`. The container exits on startup if no CUDA device is found.",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-013",
+   "colonne": "prerequis",
+   "texte": "- Windows 10/11, macOS 12+ or Linux\n- 8 GB RAM (16 GB recommended)\n- Optional: Apple Silicon or a CUDA GPU for faster inference",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-014",
+   "colonne": "notes",
+   "texte": "Testé sur une NVIDIA RTX 4090 et sur un MacBook Air M2 ; je n'ai jamais essayé en CPU seul.",
+   "identifiant": "gpu",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-015",
+   "colonne": "description",
+   "texte": "Fine-tuning toolkit for LLaMA-style models using QLoRA and FlashAttention 2. You need a CUDA GPU with at least 16 GB of VRAM; CPU training is not supported.",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-016",
+   "colonne": "cas_usage",
+   "texte": "Transcrire ses réunions sur un simple portable sans carte graphique ; un GPU accélère le traitement mais reste facultatif.",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-018",
+   "colonne": "notes",
+   "texte": "There's no way to run this outside Docker — the build scripts assume the container toolchain, and the maintainer closed the 'native install' issue as won't fix.",
+   "identifiant": "docker",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-021",
+   "colonne": "description",
+   "texte": "Self-hosted bookmark manager with full-text search and tagging. It can be deployed with Docker or installed as a plain Python package.",
+   "identifiant": "docker",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-022",
+   "colonne": "notes",
+   "texte": "Docker est obligatoire, mais pas Docker Desktop : sous Linux, le moteur Docker Engine suffit.",
+   "identifiant": "docker",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-024",
+   "colonne": "prerequis",
+   "texte": "- Go 1.22+\n- make\n- Docker (only for running the integration test suite)",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-025",
+   "colonne": "description",
+   "texte": "Petit serveur de partage de fichiers écrit en Go, livré avec une image Docker et des binaires précompilés pour Linux, macOS et Windows.",
+   "identifiant": "docker",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-026",
+   "colonne": "notes",
+   "texte": "Docker Desktop is not needed on macOS.",
+   "identifiant": "docker",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-028",
+   "colonne": "installation",
+   "texte": "L'installation se fait uniquement via Docker : copier .env.example vers .env, puis lancer docker compose up -d. Aucune installation native n'est prévue.",
+   "identifiant": "docker",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-029",
+   "colonne": "prerequis",
+   "texte": "- Docker or Podman\n- 2 GB RAM\n- Port 3000 available",
+   "identifiant": "docker",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-031",
+   "colonne": "notes",
+   "texte": "Le Dockerfile du dépôt ne sert qu'au développement local ; en production je l'ai installé avec pipx, sans problème.",
+   "identifiant": "docker",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-032",
+   "colonne": "installation",
+   "texte": "Option A — Docker: `docker compose up -d`\nOption B — from source: `uv sync && uv run app serve`",
+   "identifiant": "docker",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-034",
+   "colonne": "description",
+   "texte": "Plateforme d'analyse de logs dont chaque composant (collecteur, base ClickHouse, interface) tourne dans un conteneur. Elle ne fonctionne pas sans Docker.",
+   "identifiant": "docker",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-036",
+   "colonne": "description",
+   "texte": "Opérateur Kubernetes qui automatise la sauvegarde des volumes persistants vers un bucket S3, avec rétention configurable par namespace.",
+   "identifiant": "kubernetes",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-037",
+   "colonne": "notes",
+   "texte": "Despite the very k8s-heavy README, Kubernetes is optional — I run it on a single VPS under systemd.",
+   "identifiant": "kubernetes",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-038",
+   "colonne": "installation",
+   "texte": "Déploiement au choix : docker compose, chart Helm pour Kubernetes, ou binaire autonome téléchargé depuis la page Releases.",
+   "identifiant": "kubernetes",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-039",
+   "colonne": "description",
+   "texte": "Lightweight job scheduler built as a simpler alternative for small teams that don't want to run Kubernetes.",
+   "identifiant": "kubernetes",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-043",
+   "colonne": "description",
+   "texte": "Script qui prépare un PC Windows neuf : suppression des applications préinstallées, réglages de confidentialité et installation de logiciels via winget.",
+   "identifiant": "windows",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-046",
+   "colonne": "description",
+   "texte": "Cross-platform rewrite of a popular AutoHotkey clipboard script. Unlike the original, it no longer requires Windows and runs natively on Linux and macOS.",
+   "identifiant": "windows",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-047",
+   "colonne": "exemple",
+   "texte": "Exemple sous Windows (PowerShell) :\n.\\scan.ps1 -Dossier C:\\Factures -Sortie C:\\OCR",
+   "identifiant": "windows",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-053",
+   "colonne": "description",
+   "texte": "Interface graphique pour gérer des machines virtuelles QEMU, pensée d'abord pour Linux mais disponible aussi sur macOS via Homebrew.",
+   "identifiant": "linux",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-057",
+   "colonne": "installation",
+   "texte": "brew install --cask exemple (macOS) ; sous Linux, utiliser l'AppImage ; sous Windows, le setup.exe.",
+   "identifiant": "macos",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-060",
+   "colonne": "prerequis",
+   "texte": "- A running n8n instance (self-hosted, v1.30+)\n- Community nodes enabled (N8N_COMMUNITY_PACKAGES_ENABLED=true)",
+   "identifiant": "n8n",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-063",
+   "colonne": "cas_usage",
+   "texte": "Ready-to-import n8n workflows for invoice processing: Gmail trigger, OCR step, then rows appended to Google Sheets.",
+   "identifiant": "n8n",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-064",
+   "colonne": "installation",
+   "texte": "npx -y mcp-meteo\nLe serveur MCP peut ensuite être appelé depuis Claude Desktop, n8n ou n'importe quel client MCP.",
+   "identifiant": "n8n",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-066",
+   "colonne": "exemple",
+   "texte": "Déclencher l'analyse depuis un nœud HTTP Request de n8n : POST http://localhost:8080/api/analyze avec le PDF en multipart.",
+   "identifiant": "n8n",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-067",
+   "colonne": "description",
+   "texte": "Zapier integration that posts new Stripe disputes to a Slack channel, built with the Zapier Platform CLI.",
+   "identifiant": "zapier",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-071",
+   "colonne": "installation",
+   "texte": "Zapier isn't supported yet; for now, call the REST endpoint directly or use the Make module.",
+   "identifiant": "zapier",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-072",
+   "colonne": "description",
+   "texte": "Bibliothèque de composants React accessibles (boutons, modales, menus déroulants) construite sur Radix UI et Tailwind.",
+   "identifiant": "react",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-073",
+   "colonne": "prerequis",
+   "texte": "- React 18 or 19\n- Node.js 18+\n- Tailwind CSS 3.4",
+   "identifiant": "react",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-078",
+   "colonne": "installation",
+   "texte": "npm install @acme/forms-core\n\nThe React bindings (@acme/forms-react) are optional; the core package works with any framework, or none.",
+   "identifiant": "react",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-079",
+   "colonne": "description",
+   "texte": "Production-ready FastAPI template with SQLModel, Alembic migrations, JWT auth and a Celery worker, plus a GitHub Actions pipeline.",
+   "identifiant": "fastapi",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-080",
+   "colonne": "prerequis",
+   "texte": "- Python 3.11+\n- FastAPI 0.110+\n- Uvicorn",
+   "identifiant": "fastapi",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-081",
+   "colonne": "notes",
+   "texte": "The backend is FastAPI on the `api-v2` branch only; main still uses Flask.",
+   "identifiant": "fastapi",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-083",
+   "colonne": "installation",
+   "texte": "pip install 'monoutil[api]' pour activer le serveur REST optionnel, basé sur FastAPI.",
+   "identifiant": "fastapi",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-086",
+   "colonne": "prerequis",
+   "texte": "- Claude Code v1.0+ installed and logged in\n- Node.js 18+\n- git",
+   "identifiant": "claude_code",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-087",
+   "colonne": "notes",
+   "texte": "Fonctionne avec Claude Code, Cursor ou n'importe quel client compatible MCP.",
+   "identifiant": "claude_code",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-091",
+   "colonne": "exemple",
+   "texte": "In Claude Code:\n/review-pr 142 --strict",
+   "identifiant": "claude_code",
+   "attendu": "mention",
+   "analyste": "mention"
+  },
+  {
+   "id": "F4-092",
+   "colonne": "prerequis",
+   "texte": "- GPU NVIDIA indispensable (8 Go de VRAM minimum, 12 Go conseillés)\n- CUDA 12.x\n- 32 Go de RAM",
+   "identifiant": "gpu",
+   "attendu": "requis",
+   "analyste": "requis"
+  },
+  {
+   "id": "F4-095",
+   "colonne": "installation",
+   "texte": "Un seul binaire à lancer : ./agent serve --port 9000. Kubernetes n'est pas nécessaire ; un chart Helm est fourni pour ceux qui y tiennent.",
+   "identifiant": "kubernetes",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-096",
+   "colonne": "prerequis",
+   "texte": "- Python 3.10+\n- ffmpeg\n- CUDA-capable GPU (used if available)",
+   "identifiant": "gpu",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-097",
+   "colonne": "notes",
+   "texte": "Pas besoin de macOS malgré les captures d'écran du README : il tourne aussi bien sous Linux.",
+   "identifiant": "macos",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-099",
+   "colonne": "notes",
+   "texte": "FastAPI is only used for the dev server; production is a static export served by nginx.",
+   "identifiant": "fastapi",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  },
+  {
+   "id": "F4-100",
+   "colonne": "description",
+   "texte": "Équivalent Linux de l'outil Process Monitor de Sysinternals ; aucun poste Windows n'est nécessaire.",
+   "identifiant": "windows",
+   "attendu": "non_requis",
+   "analyste": "non_requis"
+  }
+ ],
+ "requetes": [
+  {
+   "id": "Q1-001",
+   "requete": "Un OCR pour factures scannées sans GPU",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "OCR",
+    "factures scannées"
+   ],
+   "termes_analyste": [
+    "OCR",
+    "factures"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-002",
+   "requete": "Je ne retrouve plus le dépôt n8n qui synchronise mon CRM avec Google Sheets",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "CRM",
+    "Google Sheets"
+   ],
+   "termes_analyste": [
+    "CRM",
+    "Google Sheets"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-003",
+   "requete": "Une alternative open source à Zapier pour automatiser mes relances clients, Zapier est devenu trop cher",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "zapier",
+     "role": "reference"
+    }
+   ],
+   "termes_cles": [
+    "automatiser",
+    "relances clients"
+   ],
+   "termes_analyste": [
+    "automatiser",
+    "relances clients"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "zapier",
+     "role": "reference"
+    }
+   ]
+  },
+  {
+   "id": "Q1-004",
+   "requete": "Des workflows n8n pour publier automatiquement sur LinkedIn",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "workflows",
+    "publier automatiquement",
+    "LinkedIn"
+   ],
+   "termes_analyste": [
+    "workflows",
+    "LinkedIn"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-005",
+   "requete": "Un serveur de transcription audio sous Docker, peu importe s'il faut un GPU",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "docker",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "gpu",
+     "role": "neutre"
+    }
+   ],
+   "termes_cles": [
+    "transcription audio"
+   ],
+   "termes_analyste": [
+    "transcription audio"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "docker",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "gpu",
+     "role": "neutre"
+    }
+   ]
+  },
+  {
+   "id": "Q1-006",
+   "requete": "Je n'ai pas le droit d'installer Docker au boulot, il me faut un gestionnaire de mots de passe auto-hébergé",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "docker",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "gestionnaire de mots de passe",
+    "auto-hébergé"
+   ],
+   "termes_analyste": [
+    "gestionnaire de mots de passe",
+    "auto-hébergé"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "docker",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-007",
+   "requete": "Une bibliothèque de composants React pour faire des tableaux de bord",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "react",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "bibliothèque de composants",
+    "tableaux de bord"
+   ],
+   "termes_analyste": [
+    "bibliothèque de composants",
+    "tableaux de bord"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "react",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-008",
+   "requete": "Peu importe React ou Vue, je veux juste un kit d'interface pour une app de réservation",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "react",
+     "role": "neutre"
+    }
+   ],
+   "termes_cles": [
+    "kit d'interface",
+    "app de réservation"
+   ],
+   "termes_analyste": [
+    "kit d'interface",
+    "réservation"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "react",
+     "role": "neutre"
+    }
+   ]
+  },
+  {
+   "id": "Q1-010",
+   "requete": "Comme n8n a déjà un nœud HTTP, je cherche des workflows n8n pour Slack",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "workflows",
+    "Slack"
+   ],
+   "termes_analyste": [
+    "workflows",
+    "Slack"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-012",
+   "requete": "Je n'arrive pas à transcrire mes réunions sans GPU, il me faut un outil léger",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "transcrire mes réunions",
+    "outil léger"
+   ],
+   "termes_analyste": [
+    "transcrire",
+    "réunions",
+    "outil léger"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-014",
+   "requete": "Un déploiement Kubernetes pour Nextcloud avec des charts Helm",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "Nextcloud",
+    "charts Helm"
+   ],
+   "termes_analyste": [
+    "Nextcloud",
+    "charts Helm"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-019",
+   "requete": "Un outil comme Claude Code mais qui tourne avec un modèle local",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "claude_code",
+     "role": "reference"
+    }
+   ],
+   "termes_cles": [
+    "modèle local"
+   ],
+   "termes_analyste": [
+    "modèle local"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "claude_code",
+     "role": "reference"
+    }
+   ]
+  },
+  {
+   "id": "Q1-020",
+   "requete": "Un générateur de sous-titres qui marche sur macOS et Linux sans carte graphique Nvidia",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "macos",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "générateur de sous-titres"
+   ],
+   "termes_analyste": [
+    "générateur de sous-titres"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "macos",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-022",
+   "requete": "Comme Zapier mais open source et auto-hébergeable avec Docker",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "zapier",
+     "role": "reference"
+    },
+    {
+     "identifiant": "docker",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "open source",
+    "auto-hébergeable"
+   ],
+   "termes_analyste": [
+    "open source",
+    "auto-hébergeable"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "zapier",
+     "role": "reference"
+    },
+    {
+     "identifiant": "docker",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-024",
+   "requete": "Un bot Discord en Python, peu importe qu'il tourne dans Docker ou pas",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "docker",
+     "role": "neutre"
+    }
+   ],
+   "termes_cles": [
+    "bot Discord",
+    "Python"
+   ],
+   "termes_analyste": [
+    "bot Discord",
+    "Python"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "docker",
+     "role": "neutre"
+    }
+   ]
+  },
+  {
+   "id": "Q1-025",
+   "requete": "Un modèle de génération d'images qui tourne sur CUDA avec peu de VRAM",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "gpu",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "génération d'images"
+   ],
+   "termes_analyste": [
+    "génération d'images"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "gpu",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-026",
+   "requete": "Une alternative plus simple à Kubernetes pour un petit cluster de trois machines",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "kubernetes",
+     "role": "reference"
+    }
+   ],
+   "termes_cles": [
+    "petit cluster"
+   ],
+   "termes_analyste": [
+    "petit cluster"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "kubernetes",
+     "role": "reference"
+    }
+   ]
+  },
+  {
+   "id": "Q1-027",
+   "requete": "Je cherche un gestionnaire de fenêtres en mosaïque pour macOS",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "macos",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "gestionnaire de fenêtres",
+    "mosaïque"
+   ],
+   "termes_analyste": [
+    "gestionnaire de fenêtres",
+    "mosaïque"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "macos",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-028",
+   "requete": "Un lanceur de jeux rétro pour Linux qui ne dépend ni de Windows ni de Wine",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "windows",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "lanceur de jeux rétro"
+   ],
+   "termes_analyste": [
+    "lanceur de jeux rétro"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "windows",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-029",
+   "requete": "Un chatbot RAG sur mes PDF, sans GPU et sans Docker, juste en Python",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    },
+    {
+     "identifiant": "docker",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "chatbot RAG",
+    "PDF"
+   ],
+   "termes_analyste": [
+    "chatbot RAG",
+    "PDF",
+    "Python"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    },
+    {
+     "identifiant": "docker",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-030",
+   "requete": "Un opérateur Kubernetes pour gérer des bases PostgreSQL avec sauvegardes automatiques",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "opérateur",
+    "PostgreSQL",
+    "sauvegardes automatiques"
+   ],
+   "termes_analyste": [
+    "opérateur",
+    "PostgreSQL",
+    "sauvegardes automatiques"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-031",
+   "requete": "Un hook pour Claude Code qui bloque les commandes dangereuses avant exécution",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "claude_code",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "hook",
+    "commandes dangereuses"
+   ],
+   "termes_analyste": [
+    "hook",
+    "commandes dangereuses"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "claude_code",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-032",
+   "requete": "Je ne me souviens plus du nom du starter React + FastAPI que j'avais noté pour lancer un SaaS",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "react",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "fastapi",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "starter",
+    "SaaS"
+   ],
+   "termes_analyste": [
+    "starter",
+    "SaaS"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "react",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "fastapi",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-034",
+   "requete": "Un convertisseur vidéo en ligne de commande, je me fiche qu'il exploite le GPU ou non",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "gpu",
+     "role": "neutre"
+    }
+   ],
+   "termes_cles": [
+    "convertisseur vidéo",
+    "ligne de commande"
+   ],
+   "termes_analyste": [
+    "convertisseur vidéo",
+    "ligne de commande"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "gpu",
+     "role": "neutre"
+    }
+   ]
+  },
+  {
+   "id": "Q1-035",
+   "requete": "Des nœuds communautaires n8n pour lire et écrire dans Notion",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "nœuds communautaires",
+    "Notion"
+   ],
+   "termes_analyste": [
+    "nœuds communautaires",
+    "Notion"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-036",
+   "requete": "Un éditeur de texte façon Notepad++ qui tourne nativement sous Linux, sans passer par Wine ou une VM Windows",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "windows",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "éditeur de texte",
+    "Notepad++"
+   ],
+   "termes_analyste": [
+    "éditeur de texte",
+    "Notepad++"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "windows",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-040",
+   "requete": "Remplacer Zapier par quelque chose qui tourne chez moi pour traiter mes factures Stripe",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "zapier",
+     "role": "reference"
+    }
+   ],
+   "termes_cles": [
+    "factures Stripe",
+    "tourne chez moi"
+   ],
+   "termes_analyste": [
+    "factures Stripe"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "zapier",
+     "role": "reference"
+    }
+   ]
+  },
+  {
+   "id": "Q1-042",
+   "requete": "Je voudrais un outil de diff de bases de données, peu importe que ce soit sur Linux ou macOS",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "linux",
+     "role": "neutre"
+    },
+    {
+     "identifiant": "macos",
+     "role": "neutre"
+    }
+   ],
+   "termes_cles": [
+    "outil de diff",
+    "bases de données"
+   ],
+   "termes_analyste": [
+    "diff de bases de données"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "linux",
+     "role": "neutre"
+    },
+    {
+     "identifiant": "macos",
+     "role": "neutre"
+    }
+   ]
+  },
+  {
+   "id": "Q1-045",
+   "requete": "Un backend FastAPI avec WebSocket pour un chat en temps réel et un front React",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "fastapi",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "react",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "WebSocket",
+    "chat en temps réel"
+   ],
+   "termes_analyste": [
+    "WebSocket",
+    "chat en temps réel"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "fastapi",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "react",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-046",
+   "requete": "Je cherche des manifestes Kubernetes prêts à l'emploi pour Grafana et Prometheus",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "manifestes",
+    "Grafana",
+    "Prometheus"
+   ],
+   "termes_analyste": [
+    "manifestes",
+    "Grafana",
+    "Prometheus"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-047",
+   "requete": "Un outil d'upscaling d'images qui fonctionne aussi sans GPU, même lentement",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "upscaling d'images"
+   ],
+   "termes_analyste": [
+    "upscaling d'images"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-049",
+   "requete": "Un moteur de workflows en Python, un peu comme n8n, parce que je ne veux pas maintenir du Node",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "n8n",
+     "role": "reference"
+    }
+   ],
+   "termes_cles": [
+    "moteur de workflows",
+    "Python"
+   ],
+   "termes_analyste": [
+    "moteur de workflows",
+    "Python"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "n8n",
+     "role": "reference"
+    }
+   ]
+  },
+  {
+   "id": "Q1-053",
+   "requete": "Je cherche un clone de Trello auto-hébergé, Kubernetes ou Docker ça m'est égal",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "kubernetes",
+     "role": "neutre"
+    },
+    {
+     "identifiant": "docker",
+     "role": "neutre"
+    }
+   ],
+   "termes_cles": [
+    "clone de Trello",
+    "auto-hébergé"
+   ],
+   "termes_analyste": [
+    "clone de Trello",
+    "auto-hébergé"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "kubernetes",
+     "role": "neutre"
+    },
+    {
+     "identifiant": "docker",
+     "role": "neutre"
+    }
+   ]
+  },
+  {
+   "id": "Q1-054",
+   "requete": "Je ne retrouve plus la fiche du workflow n8n qui résume mes mails avec un LLM chaque matin",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "workflow",
+    "résume mes mails",
+    "LLM"
+   ],
+   "termes_analyste": [
+    "workflow",
+    "mails",
+    "LLM"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-056",
+   "requete": "Un runtime de conteneurs pour macOS pour remplacer Docker Desktop, la licence est devenue payante pour ma boîte",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "docker",
+     "role": "reference"
+    },
+    {
+     "identifiant": "macos",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "runtime de conteneurs"
+   ],
+   "termes_analyste": [
+    "runtime de conteneurs"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "macos",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "docker",
+     "role": "reference"
+    }
+   ]
+  },
+  {
+   "id": "Q1-058",
+   "requete": "Un outil pour transformer des maquettes Figma en composants React",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "react",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "maquettes Figma",
+    "composants"
+   ],
+   "termes_analyste": [
+    "maquettes Figma",
+    "composants"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "react",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-059",
+   "requete": "Pas de Windows chez moi : je veux un serveur DNS bloqueur de pubs pour mon réseau",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "windows",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "serveur DNS",
+    "bloqueur de pubs"
+   ],
+   "termes_analyste": [
+    "serveur DNS",
+    "bloqueur de pubs"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "windows",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-061",
+   "requete": "Un tutoriel pour déployer FastAPI sur Kubernetes avec de l'autoscaling",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "fastapi",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "tutoriel",
+    "autoscaling"
+   ],
+   "termes_analyste": [
+    "tutoriel",
+    "autoscaling"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "fastapi",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-064",
+   "requete": "Un système de détection d'objets sur flux caméra, sans CUDA, pour un mini-PC",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "détection d'objets",
+    "flux caméra",
+    "mini-PC"
+   ],
+   "termes_analyste": [
+    "détection d'objets",
+    "flux caméra",
+    "mini-PC"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-070",
+   "requete": "Un générateur de documentation pour mon API FastAPI, plus joli que le Swagger par défaut",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "fastapi",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "générateur de documentation"
+   ],
+   "termes_analyste": [
+    "générateur de documentation"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "fastapi",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-072",
+   "requete": "Comme Kubernetes est déjà en place chez nous, je cherche un outil de CI qui s'y déploie facilement",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "outil de CI"
+   ],
+   "termes_analyste": [
+    "outil de CI"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-074",
+   "requete": "Quelque chose comme Claude Code pour le terminal, mais gratuit et open source",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "claude_code",
+     "role": "reference"
+    }
+   ],
+   "termes_cles": [
+    "terminal",
+    "open source"
+   ],
+   "termes_analyste": [
+    "terminal",
+    "open source"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "claude_code",
+     "role": "reference"
+    }
+   ]
+  },
+  {
+   "id": "Q1-075",
+   "requete": "Un lecteur de flux RSS minimaliste, React ou pas peu importe, tant que ça tourne sous Linux",
+   "langue": "fr",
+   "roles": [
+    {
+     "identifiant": "react",
+     "role": "neutre"
+    },
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "lecteur de flux RSS",
+    "minimaliste"
+   ],
+   "termes_analyste": [
+    "lecteur de flux RSS",
+    "minimaliste"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "react",
+     "role": "neutre"
+    },
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-077",
+   "requete": "An OCR tool for scanned receipts that runs without a GPU",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "OCR tool",
+    "scanned receipts"
+   ],
+   "termes_analyste": [
+    "OCR",
+    "scanned receipts"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-081",
+   "requete": "No GPU on my laptop, so I need a speech-to-text model that runs fine on CPU",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "speech-to-text model"
+   ],
+   "termes_analyste": [
+    "speech-to-text",
+    "CPU"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-082",
+   "requete": "I can't remember which React library I saved for drag-and-drop file uploads",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "react",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "drag-and-drop",
+    "file uploads"
+   ],
+   "termes_analyste": [
+    "drag-and-drop",
+    "file uploads"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "react",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-084",
+   "requete": "Doesn't matter if it runs in Docker, I need a feed reader that syncs across devices",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "docker",
+     "role": "neutre"
+    }
+   ],
+   "termes_cles": [
+    "feed reader",
+    "syncs across devices"
+   ],
+   "termes_analyste": [
+    "feed reader",
+    "syncs across devices"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "docker",
+     "role": "neutre"
+    }
+   ]
+  },
+  {
+   "id": "Q1-085",
+   "requete": "An alternative to Zapier to automate our donor emails, Zapier's pricing is way too high for a small nonprofit",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "zapier",
+     "role": "reference"
+    }
+   ],
+   "termes_cles": [
+    "automate",
+    "donor emails"
+   ],
+   "termes_analyste": [
+    "automate",
+    "donor emails"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "zapier",
+     "role": "reference"
+    }
+   ]
+  },
+  {
+   "id": "Q1-089",
+   "requete": "I can no longer find the FastAPI boilerplate with Celery and Redis I bookmarked",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "fastapi",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "boilerplate",
+    "Celery",
+    "Redis"
+   ],
+   "termes_analyste": [
+    "boilerplate",
+    "Celery",
+    "Redis"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "fastapi",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-093",
+   "requete": "A menu bar app for macOS that shows my GitHub notifications",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "macos",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "menu bar app",
+    "GitHub notifications"
+   ],
+   "termes_analyste": [
+    "menu bar app",
+    "GitHub notifications"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "macos",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-094",
+   "requete": "Since n8n already has a Postgres node, I'm looking for n8n templates that build a lead database",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "templates",
+    "lead database"
+   ],
+   "termes_analyste": [
+    "templates",
+    "lead database"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-096",
+   "requete": "I can't install Docker on my work laptop, I need a local SMTP server for testing emails",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "docker",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "local SMTP server",
+    "testing emails"
+   ],
+   "termes_analyste": [
+    "SMTP server",
+    "testing emails"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "docker",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-097",
+   "requete": "Hooks and slash commands for Claude Code that enforce our commit message format",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "claude_code",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "Hooks",
+    "slash commands",
+    "commit message format"
+   ],
+   "termes_analyste": [
+    "Hooks",
+    "slash commands",
+    "commit message format"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "claude_code",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-099",
+   "requete": "A Helm chart to run n8n on Kubernetes with queue-mode workers",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "Helm chart",
+    "queue-mode workers"
+   ],
+   "termes_analyste": [
+    "Helm chart",
+    "queue-mode workers"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-101",
+   "requete": "A replacement for Zapier that can run on a Raspberry Pi and trigger my home automations",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "zapier",
+     "role": "reference"
+    }
+   ],
+   "termes_cles": [
+    "Raspberry Pi",
+    "home automations"
+   ],
+   "termes_analyste": [
+    "Raspberry Pi",
+    "home automations"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "zapier",
+     "role": "reference"
+    }
+   ]
+  },
+  {
+   "id": "Q1-102",
+   "requete": "I'd rather not depend on Kubernetes, just give me a simple job scheduler for a few VMs",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "kubernetes",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "job scheduler",
+    "VMs"
+   ],
+   "termes_analyste": [
+    "job scheduler",
+    "VMs"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "kubernetes",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-104",
+   "requete": "A local LLM chat UI that works without CUDA on an old ThinkPad",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "local LLM chat UI",
+    "old ThinkPad"
+   ],
+   "termes_analyste": [
+    "LLM chat UI",
+    "ThinkPad"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-105",
+   "requete": "I saved a repo of Zapier code steps for parsing emails, where did it go?",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "zapier",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "code steps",
+    "parsing emails"
+   ],
+   "termes_analyste": [
+    "code steps",
+    "parsing emails"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "zapier",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-106",
+   "requete": "A desktop app for managing Kubernetes clusters, ideally native on macOS",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "macos",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "desktop app",
+    "clusters"
+   ],
+   "termes_analyste": [
+    "desktop app",
+    "clusters"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "macos",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-107",
+   "requete": "Without relying on Windows, I need a tool to flash firmware onto ESP32 boards",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "windows",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "flash firmware",
+    "ESP32 boards"
+   ],
+   "termes_analyste": [
+    "flash firmware",
+    "ESP32"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "windows",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-109",
+   "requete": "Is there a GPU-accelerated vector database I can run on my own server?",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "gpu",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "vector database",
+    "own server"
+   ],
+   "termes_analyste": [
+    "vector database"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "gpu",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-110",
+   "requete": "My company moved off n8n because of the license, I need another workflow engine we can embed in our product",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "n8n",
+     "role": "reference"
+    }
+   ],
+   "termes_cles": [
+    "workflow engine",
+    "embed in our product"
+   ],
+   "termes_analyste": [
+    "workflow engine",
+    "embed"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "n8n",
+     "role": "reference"
+    }
+   ]
+  },
+  {
+   "id": "Q1-111",
+   "requete": "Docker isn't an option on our shared hosting, I need a PHP forum I can upload over FTP",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "docker",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "PHP forum",
+    "FTP"
+   ],
+   "termes_analyste": [
+    "PHP forum",
+    "FTP"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "docker",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-112",
+   "requete": "A Claude Code skill that writes changelogs from git history",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "claude_code",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "skill",
+    "changelogs",
+    "git history"
+   ],
+   "termes_analyste": [
+    "skill",
+    "changelogs",
+    "git history"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "claude_code",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-116",
+   "requete": "I want to stop paying for Zapier, is there a self-hosted tool that can watch Gmail and push rows to Airtable?",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "zapier",
+     "role": "reference"
+    }
+   ],
+   "termes_cles": [
+    "self-hosted tool",
+    "Gmail",
+    "Airtable"
+   ],
+   "termes_analyste": [
+    "self-hosted tool",
+    "Gmail",
+    "Airtable"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "zapier",
+     "role": "reference"
+    }
+   ]
+  },
+  {
+   "id": "Q1-117",
+   "requete": "A dataset labeling tool that runs fine on Linux, whether or not there's a GPU",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "gpu",
+     "role": "neutre"
+    }
+   ],
+   "termes_cles": [
+    "dataset labeling tool"
+   ],
+   "termes_analyste": [
+    "dataset labeling tool"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "gpu",
+     "role": "neutre"
+    }
+   ]
+  },
+  {
+   "id": "Q1-118",
+   "requete": "A CLI to convert docker-compose files into Kubernetes manifests",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "docker",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "CLI",
+    "convert"
+   ],
+   "termes_analyste": [
+    "CLI",
+    "convert",
+    "manifests"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "docker",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "kubernetes",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-119",
+   "requete": "I need a React hook for infinite scrolling that doesn't pull in a huge dependency",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "react",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "hook",
+    "infinite scrolling"
+   ],
+   "termes_analyste": [
+    "hook",
+    "infinite scrolling"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "react",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-121",
+   "requete": "A noise suppression app for calls that runs on macOS without a dedicated GPU",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "macos",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "noise suppression",
+    "calls"
+   ],
+   "termes_analyste": [
+    "noise suppression app",
+    "calls"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "macos",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-122",
+   "requete": "An n8n community node for sending WhatsApp messages",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "community node",
+    "WhatsApp messages"
+   ],
+   "termes_analyste": [
+    "community node",
+    "WhatsApp"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-123",
+   "requete": "I'm not allowed to install anything on my Windows work PC, so I need a portable markdown note app that runs from a USB stick",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "windows",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "portable markdown note app",
+    "USB stick"
+   ],
+   "termes_analyste": [
+    "portable markdown note app",
+    "USB stick"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "windows",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-125",
+   "requete": "Whether it's Docker or a plain binary doesn't matter, I need a URL shortener with analytics",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "docker",
+     "role": "neutre"
+    }
+   ],
+   "termes_cles": [
+    "URL shortener",
+    "analytics"
+   ],
+   "termes_analyste": [
+    "URL shortener",
+    "analytics"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "docker",
+     "role": "neutre"
+    }
+   ]
+  },
+  {
+   "id": "Q1-129",
+   "requete": "If it runs in Docker and exposes a FastAPI endpoint, I'll take any OCR engine for invoices",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "docker",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "fastapi",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "OCR engine",
+    "invoices"
+   ],
+   "termes_analyste": [
+    "OCR engine",
+    "invoices"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "docker",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "fastapi",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-131",
+   "requete": "A workflow automation tool written in Go, because n8n eats too much RAM on my VPS",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "n8n",
+     "role": "reference"
+    }
+   ],
+   "termes_cles": [
+    "workflow automation tool",
+    "written in Go"
+   ],
+   "termes_analyste": [
+    "workflow automation tool",
+    "Go"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "n8n",
+     "role": "reference"
+    }
+   ]
+  },
+  {
+   "id": "Q1-135",
+   "requete": "A Kubernetes-free way to do blue-green deployments on a couple of VPS",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "kubernetes",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "blue-green deployments",
+    "VPS"
+   ],
+   "termes_analyste": [
+    "blue-green deployments",
+    "VPS"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "kubernetes",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-141",
+   "requete": "A backup tool for my Windows gaming PC that doesn't require Docker or WSL",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "windows",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "docker",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "backup tool",
+    "gaming PC"
+   ],
+   "termes_analyste": [
+    "backup tool",
+    "gaming PC"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "windows",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "docker",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-142",
+   "requete": "I want to automate my invoices in n8n, are there workflows that read PDFs and fill a spreadsheet?",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "invoices",
+    "read PDFs",
+    "spreadsheet"
+   ],
+   "termes_analyste": [
+    "invoices",
+    "workflows",
+    "PDFs"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "n8n",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-145",
+   "requete": "A pomodoro timer for Linux, no Electron, no React, just native",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "react",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "pomodoro timer",
+    "native"
+   ],
+   "termes_analyste": [
+    "pomodoro timer",
+    "native"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    },
+    {
+     "identifiant": "react",
+     "role": "exclu"
+    }
+   ]
+  },
+  {
+   "id": "Q1-148",
+   "requete": "A Dropbox-like file sync tool that works properly on Linux, I can't stand the official client",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    }
+   ],
+   "termes_cles": [
+    "file sync tool"
+   ],
+   "termes_analyste": [
+    "file sync tool",
+    "Dropbox-like"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "linux",
+     "role": "cherche"
+    }
+   ]
+  },
+  {
+   "id": "Q1-149",
+   "requete": "My laptop has no Nvidia card, so I need a face recognition library that's CPU-only",
+   "langue": "en",
+   "roles": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ],
+   "termes_cles": [
+    "face recognition library"
+   ],
+   "termes_analyste": [
+    "face recognition library",
+    "CPU-only"
+   ],
+   "roles_analyste": [
+    {
+     "identifiant": "gpu",
+     "role": "exclu"
+    }
+   ]
+  }
+ ]
+}

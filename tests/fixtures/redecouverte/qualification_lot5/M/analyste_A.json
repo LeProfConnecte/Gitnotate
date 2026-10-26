@@ -1,0 +1,238 @@
+{"analyste": "A", "jugements": {
+"M01": {
+ "huginn/huginn": {"etiquette": "hors_sujet", "raison": "Plateforme d'agents de surveillance, sans modèles de workflows n8n : « Créez des agents qui surveillent et agissent à votre place »."},
+ "neuml/txtai": {"etiquette": "hors_sujet", "raison": "Framework de recherche sémantique et de LLM, pas une collection de modèles n8n : « Framework d'IA open source tout-en-un pour la recherche sémantique »."},
+ "synth-apiforge/fastapi-starter": {"etiquette": "hors_sujet", "raison": "Gabarit d'API Python sans rapport avec n8n : « Gabarit de projet FastAPI prêt pour la production »."},
+ "synth-flowgen/n8n-flow-genie": {"etiquette": "plausible", "raison": "Évite de partir de zéro en générant des workflows n8n importables, mais ne fournit pas de modèles prêts : « un LLM produit le fichier JSON du workflow »."},
+ "synth-flowkit/n8n-workflow-templates": {"etiquette": "pertinent", "raison": "Répond exactement au besoin : « plus de 300 modèles de workflows n8n prêts à importer (fichiers JSON) »."},
+ "synth-n8nbridge/n8n-mcp-bridge": {"etiquette": "hors_sujet", "raison": "Pont MCP pour piloter une instance n8n depuis un assistant, sans bibliothèque de modèles : « l'accès à une instance n8n »."},
+ "synth-nodeforge/n8n-nodes-pdfgen": {"etiquette": "hors_sujet", "raison": "Nœud de génération de PDF, pas des modèles de workflows : « Nœud communautaire n8n qui génère des PDF »."}
+},
+"M02": {
+ "davila7/claude-code-templates": {"etiquette": "plausible", "raison": "Outil d'accompagnement de Claude Code qui évoque la supervision, mais aucune notification sur téléphone n'est mentionnée : « Outil en ligne de commande pour configurer et superviser Claude Code »."},
+ "synth-agentskills/claude-code-skills": {"etiquette": "hors_sujet", "raison": "Extensions Claude Code pour d'autres usages, sans notification de fin de tâche : « revue de code, écriture de tests, documentation et migrations de base de données »."},
+ "synth-ccplugins/cc-semantic-search": {"etiquette": "hors_sujet", "raison": "Plugin Claude Code de recherche dans le code, sans notification : « ajoute la commande /find et une skill de recherche sémantique »."},
+ "synth-n8nbridge/n8n-mcp-bridge": {"etiquette": "hors_sujet", "raison": "Pont entre un assistant IA et n8n, sans alerte de fin de tâche de Claude Code : « l'accès à une instance n8n »."},
+ "synth-symbolic/code-index-mcp": {"etiquette": "hors_sujet", "raison": "Serveur MCP d'indexation de code, sans notification : « une recherche sémantique et par symboles dans le projet »."}
+},
+"M03": {
+ "synth-flowkit/n8n-workflow-templates": {"etiquette": "pertinent", "raison": "Fournit un modèle n8n de gestion d'erreurs qui alerte sur les échecs : « pour être prévenu des exécutions en échec »."},
+ "synth-flowops/n8n-operator": {"etiquette": "hors_sujet", "raison": "Déploiement de n8n sur Kubernetes, sans alerte en cas d'échec : « Opérateur Kubernetes qui déploie n8n en mode file d'attente »."},
+ "synth-migratekit/zap2n8n": {"etiquette": "hors_sujet", "raison": "Convertisseur de Zaps, sans supervision des exécutions : « transforme des Zaps exportés depuis Zapier en workflows n8n importables »."},
+ "synth-n8nbridge/n8n-mcp-bridge": {"etiquette": "plausible", "raison": "Permet de consulter les exécutions en échec via un assistant, mais sans alerte automatique : « lire le détail des exécutions en échec »."},
+ "synth-openflow/flowpilot": {"etiquette": "hors_sujet", "raison": "Plateforme concurrente de n8n, qui ne surveille pas une instance n8n : « présentée comme une alternative à Zapier et à n8n »."},
+ "synth-opswatch/n8n-watchtower": {"etiquette": "pertinent", "raison": "Supervise les exécutions n8n et alerte en cas d'échec : « Recevoir une alerte Telegram dès qu'un workflow de production échoue »."}
+},
+"M04": {
+ "docling-project/docling": {"etiquette": "hors_sujet", "raison": "Conversion de documents pour l'IA, pas une visionneuse React annotable : « convertit des documents (PDF, DOCX, PPTX, HTML, images) en Markdown ou JSON »."},
+ "rdumasia303/deepseek_ocr_app": {"etiquette": "hors_sujet", "raison": "Application d'OCR complète, pas un composant de visionneuse avec surlignages : « Application web d'OCR fondée sur DeepSeek-OCR »."},
+ "synth-chantierlab/planchantier": {"etiquette": "hors_sujet", "raison": "Planification de chantier, sans rapport avec l'affichage de PDF : « Application web de planification de chantier »."},
+ "synth-nodeforge/n8n-nodes-pdfgen": {"etiquette": "hors_sujet", "raison": "Génère des PDF dans n8n, sans les afficher ni les annoter : « génère des PDF à partir de modèles HTML ou Handlebars »."},
+ "synth-pdfstack/pdf-toolbox-server": {"etiquette": "hors_sujet", "raison": "Manipulation de PDF côté serveur, sans annotation ni composant React : « fusion, découpe, compression, rotation, filigrane »."},
+ "synth-reactpdf/react-pdf-annotator": {"etiquette": "pertinent", "raison": "Répond exactement au besoin : « Composants React pour afficher des PDF dans une application web et y ajouter surlignages, commentaires »."}
+},
+"M05": {
+ "huginn/huginn": {"etiquette": "hors_sujet", "raison": "Autre outil d'automatisation, sans déploiement de n8n sur Kubernetes : « Créez des agents qui surveillent et agissent à votre place »."},
+ "synth-flowgen/n8n-flow-genie": {"etiquette": "hors_sujet", "raison": "Génère des workflows, ne déploie pas n8n : « Générateur de workflows n8n à partir d'une description en langage naturel »."},
+ "synth-flowops/n8n-operator": {"etiquette": "pertinent", "raison": "Déploie n8n avec des workers mis à l'échelle : « Faire tourner n8n en production sur un cluster Kubernetes avec plusieurs workers »."},
+ "synth-migratekit/zap2n8n": {"etiquette": "hors_sujet", "raison": "Migration de Zaps, sans lien avec le déploiement de n8n : « Convertisseur qui transforme des Zaps exportés depuis Zapier en workflows n8n »."},
+ "synth-openflow/flowpilot": {"etiquette": "hors_sujet", "raison": "Propose un chart Helm, mais pour une plateforme concurrente et non pour n8n : « Chart Helm disponible pour Kubernetes »."},
+ "synth-opswatch/n8n-watchtower": {"etiquette": "hors_sujet", "raison": "Supervise les exécutions sans déployer ni mettre à l'échelle n8n : « Tableau de bord de supervision des exécutions n8n »."},
+ "synth-relayhq/relaymesh": {"etiquette": "hors_sujet", "raison": "Autre plateforme, installée par Docker Compose, ni n8n ni Kubernetes : « Docker et Docker Compose (seule méthode d'installation prise en charge) »."}
+},
+"M06": {
+ "synth-flowkit/n8n-workflow-templates": {"etiquette": "hors_sujet", "raison": "Collection de modèles pour n8n, pas une plateforme d'automatisation en soi : « modèles de workflows n8n prêts à importer »."},
+ "synth-openflow/flowpilot": {"etiquette": "pertinent", "raison": "Plateforme auto-hébergeable avec éditeur visuel : « alternative à Zapier et à n8n : éditeur visuel de scénarios »."},
+ "synth-relayhq/relaymesh": {"etiquette": "pertinent", "raison": "Plateforme auto-hébergée avec éditeur visuel : « alternative open source à Zapier : éditeur visuel de flux »."}
+},
+"M07": {
+ "rdumasia303/deepseek_ocr_app": {"etiquette": "hors_sujet", "raison": "Application d'OCR reposant elle-même sur FastAPI, pas un framework de remplacement : « avec une interface React et un back-end FastAPI »."},
+ "synth-adminkit/fastapi-backoffice": {"etiquette": "hors_sujet", "raison": "Extension qui suppose de rester sur FastAPI : « ne fonctionne qu'à l'intérieur d'une application FastAPI »."},
+ "synth-apiforge/fastapi-starter": {"etiquette": "hors_sujet", "raison": "Gabarit FastAPI, donc l'inverse d'un remplacement : « Gabarit de projet FastAPI prêt pour la production »."},
+ "synth-hyperui/htmx-kit": {"etiquette": "hors_sujet", "raison": "Composants d'interface, pas un framework d'API : « Composants d'interface rendus côté serveur avec htmx et Alpine.js »."},
+ "synth-swiftapi/velora": {"etiquette": "pertinent", "raison": "Framework performant alternatif à FastAPI avec migration des routes : « Migrer progressivement des routes FastAPI grâce à une couche de compatibilité »."}
+},
+"M08": {
+ "jesseduffield/lazygit": {"etiquette": "hors_sujet", "raison": "Client Git en terminal, pas des composants web : « Interface en mode texte pour piloter Git au clavier »."},
+ "rdumasia303/deepseek_ocr_app": {"etiquette": "hors_sujet", "raison": "Application d'OCR à interface React, ni composants de back-office ni hors React : « avec une interface React et un back-end FastAPI »."},
+ "synth-adminkit/fastapi-backoffice": {"etiquette": "plausible", "raison": "Back-office sans React, mais interface générée propre à FastAPI plutôt qu'une bibliothèque de composants : « Interface d'administration générée automatiquement pour une application FastAPI »."},
+ "synth-hyperui/htmx-kit": {"etiquette": "pertinent", "raison": "Composants pour back-office sans React : « Construire un petit back-office interactif sans framework JavaScript lourd »."},
+ "synth-reactpdf/react-pdf-annotator": {"etiquette": "hors_sujet", "raison": "Composants React, ce que la requête exclut : « Composants React pour afficher des PDF »."},
+ "synth-uikit/react-blocks": {"etiquette": "hors_sujet", "raison": "Composants de back-office, mais en React, exclu par la requête : « Monter rapidement l'interface d'un back-office en React »."},
+ "synth-vuekit/vue-dash-components": {"etiquette": "pertinent", "raison": "Composants d'administration en Vue 3, donc hors React : « graphiques, tableaux paginés et filtrables, cartes d'indicateurs »."}
+},
+"M09": {
+ "datagouv/datagouv-mcp": {"etiquette": "hors_sujet", "raison": "Serveur MCP de données publiques, pas une plateforme d'automatisation : « Serveur MCP donnant accès aux jeux de données ouverts de data.gouv.fr »."},
+ "huginn/huginn": {"etiquette": "plausible", "raison": "Automatisation auto-hébergée, mais la seule installation décrite passe par Docker : « docker run -it -p 3000:3000 ghcr.io/huginn/huginn »."},
+ "synth-harbor/dockpanel": {"etiquette": "hors_sujet", "raison": "Interface de gestion de Docker, ni automatisation ni sans Docker : « Interface web légère pour gérer Docker sur un serveur »."},
+ "synth-migratekit/zap2n8n": {"etiquette": "hors_sujet", "raison": "Convertisseur de Zaps, pas un moteur d'automatisation : « Convertisseur qui transforme des Zaps exportés depuis Zapier »."},
+ "synth-n8nbridge/n8n-mcp-bridge": {"etiquette": "hors_sujet", "raison": "Pont MCP qui suppose une instance n8n existante : « inutile sans n8n »."},
+ "synth-nodeforge/n8n-nodes-pdfgen": {"etiquette": "hors_sujet", "raison": "Nœud de génération de PDF pour n8n, pas une plateforme : « Nœud communautaire n8n qui génère des PDF »."},
+ "synth-openflow/flowpilot": {"etiquette": "pertinent", "raison": "Plateforme d'automatisation auto-hébergeable qui peut tourner sans Docker : « Node.js 20+ ou Docker »."},
+ "synth-opswatch/n8n-watchtower": {"etiquette": "hors_sujet", "raison": "Supervision de n8n, pas une plateforme d'automatisation : « Tableau de bord de supervision des exécutions n8n »."},
+ "synth-pdfstack/pdf-toolbox-server": {"etiquette": "hors_sujet", "raison": "Outil PDF, distribué de plus uniquement sous Docker : « Docker : seul mode de distribution, aucun paquet natif fourni »."},
+ "synth-relayhq/relaymesh": {"etiquette": "hors_sujet", "raison": "Automatisation auto-hébergée, mais Docker obligatoire, contraire à la contrainte : « seule méthode d'installation prise en charge »."},
+ "synth-vpsguard/vps-backup": {"etiquette": "hors_sujet", "raison": "Outil de sauvegarde, pas d'automatisation de workflows : « Sauvegardes chiffrées et planifiées d'un serveur Linux »."}
+},
+"M10": {
+ "davila7/claude-code-templates": {"etiquette": "hors_sujet", "raison": "Configuration de Claude Code, sans recherche sémantique dans le code : « Outil en ligne de commande pour configurer et superviser Claude Code »."},
+ "synth-ccplugins/cc-semantic-search": {"etiquette": "pertinent", "raison": "Plugin Claude Code de recherche par le sens dans le dépôt : « Réduire les tokens consommés en évitant de relire tout le dépôt »."},
+ "synth-codeseek/repo-ask": {"etiquette": "plausible", "raison": "Recherche sémantique de code en ligne de commande, mais l'intégration à Claude Code n'est pas indiquée : « renvoie les fonctions pertinentes avec le fichier et les lignes »."},
+ "synth-fastgrep/quickgrep": {"etiquette": "hors_sujet", "raison": "Recherche lexicale seulement, contraire au besoin : « Pas de recherche par le sens »."},
+ "synth-notesearch/semantic-drive": {"etiquette": "hors_sujet", "raison": "Recherche dans des documents bureautiques, pas dans le code : « documents bureautiques (PDF, Word, Markdown, exports Notion) »."},
+ "synth-symbolic/code-index-mcp": {"etiquette": "pertinent", "raison": "Répond exactement au besoin : « Permettre à Claude Code de retrouver les fonctions utiles d'un gros dépôt sans tout relire »."}
+},
+"M11": {
+ "caviraoss/pagelm": {"etiquette": "hors_sujet", "raison": "Génère quiz et fiches à partir de cours, sans recherche renvoyant la page : « transforme des supports d'étude en ressources interactives »."},
+ "synth-docmind/docmind": {"etiquette": "pertinent", "raison": "Recherche sémantique dans des PDF et des normes avec citation de la page : « réponses citées avec le document et la page »."},
+ "synth-docsense/pdfseek": {"etiquette": "pertinent", "raison": "Recherche sémantique dans une bibliothèque de PDF : « renvoie les passages pertinents avec le document et le numéro de page »."},
+ "synth-eurocalc/ba-ec2": {"etiquette": "hors_sujet", "raison": "Calcul de béton armé, sans recherche documentaire : « Bibliothèque Python de calcul de sections en béton armé »."},
+ "vectifyai/pageindex": {"etiquette": "plausible", "raison": "Interroge de longs PDF par raisonnement, mais ni la recherche sur tout un dossier ni le numéro de page ne sont confirmés : « navigation arborescente dans les longs PDF »."}
+},
+"M12": {
+ "synth-ccplugins/cc-semantic-search": {"etiquette": "hors_sujet", "raison": "Recherche sémantique dans le code, exclue par la requête : « index local d'embeddings du code »."},
+ "synth-codelens/codelens": {"etiquette": "hors_sujet", "raison": "Outil de code, exclu par la requête : « Recherche sémantique dans le code source »."},
+ "synth-codeseek/repo-ask": {"etiquette": "hors_sujet", "raison": "Recherche dans le code qui ignore les documents : « les PDF et documents bureautiques ne sont pas indexés »."},
+ "synth-docsense/pdfseek": {"etiquette": "pertinent", "raison": "Recherche sémantique locale dans des PDF de normes et de cours : « Chercher dans plusieurs années de cours et de sujets d'examen »."},
+ "synth-notesearch/semantic-drive": {"etiquette": "pertinent", "raison": "Recherche sémantique dans des documents et non dans du code : « Recherche sémantique auto-hébergée dans des documents bureautiques »."},
+ "synth-projectbrain/codedoc-search": {"etiquette": "hors_sujet", "raison": "Conçu pour le code d'un projet et sa documentation technique, alors que la requête exclut le code : « dans le code source et la documentation technique d'un projet »."},
+ "synth-symbolic/code-index-mcp": {"etiquette": "hors_sujet", "raison": "Indexation de base de code, exclue par la requête : « Serveur MCP qui indexe une base de code »."}
+},
+"M13": {
+ "synth-ccplugins/cc-semantic-search": {"etiquette": "plausible", "raison": "Recherche sémantique de code, mais limitée au dépôt courant et à Claude Code : « recherche sémantique dans le dépôt courant »."},
+ "synth-codelens/codelens": {"etiquette": "pertinent", "raison": "Recherche sémantique dans le code de plusieurs dépôts : « indexe un ou plusieurs dépôts »."},
+ "synth-docmind/docmind": {"etiquette": "hors_sujet", "raison": "Recherche dans des documents, explicitement pas dans le code : « Pensé pour les documents, pas pour le code source »."},
+ "synth-docsense/pdfseek": {"etiquette": "hors_sujet", "raison": "Recherche dans des PDF, exclus par la requête : « Moteur de recherche sémantique local pour une bibliothèque de PDF »."},
+ "synth-notesearch/semantic-drive": {"etiquette": "hors_sujet", "raison": "Documents bureautiques, exclus par la requête : « documents bureautiques (PDF, Word, Markdown, exports Notion) »."},
+ "synth-projectbrain/codedoc-search": {"etiquette": "plausible", "raison": "Recherche sémantique de code, mais sur un seul projet et mêlée à de la documentation PDF que la requête écarte : « dans le code source et la documentation technique d'un projet »."},
+ "synth-reactpdf/react-pdf-annotator": {"etiquette": "hors_sujet", "raison": "Visionneuse de PDF, sans recherche de code : « Composants React pour afficher des PDF »."}
+},
+"M14": {
+ "anomalyco/opencode": {"etiquette": "hors_sujet", "raison": "Agent de code, pas un moteur de recherche unifié sur le code et la documentation : « L'agent de code open source »."},
+ "synth-codelens/codelens": {"etiquette": "plausible", "raison": "Couvre le code mais pas la documentation de conception : « centré sur le code source »."},
+ "synth-codeseek/repo-ask": {"etiquette": "plausible", "raison": "Couvre seulement le code, la documentation n'étant pas indexée : « les PDF et documents bureautiques ne sont pas indexés »."},
+ "synth-docsense/pdfseek": {"etiquette": "plausible", "raison": "Couvre des documents PDF mais pas le code source : « Moteur de recherche sémantique local pour une bibliothèque de PDF »."},
+ "synth-projectbrain/codedoc-search": {"etiquette": "pertinent", "raison": "Répond exactement au besoin : « une seule question renvoie à la fois les fonctions et les pages de documentation pertinentes »."}
+},
+"M15": {
+ "synth-ccplugins/cc-semantic-search": {"etiquette": "plausible", "raison": "Repère du code semblable, mais seulement dans le dépôt courant et non dans les autres projets : « Retrouver du code dupliqué entre modules »."},
+ "synth-codelens/codelens": {"etiquette": "pertinent", "raison": "Répond exactement au besoin : « Trouver du code similaire à un extrait dans plusieurs dépôts »."},
+ "synth-codeseek/repo-ask": {"etiquette": "plausible", "raison": "Recherche par le sens dans plusieurs dépôts, mais à partir d'une question et non d'un extrait de code : « dans le code d'un ou plusieurs dépôts Git »."},
+ "synth-projectbrain/codedoc-search": {"etiquette": "plausible", "raison": "Recherche sémantique de code limitée à un projet, sans recherche par extrait confirmée : « Recherche sémantique unifiée dans le code source et la documentation technique d'un projet »."},
+ "synth-symbolic/code-index-mcp": {"etiquette": "plausible", "raison": "Recherche sémantique dans un seul projet pour un agent, sans recherche d'extraits similaires entre projets : « recherche sémantique et par symboles dans le projet »."}
+},
+"M16": {
+ "docling-project/docling": {"etiquette": "plausible", "raison": "Analyse de documents utile à l'OCR, mais le fonctionnement sans GPU n'est pas précisé : « très utile pour l'OCR et le traitement documentaire »."},
+ "paddlepaddle/paddleocr": {"etiquette": "plausible", "raison": "OCR léger et multilingue, mais l'absence de besoin de GPU n'est pas confirmée : « boîte à outils OCR légère et puissante »."},
+ "synth-cpuocr/onnx-ocr-lite": {"etiquette": "pertinent", "raison": "Répond exactement au besoin : « Numériser des documents imprimés sur un VPS sans carte graphique »."},
+ "synth-notesearch/semantic-drive": {"etiquette": "hors_sujet", "raison": "Recherche sémantique de documents, sans OCR : « Recherche sémantique auto-hébergée dans des documents bureautiques »."},
+ "synth-pdfstack/pdf-toolbox-server": {"etiquette": "hors_sujet", "raison": "Manipulation de PDF sans OCR : « fusion, découpe, compression, rotation, filigrane et conversion en images »."}
+},
+"M17": {
+ "deepseek-ai/deepseek-ocr": {"etiquette": "hors_sujet", "raison": "Modèle d'OCR, sans fusion ni compression de PDF : « Modèle OCR convertissant images et PDF en texte ou Markdown »."},
+ "synth-nodeforge/n8n-nodes-pdfgen": {"etiquette": "hors_sujet", "raison": "Génération de PDF dans n8n, sans fusion ni compression : « génère des PDF à partir de modèles HTML ou Handlebars »."},
+ "synth-pdfcraft/pdfcraft": {"etiquette": "pertinent", "raison": "Fusion et compression en ligne de commande, sous Windows et sans Docker : « fonctionne sans Docker ni serveur, sous Linux, macOS et Windows »."},
+ "synth-pdfstack/pdf-toolbox-server": {"etiquette": "hors_sujet", "raison": "Fait la fusion et la compression, mais impose Docker, contraire à la contrainte : « Docker : seul mode de distribution, aucun paquet natif fourni »."},
+ "synth-reactpdf/react-pdf-annotator": {"etiquette": "hors_sujet", "raison": "Visionneuse et annotation, sans fusion ni compression : « Composants React pour afficher des PDF »."},
+ "synth-yamlops/hookrunner": {"etiquette": "hors_sujet", "raison": "Moteur d'automatisation qui ne manipule pas les PDF : « Moteur d'automatisation léger piloté par des fichiers YAML »."}
+},
+"M18": {
+ "neuml/txtai": {"etiquette": "plausible", "raison": "Brique de recherche sémantique installable par pip, mais la prise en charge des PDF n'est pas précisée : « Framework d'IA open source tout-en-un pour la recherche sémantique »."},
+ "synth-ccplugins/cc-semantic-search": {"etiquette": "hors_sujet", "raison": "Recherche dans le code via Claude Code, pas dans des PDF : « index local d'embeddings du code »."},
+ "synth-codelens/codelens": {"etiquette": "hors_sujet", "raison": "Outil de code, pas de PDF : « Recherche sémantique dans le code source »."},
+ "synth-codeseek/repo-ask": {"etiquette": "hors_sujet", "raison": "Recherche de code qui exclut les PDF : « les PDF et documents bureautiques ne sont pas indexés »."},
+ "synth-docmind/docmind": {"etiquette": "pertinent", "raison": "Recherche sémantique dans des PDF, installable sans Docker : « pip install docmind (sans Docker) »."},
+ "synth-docsense/pdfseek": {"etiquette": "pertinent", "raison": "Recherche sémantique dans des PDF, installée par pip et sans Docker : « installation pip, tout en local »."},
+ "synth-notesearch/semantic-drive": {"etiquette": "hors_sujet", "raison": "Recherche dans des PDF, mais Docker obligatoire, contraire à la contrainte : « Docker et Docker Compose »."},
+ "synth-projectbrain/codedoc-search": {"etiquette": "plausible", "raison": "Indexe aussi des PDF et s'installe par pip, mais vise la documentation d'un projet de code : « la documentation technique d'un projet (Markdown, PDF, wiki) »."},
+ "synth-symbolic/code-index-mcp": {"etiquette": "hors_sujet", "raison": "Indexation de code, pas de PDF : « Serveur MCP qui indexe une base de code »."}
+},
+"M19": {
+ "rdumasia303/deepseek_ocr_app": {"etiquette": "hors_sujet", "raison": "Application d'OCR, sans sauvegarde : « Application web d'OCR fondée sur DeepSeek-OCR »."},
+ "synth-harbor/dockpanel": {"etiquette": "hors_sujet", "raison": "Gestion de Docker sans fonction de sauvegarde : « Nettoyer les images et volumes inutilisés »."},
+ "synth-kubeops/kube-backup-operator": {"etiquette": "hors_sujet", "raison": "Sauvegarde PostgreSQL et volumes, mais exige Kubernetes, contraire à la contrainte : « Cluster Kubernetes 1.27+ »."},
+ "synth-openflow/flowpilot": {"etiquette": "hors_sujet", "raison": "Plateforme d'automatisation, pas un outil de sauvegarde : « Plateforme d'automatisation no-code open source »."},
+ "synth-relayhq/relaymesh": {"etiquette": "hors_sujet", "raison": "Plateforme d'automatisation, pas un outil de sauvegarde : « alternative open source à Zapier »."},
+ "synth-vpsguard/vps-backup": {"etiquette": "pertinent", "raison": "Sauvegarde Linux des bases et volumes sans orchestrateur : « Sauvegarder chaque nuit la base PostgreSQL et les volumes d'un VPS »."}
+},
+"M20": {
+ "synth-apiforge/fastapi-starter": {"etiquette": "hors_sujet", "raison": "Gabarit d'API, pas un agent de code : « Gabarit de projet FastAPI prêt pour la production »."},
+ "synth-codecrew/termpilot": {"etiquette": "pertinent", "raison": "Agent de code libre utilisable avec un modèle local : « Remplacer Claude Code ou Aider par un outil libre et multi-fournisseurs »."},
+ "synth-codelens/codelens": {"etiquette": "hors_sujet", "raison": "Recherche de code, pas un agent de code : « Recherche sémantique dans le code source »."},
+ "synth-codeseek/repo-ask": {"etiquette": "hors_sujet", "raison": "Recherche de code en ligne de commande, pas un agent qui modifie les fichiers : « Recherche sémantique en ligne de commande dans le code »."},
+ "synth-cpuocr/onnx-ocr-lite": {"etiquette": "hors_sujet", "raison": "Outil d'OCR, sans rapport avec un agent de code : « OCR léger fondé sur des modèles ONNX quantifiés »."},
+ "synth-flowkit/n8n-workflow-templates": {"etiquette": "hors_sujet", "raison": "Modèles pour n8n, pas un agent de code : « modèles de workflows n8n prêts à importer »."},
+ "synth-nodeforge/n8n-nodes-pdfgen": {"etiquette": "hors_sujet", "raison": "Nœud de génération de PDF, pas un agent de code : « Nœud communautaire n8n qui génère des PDF »."},
+ "synth-openflow/flowpilot": {"etiquette": "hors_sujet", "raison": "Plateforme d'automatisation no-code, pas un agent de code : « Plateforme d'automatisation no-code open source »."},
+ "synth-projectbrain/codedoc-search": {"etiquette": "hors_sujet", "raison": "Moteur de recherche, pas un agent de code : « Recherche sémantique unifiée dans le code source et la documentation »."}
+},
+"M21": {
+ "ohf-voice/piper1-gpl": {"etiquette": "hors_sujet", "raison": "Synthèse vocale, l'inverse d'une transcription : « Moteur de synthèse vocale (text-to-speech) »."},
+ "synth-inkread/handwrite-ocr": {"etiquette": "hors_sujet", "raison": "Lecture d'écriture manuscrite, pas de transcription audio : « Reconnaissance d'écriture manuscrite par modèle transformeur »."},
+ "synth-voxscribe/whisper-batch": {"etiquette": "pertinent", "raison": "Sous-titrage en lot de vidéos, sans GPU obligatoire : « fonctionne aussi sur CPU, plus lentement »."}
+},
+"M22": {
+ "synth-bimtools/ifc-quantities": {"etiquette": "hors_sujet", "raison": "Métrés depuis des maquettes IFC, sans OCR : « Extraction des quantités d'une maquette IFC »."},
+ "synth-chantierlab/planchantier": {"etiquette": "hors_sujet", "raison": "Planification de chantier, sans OCR : « Application web de planification de chantier »."},
+ "synth-eurocalc/ba-ec2": {"etiquette": "hors_sujet", "raison": "Calcul de béton armé, sans OCR : « Bibliothèque Python de calcul de sections en béton armé »."},
+ "synth-inkread/handwrite-ocr": {"etiquette": "hors_sujet", "raison": "Lit les copies manuscrites, mais exige un GPU NVIDIA, contraire à la contrainte : « l'exécution sur CPU n'est pas prise en charge »."},
+ "synth-reactpdf/react-pdf-annotator": {"etiquette": "hors_sujet", "raison": "Visionneuse de PDF sans reconnaissance de texte : « ne fait ni OCR ni extraction de texte »."},
+ "synth-tabclean/csv-cleaner": {"etiquette": "hors_sujet", "raison": "Nettoyage de tableurs, sans OCR : « Nettoyage de fichiers CSV et Excel »."}
+},
+"M23": {
+ "synth-chantierlab/planchantier": {"etiquette": "hors_sujet", "raison": "Planification de chantier, pas de dimensionnement de structure : « diagramme de Gantt, calcul du chemin critique »."},
+ "synth-eurocalc/ba-ec2": {"etiquette": "hors_sujet", "raison": "Calcul de béton armé selon l'Eurocode 2, pas de charpente métallique selon l'Eurocode 3 : « calcul de sections en béton armé selon l'Eurocode 2 »."},
+ "synth-flowops/n8n-operator": {"etiquette": "hors_sujet", "raison": "Déploiement de n8n, sans rapport : « Opérateur Kubernetes qui déploie n8n »."},
+ "synth-inkread/handwrite-ocr": {"etiquette": "hors_sujet", "raison": "Lecture d'écriture manuscrite, sans rapport : « Reconnaissance d'écriture manuscrite »."},
+ "synth-quizforge/moodle-quizgen": {"etiquette": "hors_sujet", "raison": "Génération de QCM, sans rapport avec le calcul de structures : « Génère des questions de QCM au format Moodle XML ou GIFT »."}
+},
+"M24": {
+ "caviraoss/pagelm": {"etiquette": "hors_sujet", "raison": "Transformation de supports de cours, sans emploi du temps : « transforme des supports d'étude en ressources interactives »."},
+ "rdumasia303/deepseek_ocr_app": {"etiquette": "hors_sujet", "raison": "Application d'OCR, sans rapport : « Application web d'OCR fondée sur DeepSeek-OCR »."},
+ "synth-chantierlab/planchantier": {"etiquette": "hors_sujet", "raison": "Planning de chantier et affectation d'équipes, pas la construction d'emplois du temps scolaires : « affectation des équipes et des engins »."},
+ "synth-eurocalc/ba-ec2": {"etiquette": "hors_sujet", "raison": "Calcul de béton armé, sans rapport : « Bibliothèque Python de calcul de sections en béton armé »."},
+ "synth-tabclean/csv-cleaner": {"etiquette": "hors_sujet", "raison": "Nettoyage de tableurs, sans planification : « Nettoyage de fichiers CSV et Excel »."}
+},
+"M25": {
+ "synth-adminkit/fastapi-backoffice": {"etiquette": "hors_sujet", "raison": "Interface d'administration pour FastAPI, sans rapport avec l'IFC : « Interface d'administration générée automatiquement pour une application FastAPI »."},
+ "synth-bimtools/ifc-quantities": {"etiquette": "pertinent", "raison": "Répond exactement au besoin depuis une maquette IFC : « volumes de béton, surfaces de murs et de dalles »."},
+ "synth-docmind/docmind": {"etiquette": "hors_sujet", "raison": "Recherche dans des documents, pas d'extraction de quantités IFC : « Recherche sémantique dans des documents (PDF, Word, PowerPoint, scans avec OCR) »."},
+ "synth-nodeforge/n8n-nodes-pdfgen": {"etiquette": "hors_sujet", "raison": "Génération de PDF dans n8n, sans rapport avec l'IFC : « Nœud communautaire n8n qui génère des PDF »."},
+ "synth-scanflow/receipt-extractor": {"etiquette": "hors_sujet", "raison": "Extraction de tickets et de factures, pas de maquettes IFC : « Extraction des données de tickets de caisse et de factures »."}
+},
+"M26": {
+ "caviraoss/pagelm": {"etiquette": "plausible", "raison": "Génère des quiz à partir de cours, mais l'export vers Moodle n'est pas mentionné : « Générer des quiz et des fiches de révision à partir de supports de cours »."},
+ "synth-docmind/docmind": {"etiquette": "hors_sujet", "raison": "Recherche dans des documents, sans génération de QCM : « Recherche sémantique dans des documents »."},
+ "synth-docsense/pdfseek": {"etiquette": "hors_sujet", "raison": "Recherche dans des PDF, sans génération de QCM : « Moteur de recherche sémantique local pour une bibliothèque de PDF »."},
+ "synth-eurocalc/ba-ec2": {"etiquette": "hors_sujet", "raison": "Exercices de béton armé calculés, pas de QCM depuis des PDF de cours : « Générer des exercices corrigés de béton armé pour les étudiants »."},
+ "synth-quizforge/moodle-quizgen": {"etiquette": "pertinent", "raison": "Répond exactement au besoin : « Génère des questions de QCM au format Moodle XML ou GIFT à partir d'un cours en PDF »."}
+},
+"M27": {
+ "evidentlyai/evidently": {"etiquette": "hors_sujet", "raison": "Surveillance de systèmes d'IA, sans suivi de cryptos : « Cadre open source d'évaluation, de test et de surveillance des systèmes d'IA »."},
+ "huginn/huginn": {"etiquette": "hors_sujet", "raison": "Agents de veille généraux, sans suivi de portefeuille ni calcul de plus-values : « Surveiller des sites web ou des flux RSS et envoyer des alertes »."},
+ "synth-coinbook/coinledger-lite": {"etiquette": "pertinent", "raison": "Répond exactement au besoin : « Regrouper les avoirs de plusieurs plateformes d'échange » et « Calculer les plus-values réalisées »."},
+ "synth-docsense/pdfseek": {"etiquette": "hors_sujet", "raison": "Recherche dans des PDF, sans rapport : « Moteur de recherche sémantique local pour une bibliothèque de PDF »."},
+ "synth-opswatch/n8n-watchtower": {"etiquette": "hors_sujet", "raison": "Supervision de n8n, sans rapport : « Tableau de bord de supervision des exécutions n8n »."}
+},
+"M28": {
+ "docling-project/docling": {"etiquette": "pertinent", "raison": "Répond exactement au besoin : « Convertir des PDF techniques en Markdown avant un traitement par LLM »."},
+ "synth-notesearch/semantic-drive": {"etiquette": "hors_sujet", "raison": "Recherche dans des documents, sans conversion en Markdown : « Recherche sémantique auto-hébergée dans des documents bureautiques »."},
+ "synth-projectbrain/codedoc-search": {"etiquette": "hors_sujet", "raison": "Moteur de recherche code et documentation, sans conversion de PDF : « Recherche sémantique unifiée dans le code source et la documentation »."},
+ "synth-quizforge/moodle-quizgen": {"etiquette": "hors_sujet", "raison": "Transforme un cours PDF en QCM, pas en Markdown : « Génère des questions de QCM au format Moodle XML ou GIFT »."},
+ "synth-tablevision/tablereader": {"etiquette": "plausible", "raison": "Ne convertit que les tableaux de PDF scannés, pas le document entier : « extrait les tableaux de PDF scannés et de photos de documents vers CSV, Excel ou Markdown »."}
+},
+"M29": {
+ "ohf-voice/piper1-gpl": {"etiquette": "pertinent", "raison": "Répond exactement au besoin : « Générer des voix off hors ligne pour des vidéos »."},
+ "resemble-ai/chatterbox": {"etiquette": "plausible", "raison": "Synthèse vocale open source, mais le fonctionnement hors ligne n'est pas précisé : « SoTA open-source TTS »."},
+ "synth-codecrew/termpilot": {"etiquette": "hors_sujet", "raison": "Agent de code, sans synthèse vocale : « Agent de code open source pour le terminal »."},
+ "synth-docsense/pdfseek": {"etiquette": "hors_sujet", "raison": "Recherche dans des PDF, sans synthèse vocale : « Moteur de recherche sémantique local pour une bibliothèque de PDF »."},
+ "synth-quizforge/moodle-quizgen": {"etiquette": "hors_sujet", "raison": "Génération de QCM, sans synthèse vocale : « Génère des questions de QCM au format Moodle XML ou GIFT »."}
+},
+"M30": {
+ "paddlepaddle/paddleocr": {"etiquette": "hors_sujet", "raison": "Outil d'OCR, sans planification : « boîte à outils OCR légère et puissante »."},
+ "synth-pdfstack/pdf-toolbox-server": {"etiquette": "hors_sujet", "raison": "Manipulation de PDF, sans planning : « Application web auto-hébergée de manipulation de PDF »."},
+ "synth-reactpdf/react-pdf-annotator": {"etiquette": "hors_sujet", "raison": "Annotation de plans PDF, sans Gantt ni chemin critique : « Annoter des plans PDF dans un portail de suivi de chantier »."},
+ "synth-uikit/react-blocks": {"etiquette": "hors_sujet", "raison": "Composants React génériques, sans diagramme de Gantt ni chemin critique : « graphiques et mises en page de tableau de bord »."},
+ "synth-vuekit/vue-dash-components": {"etiquette": "hors_sujet", "raison": "Composants de tableau de bord génériques, sans Gantt ni chemin critique : « Composants Vue 3 pour tableaux de bord »."}
+}
+}}

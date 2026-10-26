@@ -1,0 +1,20 @@
+{
+ "requetes": [
+  {
+   "id": "N05",
+   "requete": "Une alternative no-code à n8n et à Zapier, que je puisse héberger moi-même.",
+   "candidats": [
+    "synth-mailroom/inbox-parser"
+   ]
+  },
+  {
+   "id": "N18",
+   "requete": "An open-source coding agent similar to Claude Code that I can run with local models.",
+   "candidats": [
+    "anomalyco/opencode",
+    "assafelovic/gpt-researcher",
+    "openhands/openhands"
+   ]
+  }
+ ]
+}

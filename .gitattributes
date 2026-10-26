@@ -3,3 +3,12 @@
 tests/fixtures/redecouverte/requetes_independantes_lot4.json -text
 tests/fixtures/redecouverte/PROTOCOLE_QUALIFICATION_LOT4.md -text
 tests/fixtures/redecouverte/requetes_controle_lot4.json -text
+# Lot 5 : jeux N (indépendant) et M (validation), suppléments de fiches fictives et protocoles, à l'octet près
+tests/fixtures/redecouverte/lot5_supplement_N.json -text
+tests/fixtures/redecouverte/requetes_lot5_N.json -text
+tests/fixtures/redecouverte/PROTOCOLE_LOT5_N.md -text
+tests/fixtures/redecouverte/lot5_supplement_M.json -text
+tests/fixtures/redecouverte/requetes_lot5_M.json -text
+tests/fixtures/redecouverte/PROTOCOLE_LOT5_M.md -text
+# Lot 5 : règles de décision figées, empreintes du code des variantes et jugements des analystes, à l'octet près
+tests/fixtures/redecouverte/qualification_lot5/** -text

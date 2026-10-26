@@ -1,0 +1,21 @@
+{
+  "analyste": "B",
+  "jugements": {
+    "M09": {
+      "synth-flowgen/n8n-flow-genie": {
+        "etiquette": "plausible",
+        "raison": "Outil voisin installable avec pip (sans Docker) qui génère des workflows mais ne les exécute pas : il faut « une instance n8n seulement pour importer le résultat », et la fiche ne dit pas si cette instance peut tourner sans conteneur."
+      },
+      "synth-mailroom/inbox-parser": {
+        "etiquette": "hors_sujet",
+        "raison": "Service spécialisé d'extraction d'e-mails et de factures vers JSON, qui sert à « déclencher un workflow n8n, Make ou Zapier par webhook » sans être lui-même une plateforme d'automatisation de workflows."
+      }
+    },
+    "M14": {
+      "synth-agentskills/claude-code-skills": {
+        "etiquette": "hors_sujet",
+        "raison": "Collection d'extensions pour Claude Code (« revue de code, écriture de tests, documentation et migrations ») ; elle n'offre pas de recherche unifiée répondant aux questions sur le code et la documentation de conception."
+      }
+    }
+  }
+}

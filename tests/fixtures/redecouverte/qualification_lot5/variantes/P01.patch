@@ -1,0 +1,11 @@
+--- a/redecouverte_lexique.py
++++ b/redecouverte_lexique.py
+@@ -142,7 +142,7 @@
+         'web research', 'research agent', 'agent de recherche'], ['veille', 'recherche']),
+     'recherche': (F, ['recherche', 'recherches', 'rechercher', 'search', 'research'], []),
+     'recherche_semantique': (E, ['recherche sémantique', 'semantic search', 'recherche hybride',
+-        'hybrid search'], ['rag', 'base_vectorielle']),
++        'hybrid search', 'recherche de code sémantique', 'semantic code search'], ['rag', 'base_vectorielle']),
+     'automatisation': (E, ['automatiser', 'automatisation', 'automatisations', 'automatique',
+         'automatiquement', 'automatisé', 'automatisée', 'automatisés', 'automatise', 'automatisent',
+         'automate', 'automates', 'automation', 'automated', 'automating', 'tâches planifiées', 'cron'],

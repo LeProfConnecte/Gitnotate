@@ -1,0 +1,19 @@
+--- a/redecouverte_lexique.py
++++ b/redecouverte_lexique.py
+@@ -142,13 +142,14 @@
+         'web research', 'research agent', 'agent de recherche'], ['veille', 'recherche']),
+     'recherche': (F, ['recherche', 'recherches', 'rechercher', 'search', 'research'], []),
+     'recherche_semantique': (E, ['recherche sémantique', 'semantic search', 'recherche hybride',
+-        'hybrid search'], ['rag', 'base_vectorielle']),
++        'hybrid search', 'recherche de code sémantique', 'semantic code search'], ['rag', 'base_vectorielle']),
+     'automatisation': (E, ['automatiser', 'automatisation', 'automatisations', 'automatique',
+         'automatiquement', 'automatisé', 'automatisée', 'automatisés', 'automatise', 'automatisent',
+         'automate', 'automates', 'automation', 'automated', 'automating', 'tâches planifiées', 'cron'],
+         ['workflow']),
+-    'workflow': (E, ['workflow', 'workflows', 'flux de travail', 'flux de travaux', 'zapier', 'n8n',
++    'workflow': (E, ['workflow', 'workflows', 'flux de travail', 'flux de travaux', 'zapier',
+         'orchestration'], ['automatisation', 'nocode']),
++    'n8n': (E, ['n8n'], []),
+     'nocode': (E, ['no-code', 'sans code', 'low-code', 'nocode', 'lowcode', 'glisser-déposer', 'drag and drop'],
+         ['workflow']),
+     'scraping': (E, ['scraping', 'scraper', 'scrapers', 'scrape', 'scrapes', 'scraped', 'crawler', 'crawlers',

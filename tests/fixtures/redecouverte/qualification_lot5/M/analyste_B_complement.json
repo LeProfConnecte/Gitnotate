@@ -1,0 +1,29 @@
+{
+ "analyste": "B",
+ "jugements": {
+  "M07": {
+   "public-apis/public-apis": {
+    "etiquette": "hors_sujet",
+    "raison": "C'est un simple répertoire d'API (« Une liste collective d'API gratuites »), pas un framework web Python capable de remplacer FastAPI."
+   },
+   "synth-coinbook/coinledger-lite": {
+    "etiquette": "hors_sujet",
+    "raison": "C'est une application de finance personnelle (« Suivi de portefeuille de cryptomonnaies auto-hébergé »), sans rapport avec un framework d'API Python."
+   },
+   "synth-cpuocr/onnx-ocr-lite": {
+    "etiquette": "hors_sujet",
+    "raison": "C'est une bibliothèque d'OCR (« OCR léger fondé sur des modèles ONNX quantifiés ») qui se greffe sur une API (« Ajouter de l'OCR à une API Python »), mais ne remplace pas FastAPI."
+   },
+   "synth-migratekit/zap2n8n": {
+    "etiquette": "hors_sujet",
+    "raison": "C'est un outil de migration d'automatisations (« transforme des Zaps exportés depuis Zapier en workflows n8n importables »), sans aucun lien avec FastAPI ni avec la migration de routes d'API Python."
+   }
+  },
+  "M13": {
+   "synth-codeseek/repo-ask": {
+    "etiquette": "pertinent",
+    "raison": "La fiche répond au besoin (« Recherche sémantique en ligne de commande dans le code d'un ou plusieurs dépôts Git ») et respecte l'exclusion demandée (« les PDF et documents bureautiques ne sont pas indexés »)."
+   }
+  }
+ }
+}

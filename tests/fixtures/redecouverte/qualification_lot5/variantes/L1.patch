@@ -1,0 +1,74 @@
+--- a/redecouverte.py
++++ b/redecouverte.py
+@@ -2504,6 +2504,23 @@
+     return mot.isdigit() and len(mot) <= 2
+ 
+ 
++def composer(concepts: List[Concept]) -> List[Concept]:
++    """Compositions du lexique (lexique.COMPOSITIONS) : un concept et un mot hors lexique de la même requête
++    deviennent le concept composé, à la place du premier et avec son rôle (« recherche sémantique » + « code »
++    -> recherche_code). Le mot absorbé ne cherche plus seul : sa surface, jointe par une espace, ne produit aucun
++    terme (« code » seul trouverait n'importe quelle fiche qui en parle)."""
++    lex = lexique_compile()
++    for cid, mots, compose in lexique.COMPOSITIONS:
++        base = next((c for c in concepts if c.lexique == cid), None)
++        libres = [c for c in concepts if c.lexique is None and c.cle in mots]
++        if base is None or not libres or any(c.lexique == compose for c in concepts):
++            continue
++        nouveau = Concept(compose, compose, [' '.join([*base.surface, *(c.cle for c in libres)])],
++                          [' + '.join([base.nom, *(c.nom for c in libres)])], lex.classes[compose], base.role)
++        concepts = [nouveau if c is base else c for c in concepts if c not in libres]
++    return concepts
++
++
+ def analyser_requete(texte: str) -> Requete:
+     """Concepts de la requête (§ 15.2) : expressions d'abord, puis négation, contexte, référence, mots
+     vides du cadre de question ; au plus MAX_CONCEPTS concepts."""
+@@ -2590,7 +2607,7 @@
+             if surface not in concept.surface:
+                 concept.surface.append(surface)
+                 concept.mots.append(original)
+-    concepts = list(par_cle.values())
++    concepts = composer(list(par_cle.values()))
+     gardes, tronques = concepts[:MAX_CONCEPTS], [c.nom for c in concepts[MAX_CONCEPTS:]]
+     presents = {c.lexique for c in gardes if c.lexique}
+     for c in gardes:
+--- a/redecouverte_lexique.py
++++ b/redecouverte_lexique.py
+@@ -14,6 +14,8 @@
+   - Déclencheurs de la requête : NEGATIONS (et FIN_NEGATION, NEGATION_ANNULEE), POSSESSIFS (contexte,
+     sauf suivis de PROPRE : « mon propre serveur » désigne l'objet à créer), REFERENCES et
+     EXPRESSIONS_REFERENCE (« alternative à … », « plus simple que … ») ; ils sont testés avant les mots vides.
++  - COMPOSITIONS : un concept et un mot hors lexique de la même requête lus ensemble (« recherche sémantique »
++    + « code » : recherche de code, pas de documents).
+   - INVARIABLES (jamais mis au singulier) et FAUX_AMIS (formes interdites dans un concept, vérifiées
+     par les tests).
+   - Gabarits de cas d'usage des versions 7.2 et antérieures (annexe C) : textes de remplissage que ces
+@@ -143,6 +145,13 @@
+     'recherche': (F, ['recherche', 'recherches', 'rechercher', 'search', 'research'], []),
+     'recherche_semantique': (E, ['recherche sémantique', 'semantic search', 'recherche hybride',
+         'hybrid search'], ['rag', 'base_vectorielle']),
++    # Recherche sémantique dans du code source (lot 5) : notion distincte, voisine de la recherche sémantique
++    # générale (documents, PDF). Les formes où « code » s'intercale (« recherche de code sémantique »,
++    # « semantic code search ») ne contiennent pas l'expression générale ; voir aussi COMPOSITIONS.
++    'recherche_code': (E, ['recherche de code sémantique', 'recherche sémantique de code',
++        'recherche sémantique du code', 'recherche sémantique dans le code', 'semantic code search',
++        'code semantic search', 'semantic search over code', 'semantic search in code',
++        'semantic search for code', 'semantic search of code'], ['recherche_semantique']),
+     'automatisation': (E, ['automatiser', 'automatisation', 'automatisations', 'automatique',
+         'automatiquement', 'automatisé', 'automatisée', 'automatisés', 'automatise', 'automatisent',
+         'automate', 'automates', 'automation', 'automated', 'automating', 'tâches planifiées', 'cron'],
+@@ -295,6 +304,13 @@
+                          "plutôt qu'", 'au lieu de', "au lieu d'", 'au lieu du', 'au lieu des', 'à la place de',
+                          "à la place d'", 'à la place du', 'à la place des', 'mieux que', "mieux qu'",
+                          'instead of', 'rather than', 'simpler than', 'easier than', 'better than')
++# Compositions (lot 5) : (concept, mots libres, concept composé). Quand la requête contient le concept et l'un
++# des mots (forme repliée, n'importe où dans la requête, quel que soit leur rôle), les deux deviennent le concept
++# composé, avec le rôle du premier : « une recherche sémantique dans mon code source » cherche du code, pas des
++# documents.
++COMPOSITIONS = (
++    ('recherche_semantique', frozenset({'code', 'codes', 'codebase', 'codebases'}), 'recherche_code'),
++)
+ INVARIABLES = frozenset({'cours', 'news', 'series', 'corpus', 'status', 'process', 'access', 'analysis', 'windows',
+                          'pandas', 'kubernetes', 'ollama', 'ios', 'gis', 'aws', 'docs', 'sous', 'plus', 'tous',
+                          'mais'})

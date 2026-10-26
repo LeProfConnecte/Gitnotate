@@ -1,0 +1,21 @@
+{
+  "analyste": "A",
+  "jugements": {
+    "M09": {
+      "synth-flowgen/n8n-flow-genie": {
+        "etiquette": "hors_sujet",
+        "raison": "Ce n'est pas un moteur d'automatisation mais un « Générateur de workflows n8n à partir d'une description en langage naturel », dont l'exécution exige « Une instance n8n »."
+      },
+      "synth-mailroom/inbox-parser": {
+        "etiquette": "plausible",
+        "raison": "Service auto-hébergé sans Docker (« pip install inbox-parser ») qui automatise un flux précis e-mail vers JSON, mais ce n'est pas une plateforme générale de workflows : il sert plutôt à « Déclencher un workflow n8n, Make ou Zapier par webhook »."
+      }
+    },
+    "M14": {
+      "synth-agentskills/claude-code-skills": {
+        "etiquette": "hors_sujet",
+        "raison": "C'est une « Collection de skills, de sous-agents et de commandes slash pour Claude Code » (revue de code, tests, documentation), et non un moteur de questions-réponses unifié sur le code et la documentation de conception."
+      }
+    }
+  }
+}

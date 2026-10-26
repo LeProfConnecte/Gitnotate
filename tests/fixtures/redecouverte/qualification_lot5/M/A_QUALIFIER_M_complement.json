@@ -1,0 +1,21 @@
+{
+ "requetes": [
+  {
+   "id": "M07",
+   "requete": "Something to replace FastAPI for a high-traffic Python API, ideally with a way to migrate existing routes.",
+   "candidats": [
+    "public-apis/public-apis",
+    "synth-coinbook/coinledger-lite",
+    "synth-cpuocr/onnx-ocr-lite",
+    "synth-migratekit/zap2n8n"
+   ]
+  },
+  {
+   "id": "M13",
+   "requete": "Semantic code search over several of my repositories — not for PDFs or office documents.",
+   "candidats": [
+    "synth-codeseek/repo-ask"
+   ]
+  }
+ ]
+}

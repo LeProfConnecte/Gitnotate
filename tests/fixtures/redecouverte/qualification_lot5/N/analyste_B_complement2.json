@@ -1,0 +1,27 @@
+{
+  "analyste": "B",
+  "jugements": {
+    "N08": {
+      "docling-project/docling": {
+        "etiquette": "plausible",
+        "raison": "Bibliothèque autonome (pip, sans n8n ni Zapier) qui convertit des documents « en Markdown ou JSON », utile pour des bons de commande en PDF, mais aucune fiche ne mentionne la relève des e-mails ni l'extraction de champs de commande en enregistrements."
+      },
+      "synth-pdfcraft/pdfcraft": {
+        "etiquette": "hors_sujet",
+        "raison": "Boîte à outils PDF limitée à « fusion, découpe, compression, réorganisation des pages et ajout d'une couche texte OCR », sans traitement des e-mails ni production d'enregistrements JSON."
+      }
+    },
+    "N11": {
+      "synth-openflow/flowpilot": {
+        "etiquette": "hors_sujet",
+        "raison": "Il s'agit d'une « plateforme d'automatisation no-code » alternative à Zapier et n8n, qui s'installe avec Docker mais ne propose pas de gérer des conteneurs, leurs logs ou des stacks compose."
+      }
+    },
+    "N30": {
+      "synth-openflow/flowpilot": {
+        "etiquette": "hors_sujet",
+        "raison": "Outil d'automatisation de scénarios (« éditeur visuel de scénarios, plus de 200 connecteurs »), pas une interface web de gestion de conteneurs Docker sur un VPS."
+      }
+    }
+  }
+}

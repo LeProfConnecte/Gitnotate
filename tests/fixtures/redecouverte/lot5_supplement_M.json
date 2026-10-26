@@ -1,0 +1,486 @@
+{
+  "format": "gitnotate-supplement-lot5/1",
+  "fiches": [
+    {
+      "id": "P31",
+      "depot": "synth-relayhq/relaymesh",
+      "nom": "relaymesh",
+      "description": "Plateforme d'automatisation auto-hébergée qui se présente comme une alternative open source à Zapier : éditeur visuel de flux, déclencheurs par webhook, formulaire ou planification, et plus de 120 connecteurs.",
+      "cas_usage": [
+        "Remplacer des Zaps d'envoi de formulaires vers Google Sheets sans payer d'abonnement",
+        "Recevoir sur Telegram une alerte à chaque nouvelle inscription sur un formulaire",
+        "Reprendre des Zaps existants avec l'assistant d'import fourni"
+      ],
+      "installation": "git clone https://github.com/synth-relayhq/relaymesh.git\ncd relaymesh\ndocker compose up -d",
+      "exemple": "Ouvrir http://localhost:7300 puis créer un flux Webhook vers Google Sheets",
+      "prerequis": [
+        "Docker et Docker Compose (seule méthode d'installation prise en charge)",
+        "PostgreSQL 14+ (fourni dans le fichier Compose)",
+        "2 Go de RAM"
+      ],
+      "langage": "TypeScript",
+      "licence": "Apache-2.0",
+      "categorie": "Automatisation/No-code",
+      "brique_pour": ["Automatisations n8n"],
+      "justification": "Alternative auto-hébergée à Zapier, plus simple que n8n mais avec moins de connecteurs ; ne s'installe qu'avec Docker Compose.",
+      "stars": 4200
+    },
+    {
+      "id": "P32",
+      "depot": "synth-yamlops/hookrunner",
+      "nom": "hookrunner",
+      "description": "Moteur d'automatisation léger piloté par des fichiers YAML : chaque flux associe un déclencheur (cron, webhook, dossier surveillé) à des actions (requête HTTP, e-mail, script). Aucune interface graphique.",
+      "cas_usage": [
+        "Lancer chaque matin un script de collecte puis envoyer le résultat par e-mail",
+        "Déclencher un traitement dès qu'un PDF arrive dans un dossier",
+        "Versionner ses automatisations dans Git plutôt que dans une base de données"
+      ],
+      "installation": "curl -fsSL https://github.com/synth-yamlops/hookrunner/releases/latest/download/install.sh | sh",
+      "exemple": "hookrunner run flows/",
+      "prerequis": [
+        "Linux, macOS ou Windows (binaire unique)",
+        "Aucune dépendance : ni Docker, ni base de données"
+      ],
+      "langage": "Go",
+      "licence": "MIT",
+      "categorie": "Automatisation/No-code",
+      "brique_pour": ["Automatisations n8n"],
+      "justification": "Automatisations décrites en YAML et exécutées par un binaire unique ; peut remplacer de petits workflows n8n ou Zapier pour qui préfère des fichiers versionnés, mais sans éditeur visuel ni connecteurs prêts à l'emploi.",
+      "stars": 1900
+    },
+    {
+      "id": "P33",
+      "depot": "synth-n8nbridge/n8n-mcp-bridge",
+      "nom": "n8n-mcp-bridge",
+      "description": "Serveur MCP qui donne à un assistant IA (Claude Code, Claude Desktop, Cursor) l'accès à une instance n8n : lister, créer, modifier et lancer des workflows, et lire le détail des exécutions en échec.",
+      "cas_usage": [
+        "Demander à Claude Code de corriger le workflow n8n qui échoue depuis ce matin",
+        "Créer un workflow de veille dans n8n en le décrivant en langage naturel",
+        "Lister les workflows inactifs d'une instance de production"
+      ],
+      "installation": "npx -y n8n-mcp-bridge",
+      "exemple": "claude mcp add n8n -- npx -y n8n-mcp-bridge --url https://n8n.example.org",
+      "prerequis": [
+        "Instance n8n 1.x avec l'API publique activée et une clé d'API",
+        "Node.js 20+",
+        "Un client compatible MCP (Claude Code, Claude Desktop, Cursor)"
+      ],
+      "langage": "TypeScript",
+      "licence": "MIT",
+      "categorie": "MCP/Intégrations",
+      "brique_pour": ["Automatisations n8n", "IA et agents"],
+      "justification": "Pont MCP entre un assistant IA et une instance n8n existante ; inutile sans n8n.",
+      "stars": 2600
+    },
+    {
+      "id": "P34",
+      "depot": "synth-ccplugins/cc-semantic-search",
+      "nom": "cc-semantic-search",
+      "description": "Plugin Claude Code qui ajoute la commande /find et une skill de recherche sémantique dans le dépôt courant : index local d'embeddings du code, mis à jour à chaque commit.",
+      "cas_usage": [
+        "Demander à Claude Code où sont validés les formulaires, sans connaître les noms de fichiers",
+        "Réduire les tokens consommés en évitant de relire tout le dépôt",
+        "Retrouver du code dupliqué entre modules"
+      ],
+      "installation": "Dans Claude Code : /plugin install cc-semantic-search@synth-ccplugins",
+      "exemple": "/find calcul des pénalités de retard",
+      "prerequis": [
+        "Claude Code avec la prise en charge des plugins",
+        "Python 3.10+",
+        "Fonctionne sur CPU, aucun GPU nécessaire"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "RAG/Recherche",
+      "brique_pour": ["IA et agents"],
+      "justification": "Recherche sémantique de code intégrée à Claude Code sous forme de plugin ; ne sert qu'avec Claude Code.",
+      "stars": 870
+    },
+    {
+      "id": "P35",
+      "depot": "synth-reactpdf/react-pdf-annotator",
+      "nom": "react-pdf-annotator",
+      "description": "Composants React pour afficher des PDF dans une application web et y ajouter surlignages, commentaires et zones rectangulaires, exportables en JSON.",
+      "cas_usage": [
+        "Annoter des plans PDF dans un portail de suivi de chantier",
+        "Laisser les étudiants commenter un sujet d'examen en ligne",
+        "Intégrer une visionneuse de PDF dans un back-office React"
+      ],
+      "installation": "npm install @synth-reactpdf/react-pdf-annotator",
+      "exemple": "<PdfAnnotator url='/plans/r1.pdf' onChange={save} />",
+      "prerequis": [
+        "React 18+",
+        "Un bundler (Vite ou Next.js)"
+      ],
+      "langage": "TypeScript",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": ["Documents et OCR"],
+      "justification": "Visionneuse et annotation de PDF en composants React ; ne fait ni OCR ni extraction de texte.",
+      "stars": 3100
+    },
+    {
+      "id": "P36",
+      "depot": "synth-flowops/n8n-operator",
+      "nom": "n8n-operator",
+      "description": "Opérateur Kubernetes qui déploie n8n en mode file d'attente (queue mode) : instance principale, workers et récepteurs de webhooks séparés, mis à l'échelle automatiquement selon la charge.",
+      "cas_usage": [
+        "Faire tourner n8n en production sur un cluster Kubernetes avec plusieurs workers",
+        "Mettre à jour la version de n8n sans interruption",
+        "Augmenter le nombre de workers quand la file d'exécutions s'allonge"
+      ],
+      "installation": "helm repo add synth-flowops https://synth-flowops.github.io/charts\nhelm install n8n-operator synth-flowops/n8n-operator",
+      "exemple": "kubectl apply -f n8n-instance.yaml",
+      "prerequis": [
+        "Cluster Kubernetes 1.27+",
+        "Helm 3",
+        "PostgreSQL et Redis accessibles depuis le cluster"
+      ],
+      "langage": "Go",
+      "licence": "Apache-2.0",
+      "categorie": "Automatisation/No-code",
+      "brique_pour": ["Automatisations n8n"],
+      "justification": "Déploiement de n8n à grande échelle sur Kubernetes ; surdimensionné pour un VPS unique sous Docker.",
+      "stars": 640
+    },
+    {
+      "id": "P37",
+      "depot": "synth-tabclean/csv-cleaner",
+      "nom": "csv-cleaner",
+      "description": "Nettoyage de fichiers CSV et Excel : détection des doublons, normalisation des dates et des nombres au format français, rapport des lignes en anomalie.",
+      "cas_usage": [
+        "Fusionner les listes d'élèves de plusieurs classes en supprimant les doublons",
+        "Corriger les séparateurs décimaux d'un export comptable avant import",
+        "Produire un rapport des lignes incomplètes d'un fichier fournisseurs"
+      ],
+      "installation": "pip install csv-cleaner",
+      "exemple": "csv-cleaner clean eleves.xlsx --dedupe nom,prenom --out eleves_propres.csv",
+      "prerequis": [
+        "Python 3.9+"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "Données/Analyse",
+      "brique_pour": ["Données"],
+      "justification": "Outil en ligne de commande de nettoyage de tableurs ; s'appelle aussi depuis un nœud Execute Command de n8n, sans en dépendre.",
+      "stars": 520
+    },
+    {
+      "id": "P38",
+      "depot": "synth-codeseek/repo-ask",
+      "nom": "repo-ask",
+      "description": "Recherche sémantique en ligne de commande dans le code d'un ou plusieurs dépôts Git : on pose une question en langage naturel et il renvoie les fonctions pertinentes avec le fichier et les lignes.",
+      "cas_usage": [
+        "Retrouver dans un ancien projet la fonction qui exporte les notes en CSV",
+        "Comprendre une base de code héritée en interrogeant ses modules",
+        "Chercher du code par le sens depuis un terminal SSH sur le VPS"
+      ],
+      "installation": "cargo install repo-ask\nou : binaire précompilé dans les Releases (Linux, macOS, Windows)",
+      "exemple": "repo-ask index ~/projets && repo-ask ask 'envoi des e-mails de relance'",
+      "prerequis": [
+        "Binaire autonome, modèle d'embeddings embarqué : ni Docker ni GPU nécessaires",
+        "Git"
+      ],
+      "langage": "Autres langages",
+      "licence": "Apache-2.0",
+      "categorie": "RAG/Recherche",
+      "brique_pour": ["IA et agents"],
+      "justification": "Recherche sémantique de code sur CPU, sans service externe ; le README précise que les PDF et documents bureautiques ne sont pas indexés.",
+      "stars": 2300
+    },
+    {
+      "id": "P39",
+      "depot": "synth-docmind/docmind",
+      "nom": "docmind",
+      "description": "Recherche sémantique dans des documents (PDF, Word, PowerPoint, scans avec OCR) : questions en langage naturel, réponses citées avec le document et la page. Pensé pour les documents, pas pour le code source.",
+      "cas_usage": [
+        "Interroger tous les CCTP d'une opération pour retrouver les exigences sur les enduits",
+        "Chercher dans les comptes rendus de réunions de chantier d'une année",
+        "Préparer un cours à partir des passages pertinents de plusieurs normes"
+      ],
+      "installation": "docker compose up -d\nou : pip install docmind (sans Docker)",
+      "exemple": "docmind ask 'délai de décoffrage des dalles' --dossier ./cctp",
+      "prerequis": [
+        "Python 3.10+ ou Docker (au choix)",
+        "GPU NVIDIA facultatif : accélère l'OCR et les embeddings, fonctionne aussi sur CPU",
+        "Tesseract pour les PDF scannés"
+      ],
+      "langage": "Python",
+      "licence": "AGPL-3.0",
+      "categorie": "RAG/Recherche",
+      "brique_pour": ["Documents et OCR", "Enseignement"],
+      "justification": "Recherche sémantique dans des PDF et documents bureautiques avec citation de la page ; Docker et GPU facultatifs.",
+      "stars": 5400,
+      "notes": "À comparer avec pdfseek sur les CCTP du lycée."
+    },
+    {
+      "id": "P40",
+      "depot": "synth-inkread/handwrite-ocr",
+      "nom": "handwrite-ocr",
+      "description": "Reconnaissance d'écriture manuscrite par modèle transformeur : copies d'élèves, carnets de chantier et formulaires remplis à la main, avec export en texte ou JSON.",
+      "cas_usage": [
+        "Numériser des copies manuscrites pour les archiver en texte",
+        "Transcrire les notes manuscrites d'un carnet de chantier"
+      ],
+      "installation": "pip install handwrite-ocr[cuda]",
+      "exemple": "handwrite-ocr copies/*.jpg --format json",
+      "prerequis": [
+        "GPU NVIDIA avec au moins 8 Go de VRAM (le README indique que l'exécution sur CPU n'est pas prise en charge)",
+        "CUDA 12+",
+        "Python 3.10+"
+      ],
+      "langage": "Python",
+      "licence": "Apache-2.0",
+      "categorie": "OCR/Documents",
+      "brique_pour": ["Documents et OCR"],
+      "justification": "OCR de l'écriture manuscrite, rare parmi les outils libres ; exige un GPU NVIDIA, donc pas sur le VPS.",
+      "stars": 1500
+    },
+    {
+      "id": "P41",
+      "depot": "synth-flowgen/n8n-flow-genie",
+      "nom": "n8n-flow-genie",
+      "description": "Générateur de workflows n8n à partir d'une description en langage naturel : un LLM produit le fichier JSON du workflow, vérifié contre la liste des nœuds officiels avant export.",
+      "cas_usage": [
+        "Obtenir le squelette d'un workflow formulaire vers Google Sheets puis e-mail, à importer dans n8n",
+        "Générer des variantes d'un même workflow pour plusieurs classes",
+        "Produire des exemples de workflows pour un cours d'automatisation"
+      ],
+      "installation": "pip install n8n-flow-genie",
+      "exemple": "n8n-flow-genie 'chaque lundi, résumer les flux RSS et envoyer le résumé sur Telegram' -o veille.json",
+      "prerequis": [
+        "Python 3.10+",
+        "Clé d'API d'un LLM (OpenAI, Anthropic, Mistral) ou Ollama en local",
+        "Une instance n8n seulement pour importer le résultat"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "Automatisation/No-code",
+      "brique_pour": ["Automatisations n8n", "IA et agents"],
+      "justification": "Produit des workflows n8n importables à partir d'une consigne écrite ; la qualité dépend du LLM utilisé.",
+      "stars": 980
+    },
+    {
+      "id": "P42",
+      "depot": "synth-fastgrep/quickgrep",
+      "nom": "quickgrep",
+      "description": "Recherche textuelle ultra-rapide dans le code par mots exacts et expressions régulières, avec prise en compte du .gitignore. Pas de recherche par le sens.",
+      "cas_usage": [
+        "Trouver toutes les occurrences d'une variable dans un gros dépôt",
+        "Remplacer un nom de fonction dans tout un projet"
+      ],
+      "installation": "cargo install quickgrep",
+      "exemple": "qg 'def export_.*csv' src/",
+      "prerequis": [],
+      "langage": "Autres langages",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": [],
+      "justification": "Équivalent rapide de grep pour le code ; recherche lexicale uniquement, sans index sémantique.",
+      "stars": 7800
+    },
+    {
+      "id": "P43",
+      "depot": "synth-adminkit/fastapi-backoffice",
+      "nom": "fastapi-backoffice",
+      "description": "Interface d'administration générée automatiquement pour une application FastAPI à partir de ses modèles SQLModel ou SQLAlchemy : listes filtrables, formulaires d'édition et gestion des droits.",
+      "cas_usage": [
+        "Ajouter un back-office de gestion des comptes à une API FastAPI existante",
+        "Permettre à un collègue de corriger des données sans accès direct à la base"
+      ],
+      "installation": "pip install fastapi-backoffice",
+      "exemple": "admin = Backoffice(app, engine) puis admin.register(Eleve)",
+      "prerequis": [
+        "Une application FastAPI existante",
+        "Python 3.10+",
+        "SQLModel ou SQLAlchemy 2"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": [],
+      "justification": "Extension d'administration pour FastAPI ; ne fonctionne qu'à l'intérieur d'une application FastAPI.",
+      "stars": 1300
+    },
+    {
+      "id": "P44",
+      "depot": "synth-chantierlab/planchantier",
+      "nom": "planchantier",
+      "description": "Application web de planification de chantier : diagramme de Gantt, calcul du chemin critique, affectation des équipes et des engins, export PDF du planning.",
+      "cas_usage": [
+        "Construire le planning de gros œuvre d'un R+2 avec ses dépendances",
+        "Montrer aux étudiants l'effet d'un retard sur le chemin critique",
+        "Imprimer le planning hebdomadaire à afficher dans la base vie"
+      ],
+      "installation": "git clone https://github.com/synth-chantierlab/planchantier.git\ncd planchantier && npm install && npm run build && npm start",
+      "exemple": "Créer un projet, importer les tâches depuis un fichier Excel, puis afficher le chemin critique",
+      "prerequis": [
+        "Node.js 20+",
+        "PostgreSQL 15+"
+      ],
+      "langage": "TypeScript",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": ["Outils pédagogiques BTS MEC"],
+      "justification": "Planning de chantier avec chemin critique, utilisable en TD de BTS comme en conduite de travaux.",
+      "stars": 760
+    },
+    {
+      "id": "P45",
+      "depot": "synth-eurocalc/ba-ec2",
+      "nom": "ba-ec2",
+      "description": "Bibliothèque Python de calcul de sections en béton armé selon l'Eurocode 2 : flexion simple, effort tranchant, ferraillage minimal, avec génération de notes de calcul en PDF.",
+      "cas_usage": [
+        "Vérifier le ferraillage d'une poutre en flexion simple à l'ELU et à l'ELS",
+        "Générer des exercices corrigés de béton armé pour les étudiants",
+        "Produire une note de calcul PDF à joindre à un dossier"
+      ],
+      "installation": "pip install ba-ec2",
+      "exemple": "Poutre(b=0.25, h=0.50, fck=25).ferraillage(MEd=0.12)",
+      "prerequis": [
+        "Python 3.10+"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": ["Outils pédagogiques BTS MEC", "Enseignement"],
+      "justification": "Calculs de béton armé selon l'Eurocode 2 avec notes de calcul ; utile pour préparer et corriger des TD de BTS.",
+      "stars": 340,
+      "notes": "Vérifier les coefficients avec le cours de RDM avant usage en classe."
+    },
+    {
+      "id": "P46",
+      "depot": "synth-coinbook/coinledger-lite",
+      "nom": "coinledger-lite",
+      "description": "Suivi de portefeuille de cryptomonnaies auto-hébergé : import des transactions depuis les plateformes d'échange (CSV ou API en lecture seule), calcul des plus-values et tableau de bord de répartition.",
+      "cas_usage": [
+        "Regrouper les avoirs de plusieurs plateformes d'échange et portefeuilles",
+        "Calculer les plus-values réalisées sur l'année",
+        "Suivre la répartition d'un portefeuille dans le temps"
+      ],
+      "installation": "docker run -d -p 8800:8800 ghcr.io/synth-coinbook/coinledger-lite\nou : pip install coinledger-lite",
+      "exemple": "coinledger import binance.csv && coinledger report --annee 2025",
+      "prerequis": [
+        "Python 3.11+",
+        "Docker facultatif",
+        "Clés d'API en lecture seule des plateformes à synchroniser"
+      ],
+      "langage": "Python",
+      "licence": "GPL-3.0",
+      "categorie": "Finance/Trading",
+      "brique_pour": ["Données"],
+      "justification": "Suivi de portefeuille crypto et des plus-values, sans trading automatique ; Docker facultatif.",
+      "stars": 2100
+    },
+    {
+      "id": "P47",
+      "depot": "synth-quizforge/moodle-quizgen",
+      "nom": "moodle-quizgen",
+      "description": "Génère des questions de QCM au format Moodle XML ou GIFT à partir d'un cours en PDF ou Markdown, avec un LLM local ou distant, et propose une relecture avant export.",
+      "cas_usage": [
+        "Créer une banque de questions Moodle à partir d'un cours de métré",
+        "Produire des QCM d'entraînement pour chaque chapitre de résistance des matériaux"
+      ],
+      "installation": "pip install moodle-quizgen",
+      "exemple": "quizgen cours_metre.pdf --nb 20 --format gift -o metre.gift",
+      "prerequis": [
+        "Python 3.10+",
+        "Ollama en local ou clé d'API OpenAI ou Mistral"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "Éducation/Cours",
+      "brique_pour": ["Enseignement", "Outils pédagogiques BTS MEC"],
+      "justification": "Génération de QCM importables dans Moodle depuis des supports de cours ; questions à relire avant usage.",
+      "stars": 690
+    },
+    {
+      "id": "P48",
+      "depot": "synth-vuekit/vue-dash-components",
+      "nom": "vue-dash-components",
+      "description": "Composants Vue 3 pour tableaux de bord : graphiques, tableaux paginés et filtrables, cartes d'indicateurs et sélecteurs de dates.",
+      "cas_usage": [
+        "Construire le tableau de bord d'une application de suivi en Vue 3",
+        "Afficher des indicateurs financiers avec des graphiques interactifs"
+      ],
+      "installation": "npm install @synth-vuekit/vue-dash-components",
+      "exemple": "<KpiCard titre='CA mensuel' :valeur='ca' />",
+      "prerequis": [
+        "Vue 3.3+"
+      ],
+      "langage": "TypeScript",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": [],
+      "justification": "Bibliothèque de composants de tableau de bord pour Vue 3 ; non utilisable dans une application React.",
+      "stars": 1100
+    },
+    {
+      "id": "P49",
+      "depot": "synth-vpsguard/vps-backup",
+      "nom": "vps-backup",
+      "description": "Sauvegardes chiffrées et planifiées d'un serveur Linux (dossiers, bases PostgreSQL et MySQL, volumes Docker) vers un stockage S3 ou un autre serveur SSH, avec rotation et alertes en cas d'échec.",
+      "cas_usage": [
+        "Sauvegarder chaque nuit la base PostgreSQL et les volumes d'un VPS",
+        "Recevoir un e-mail quand une sauvegarde échoue",
+        "Restaurer un dossier à une date donnée"
+      ],
+      "installation": "curl -fsSL https://raw.githubusercontent.com/synth-vpsguard/vps-backup/main/install.sh | sudo bash",
+      "exemple": "vps-backup run --profil nuit",
+      "prerequis": [
+        "Linux avec systemd (Windows et macOS non pris en charge)",
+        "restic"
+      ],
+      "langage": "Autres langages",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": [],
+      "justification": "Sauvegarde simple d'un VPS Linux, volumes Docker compris, sans Kubernetes ni orchestrateur.",
+      "stars": 1700
+    },
+    {
+      "id": "P50",
+      "depot": "synth-deskbot/winflow-recorder",
+      "nom": "winflow-recorder",
+      "description": "Automatisation de bureau (RPA) pour Windows : enregistrement de macros (clics, saisies), lecture et écriture de fichiers Excel, exécution planifiée, le tout sans code.",
+      "cas_usage": [
+        "Automatiser la saisie répétitive de notes dans un logiciel de vie scolaire",
+        "Recopier chaque semaine des données d'un fichier Excel dans une application métier sans API"
+      ],
+      "installation": "Télécharger l'installeur .msi depuis les Releases",
+      "exemple": "Enregistrer une macro, puis la planifier chaque lundi à 8 h",
+      "prerequis": [
+        "Windows 10 ou 11 (ne fonctionne pas sous Linux ni macOS)",
+        ".NET 8"
+      ],
+      "langage": "Autres langages",
+      "licence": "MIT",
+      "categorie": "Automatisation/No-code",
+      "brique_pour": [],
+      "justification": "Robot logiciel pour automatiser des applications de bureau Windows sans API ; ne remplace pas un outil d'intégration web comme n8n.",
+      "stars": 2900
+    },
+    {
+      "id": "P51",
+      "depot": "synth-projectbrain/codedoc-search",
+      "nom": "codedoc-search",
+      "description": "Recherche sémantique unifiée dans le code source et la documentation technique d'un projet (Markdown, PDF, wiki) : une seule question renvoie à la fois les fonctions et les pages de documentation pertinentes.",
+      "cas_usage": [
+        "Retrouver à la fois la spécification PDF d'une fonctionnalité et le code qui l'implémente",
+        "Aider un nouvel arrivant à explorer un projet et sa documentation"
+      ],
+      "installation": "pip install codedoc-search",
+      "exemple": "cds index . --docs docs/ && cds ask 'calcul de la remise'",
+      "prerequis": [
+        "Python 3.10+",
+        "Clé d'API OpenAI ou modèle d'embeddings local"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "RAG/Recherche",
+      "brique_pour": ["IA et agents"],
+      "justification": "Recherche sémantique couvrant le code et la documentation d'un même projet ; moins précise que des outils spécialisés sur l'un ou l'autre.",
+      "stars": 1250
+    }
+  ]
+}

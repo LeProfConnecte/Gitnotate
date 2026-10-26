@@ -1,0 +1,360 @@
+{
+ "requetes": [
+  {
+   "id": "M01",
+   "requete": "Je cherche des modèles de workflows pour n8n, prêts à importer, pour ne pas partir de zéro.",
+   "candidats": [
+    "huginn/huginn",
+    "neuml/txtai",
+    "synth-apiforge/fastapi-starter",
+    "synth-flowgen/n8n-flow-genie",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-n8nbridge/n8n-mcp-bridge",
+    "synth-nodeforge/n8n-nodes-pdfgen"
+   ]
+  },
+  {
+   "id": "M02",
+   "requete": "Is there an add-on for Claude Code that pings my phone when a long task is done?",
+   "candidats": [
+    "davila7/claude-code-templates",
+    "synth-agentskills/claude-code-skills",
+    "synth-ccplugins/cc-semantic-search",
+    "synth-n8nbridge/n8n-mcp-bridge",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "M03",
+   "requete": "Dans mon instance n8n, je veux être prévenu dès qu'un workflow plante en production.",
+   "candidats": [
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-flowops/n8n-operator",
+    "synth-migratekit/zap2n8n",
+    "synth-n8nbridge/n8n-mcp-bridge",
+    "synth-openflow/flowpilot",
+    "synth-opswatch/n8n-watchtower"
+   ]
+  },
+  {
+   "id": "M04",
+   "requete": "I need a PDF viewer with highlights and comments that I can drop into my React app.",
+   "candidats": [
+    "docling-project/docling",
+    "rdumasia303/deepseek_ocr_app",
+    "synth-chantierlab/planchantier",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-pdfstack/pdf-toolbox-server",
+    "synth-reactpdf/react-pdf-annotator"
+   ]
+  },
+  {
+   "id": "M05",
+   "requete": "Sur mon cluster Kubernetes, je voudrais faire tourner n8n avec plusieurs workers qui montent en charge.",
+   "candidats": [
+    "huginn/huginn",
+    "synth-flowgen/n8n-flow-genie",
+    "synth-flowops/n8n-operator",
+    "synth-migratekit/zap2n8n",
+    "synth-openflow/flowpilot",
+    "synth-opswatch/n8n-watchtower",
+    "synth-relayhq/relaymesh"
+   ]
+  },
+  {
+   "id": "M06",
+   "requete": "Une alternative à Zapier que je peux héberger moi-même, avec un éditeur visuel.",
+   "candidats": [
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-openflow/flowpilot",
+    "synth-relayhq/relaymesh"
+   ]
+  },
+  {
+   "id": "M07",
+   "requete": "Something to replace FastAPI for a high-traffic Python API, ideally with a way to migrate existing routes.",
+   "candidats": [
+    "rdumasia303/deepseek_ocr_app",
+    "synth-adminkit/fastapi-backoffice",
+    "synth-apiforge/fastapi-starter",
+    "synth-hyperui/htmx-kit",
+    "synth-swiftapi/velora"
+   ]
+  },
+  {
+   "id": "M08",
+   "requete": "Des composants d'interface pour monter un back-office, mais pas en React.",
+   "candidats": [
+    "jesseduffield/lazygit",
+    "rdumasia303/deepseek_ocr_app",
+    "synth-adminkit/fastapi-backoffice",
+    "synth-hyperui/htmx-kit",
+    "synth-reactpdf/react-pdf-annotator",
+    "synth-uikit/react-blocks",
+    "synth-vuekit/vue-dash-components"
+   ]
+  },
+  {
+   "id": "M09",
+   "requete": "Self-hosted workflow automation that doesn't rely on Docker — containers aren't allowed on that server.",
+   "candidats": [
+    "datagouv/datagouv-mcp",
+    "huginn/huginn",
+    "synth-harbor/dockpanel",
+    "synth-migratekit/zap2n8n",
+    "synth-n8nbridge/n8n-mcp-bridge",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-openflow/flowpilot",
+    "synth-opswatch/n8n-watchtower",
+    "synth-pdfstack/pdf-toolbox-server",
+    "synth-relayhq/relaymesh",
+    "synth-vpsguard/vps-backup"
+   ]
+  },
+  {
+   "id": "M10",
+   "requete": "Avec Claude Code sur un gros dépôt, j'aimerais qu'il retrouve les fonctions utiles par le sens au lieu de tout relire.",
+   "candidats": [
+    "davila7/claude-code-templates",
+    "synth-ccplugins/cc-semantic-search",
+    "synth-codeseek/repo-ask",
+    "synth-fastgrep/quickgrep",
+    "synth-notesearch/semantic-drive",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "M11",
+   "requete": "Semantic search across a folder of PDF standards and course notes, giving me the page number for each passage.",
+   "candidats": [
+    "caviraoss/pagelm",
+    "synth-docmind/docmind",
+    "synth-docsense/pdfseek",
+    "synth-eurocalc/ba-ec2",
+    "vectifyai/pageindex"
+   ]
+  },
+  {
+   "id": "M12",
+   "requete": "Un moteur de recherche sémantique pour mes documents de cours et mes normes, pas pour du code.",
+   "candidats": [
+    "synth-ccplugins/cc-semantic-search",
+    "synth-codelens/codelens",
+    "synth-codeseek/repo-ask",
+    "synth-docsense/pdfseek",
+    "synth-notesearch/semantic-drive",
+    "synth-projectbrain/codedoc-search",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "M13",
+   "requete": "Semantic code search over several of my repositories — not for PDFs or office documents.",
+   "candidats": [
+    "synth-ccplugins/cc-semantic-search",
+    "synth-codelens/codelens",
+    "synth-docmind/docmind",
+    "synth-docsense/pdfseek",
+    "synth-notesearch/semantic-drive",
+    "synth-projectbrain/codedoc-search",
+    "synth-reactpdf/react-pdf-annotator"
+   ]
+  },
+  {
+   "id": "M14",
+   "requete": "One search box that answers questions from both the source code and the design documentation of a project.",
+   "candidats": [
+    "anomalyco/opencode",
+    "synth-codelens/codelens",
+    "synth-codeseek/repo-ask",
+    "synth-docsense/pdfseek",
+    "synth-projectbrain/codedoc-search"
+   ]
+  },
+  {
+   "id": "M15",
+   "requete": "J'ai un bout de code et je voudrais retrouver du code qui fait la même chose dans mes autres projets.",
+   "candidats": [
+    "synth-ccplugins/cc-semantic-search",
+    "synth-codelens/codelens",
+    "synth-codeseek/repo-ask",
+    "synth-projectbrain/codedoc-search",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "M16",
+   "requete": "Faire de l'OCR sur des documents imprimés directement sur mon VPS, qui n'a pas de carte graphique.",
+   "candidats": [
+    "docling-project/docling",
+    "paddlepaddle/paddleocr",
+    "synth-cpuocr/onnx-ocr-lite",
+    "synth-notesearch/semantic-drive",
+    "synth-pdfstack/pdf-toolbox-server"
+   ]
+  },
+  {
+   "id": "M17",
+   "requete": "A tool to merge and compress PDFs on my Windows laptop, without installing Docker.",
+   "candidats": [
+    "deepseek-ai/deepseek-ocr",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-pdfcraft/pdfcraft",
+    "synth-pdfstack/pdf-toolbox-server",
+    "synth-reactpdf/react-pdf-annotator",
+    "synth-yamlops/hookrunner"
+   ]
+  },
+  {
+   "id": "M18",
+   "requete": "Une recherche sémantique dans mes PDF, mais sans être obligé de passer par Docker.",
+   "candidats": [
+    "neuml/txtai",
+    "synth-ccplugins/cc-semantic-search",
+    "synth-codelens/codelens",
+    "synth-codeseek/repo-ask",
+    "synth-docmind/docmind",
+    "synth-docsense/pdfseek",
+    "synth-notesearch/semantic-drive",
+    "synth-projectbrain/codedoc-search",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "M19",
+   "requete": "A Linux tool to back up my VPS — PostgreSQL databases and Docker volumes — without needing Kubernetes.",
+   "candidats": [
+    "rdumasia303/deepseek_ocr_app",
+    "synth-harbor/dockpanel",
+    "synth-kubeops/kube-backup-operator",
+    "synth-openflow/flowpilot",
+    "synth-relayhq/relaymesh",
+    "synth-vpsguard/vps-backup"
+   ]
+  },
+  {
+   "id": "M20",
+   "requete": "Un équivalent libre de Claude Code qui tourne avec un modèle local, sans abonnement ni clé d'API payante.",
+   "candidats": [
+    "synth-apiforge/fastapi-starter",
+    "synth-codecrew/termpilot",
+    "synth-codelens/codelens",
+    "synth-codeseek/repo-ask",
+    "synth-cpuocr/onnx-ocr-lite",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-openflow/flowpilot",
+    "synth-projectbrain/codedoc-search"
+   ]
+  },
+  {
+   "id": "M21",
+   "requete": "Batch-transcribe my lecture videos into subtitles on a machine with no GPU.",
+   "candidats": [
+    "ohf-voice/piper1-gpl",
+    "synth-inkread/handwrite-ocr",
+    "synth-voxscribe/whisper-batch"
+   ]
+  },
+  {
+   "id": "M22",
+   "requete": "Read handwritten student exam copies into text on a laptop that has no NVIDIA graphics card.",
+   "candidats": [
+    "synth-bimtools/ifc-quantities",
+    "synth-chantierlab/planchantier",
+    "synth-eurocalc/ba-ec2",
+    "synth-inkread/handwrite-ocr",
+    "synth-reactpdf/react-pdf-annotator",
+    "synth-tabclean/csv-cleaner"
+   ]
+  },
+  {
+   "id": "M23",
+   "requete": "Un logiciel pour dimensionner une charpente métallique selon l'Eurocode 3.",
+   "candidats": [
+    "synth-chantierlab/planchantier",
+    "synth-eurocalc/ba-ec2",
+    "synth-flowops/n8n-operator",
+    "synth-inkread/handwrite-ocr",
+    "synth-quizforge/moodle-quizgen"
+   ]
+  },
+  {
+   "id": "M24",
+   "requete": "Automatically build a school timetable by assigning teachers, rooms and classes to time slots.",
+   "candidats": [
+    "caviraoss/pagelm",
+    "rdumasia303/deepseek_ocr_app",
+    "synth-chantierlab/planchantier",
+    "synth-eurocalc/ba-ec2",
+    "synth-tabclean/csv-cleaner"
+   ]
+  },
+  {
+   "id": "M25",
+   "requete": "Sortir automatiquement les volumes de béton et les surfaces à partir d'une maquette IFC.",
+   "candidats": [
+    "synth-adminkit/fastapi-backoffice",
+    "synth-bimtools/ifc-quantities",
+    "synth-docmind/docmind",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-scanflow/receipt-extractor"
+   ]
+  },
+  {
+   "id": "M26",
+   "requete": "Turn my course PDFs into multiple-choice questions I can import into Moodle.",
+   "candidats": [
+    "caviraoss/pagelm",
+    "synth-docmind/docmind",
+    "synth-docsense/pdfseek",
+    "synth-eurocalc/ba-ec2",
+    "synth-quizforge/moodle-quizgen"
+   ]
+  },
+  {
+   "id": "M27",
+   "requete": "Suivre mon portefeuille de cryptos réparti sur plusieurs plateformes et calculer mes plus-values.",
+   "candidats": [
+    "evidentlyai/evidently",
+    "huginn/huginn",
+    "synth-coinbook/coinledger-lite",
+    "synth-docsense/pdfseek",
+    "synth-opswatch/n8n-watchtower"
+   ]
+  },
+  {
+   "id": "M28",
+   "requete": "Convert technical PDFs into clean Markdown before feeding them to an LLM.",
+   "candidats": [
+    "docling-project/docling",
+    "synth-notesearch/semantic-drive",
+    "synth-projectbrain/codedoc-search",
+    "synth-quizforge/moodle-quizgen",
+    "synth-tablevision/tablereader"
+   ]
+  },
+  {
+   "id": "M29",
+   "requete": "Générer des voix off hors ligne pour mes vidéos pédagogiques.",
+   "candidats": [
+    "ohf-voice/piper1-gpl",
+    "resemble-ai/chatterbox",
+    "synth-codecrew/termpilot",
+    "synth-docsense/pdfseek",
+    "synth-quizforge/moodle-quizgen"
+   ]
+  },
+  {
+   "id": "M30",
+   "requete": "Plan a construction schedule as a Gantt chart and see the critical path.",
+   "candidats": [
+    "paddlepaddle/paddleocr",
+    "synth-pdfstack/pdf-toolbox-server",
+    "synth-reactpdf/react-pdf-annotator",
+    "synth-uikit/react-blocks",
+    "synth-vuekit/vue-dash-components"
+   ]
+  }
+ ]
+}

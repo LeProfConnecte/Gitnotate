@@ -1,0 +1,459 @@
+{
+ "requetes": [
+  {
+   "id": "N01",
+   "requete": "Je cherche une bibliothèque de workflows tout prêts à importer directement dans mon instance n8n.",
+   "candidats": [
+    "huginn/huginn",
+    "neuml/txtai",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-migratekit/zap2n8n",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-opswatch/n8n-watchtower"
+   ]
+  },
+  {
+   "id": "N02",
+   "requete": "Is there a community node I can install in n8n to generate PDF quotes and invoices from a template?",
+   "candidats": [
+    "caviraoss/pagelm",
+    "davila7/claude-code-templates",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-mailroom/inbox-parser",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-pdfstack/pdf-toolbox-server",
+    "synth-zapkit/zapier-app-starter"
+   ]
+  },
+  {
+   "id": "N03",
+   "requete": "Comment être prévenu quand un des workflows qui tournent sur mon n8n plante en production ? J'aimerais un vrai suivi des exécutions.",
+   "candidats": [
+    "synth-durable/taskweave",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-hooksmith/cc-notify",
+    "synth-migratekit/zap2n8n",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-opswatch/n8n-watchtower"
+   ]
+  },
+  {
+   "id": "N04",
+   "requete": "Invoices arrive by email; I'd like their data extracted automatically and pushed into my n8n automations.",
+   "candidats": [
+    "huginn/huginn",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-mailroom/inbox-parser",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-openflow/flowpilot",
+    "synth-opswatch/n8n-watchtower",
+    "synth-pdfcraft/pdfcraft"
+   ]
+  },
+  {
+   "id": "N05",
+   "requete": "Une alternative no-code à n8n et à Zapier, que je puisse héberger moi-même.",
+   "candidats": [
+    "bidingcc/buildingai",
+    "huginn/huginn",
+    "neuml/txtai",
+    "synth-durable/taskweave",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-migratekit/zap2n8n",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-openflow/flowpilot",
+    "synth-opswatch/n8n-watchtower",
+    "synth-zapkit/zapier-app-starter"
+   ]
+  },
+  {
+   "id": "N06",
+   "requete": "Our Zapier bill keeps growing. What could replace it, ideally something we can host ourselves?",
+   "candidats": [
+    "bidingcc/buildingai",
+    "datagouv/datagouv-mcp",
+    "huginn/huginn",
+    "neuml/txtai",
+    "synth-durable/taskweave",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-mailroom/inbox-parser",
+    "synth-migratekit/zap2n8n",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-openflow/flowpilot",
+    "synth-opswatch/n8n-watchtower",
+    "synth-pdfstack/pdf-toolbox-server",
+    "synth-zapkit/zapier-app-starter"
+   ]
+  },
+  {
+   "id": "N07",
+   "requete": "Je veux orchestrer mes scripts Python de traitement de factures (enchaînement d'étapes, reprises sur erreur, planification) sans passer par n8n ni par un outil no-code.",
+   "candidats": [
+    "synth-codecrew/termpilot",
+    "synth-cpuocr/onnx-ocr-lite",
+    "synth-durable/taskweave",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-hyperui/htmx-kit",
+    "synth-mailroom/inbox-parser",
+    "synth-migratekit/zap2n8n",
+    "synth-opswatch/n8n-watchtower",
+    "synth-scanflow/receipt-extractor"
+   ]
+  },
+  {
+   "id": "N08",
+   "requete": "I need incoming order emails turned into JSON records, without depending on n8n or Zapier.",
+   "candidats": [
+    "huginn/huginn",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-mailroom/inbox-parser",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-openflow/flowpilot",
+    "synth-opswatch/n8n-watchtower"
+   ]
+  },
+  {
+   "id": "N09",
+   "requete": "We'd like to expose our internal quoting API as a private app that the team can use in their Zaps.",
+   "candidats": [
+    "marimo-team/marimo",
+    "rdumasia303/deepseek_ocr_app",
+    "synth-migratekit/zap2n8n",
+    "synth-openflow/flowpilot",
+    "synth-zapkit/zapier-app-starter"
+   ]
+  },
+  {
+   "id": "N10",
+   "requete": "Quels serveurs MCP pourrais-je brancher sur l'agent IA de mes workflows n8n ?",
+   "candidats": [
+    "datagouv/datagouv-mcp",
+    "invest-composer/composer-trade-mcp",
+    "jlowin/fastmcp",
+    "modelcontextprotocol/servers",
+    "punkpeye/awesome-mcp-servers",
+    "synth-agentskills/claude-code-skills",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "N11",
+   "requete": "Une interface web pour gérer les conteneurs Docker de mon VPS : redémarrer, consulter les logs, mettre à jour mes stacks compose.",
+   "candidats": [
+    "huginn/huginn",
+    "rdumasia303/deepseek_ocr_app",
+    "synth-harbor/dockpanel",
+    "synth-notesearch/semantic-drive",
+    "synth-pdfstack/pdf-toolbox-server"
+   ]
+  },
+  {
+   "id": "N12",
+   "requete": "An operator that schedules PostgreSQL and persistent volume backups to S3 on our Kubernetes cluster.",
+   "candidats": [
+    "marimo-team/marimo",
+    "synth-agentskills/claude-code-skills",
+    "synth-harbor/dockpanel",
+    "synth-kubeops/kube-backup-operator",
+    "synth-notionsync/notion-export-md"
+   ]
+  },
+  {
+   "id": "N13",
+   "requete": "Un gabarit de projet FastAPI avec authentification, base de données et tests déjà en place, pour démarrer une API.",
+   "candidats": [
+    "rdumasia303/deepseek_ocr_app",
+    "synth-apiforge/fastapi-starter",
+    "synth-hyperui/htmx-kit",
+    "synth-swiftapi/velora",
+    "synth-zapkit/zapier-app-starter"
+   ]
+  },
+  {
+   "id": "N14",
+   "requete": "I'd like a Python web framework that's faster than FastAPI, as an alternative for a high-traffic API.",
+   "candidats": [
+    "docling-project/docling",
+    "rdumasia303/deepseek_ocr_app",
+    "synth-apiforge/fastapi-starter",
+    "synth-hyperui/htmx-kit",
+    "synth-swiftapi/velora"
+   ]
+  },
+  {
+   "id": "N15",
+   "requete": "A React component library with accessible, sortable data tables and forms for an admin dashboard.",
+   "candidats": [
+    "evidentlyai/evidently",
+    "marimo-team/marimo",
+    "synth-hyperui/htmx-kit",
+    "synth-opswatch/n8n-watchtower",
+    "synth-uikit/react-blocks"
+   ]
+  },
+  {
+   "id": "N16",
+   "requete": "Des composants d'interface (tableaux, formulaires) pour un petit back-office, mais sans React ni étape de build JavaScript.",
+   "candidats": [
+    "bytedance/dolphin",
+    "rdumasia303/deepseek_ocr_app",
+    "synth-harbor/dockpanel",
+    "synth-hyperui/htmx-kit",
+    "synth-tablevision/tablereader",
+    "synth-uikit/react-blocks"
+   ]
+  },
+  {
+   "id": "N17",
+   "requete": "Des skills et sous-agents déjà écrits à ajouter à Claude Code, pour la revue de code et l'écriture de tests.",
+   "candidats": [
+    "davila7/claude-code-templates",
+    "synth-agentskills/claude-code-skills",
+    "synth-codecrew/termpilot",
+    "synth-hooksmith/cc-notify",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "N18",
+   "requete": "An open-source coding agent similar to Claude Code that I can run with local models.",
+   "candidats": [
+    "davila7/claude-code-templates",
+    "synth-agentskills/claude-code-skills",
+    "synth-codecrew/termpilot",
+    "synth-hooksmith/cc-notify",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "N19",
+   "requete": "How can I get a push notification on my phone when a long Claude Code session finishes?",
+   "candidats": [
+    "davila7/claude-code-templates",
+    "docling-project/docling",
+    "synth-agentskills/claude-code-skills",
+    "synth-codelens/codelens",
+    "synth-hooksmith/cc-notify",
+    "synth-swiftapi/velora",
+    "synth-symbolic/code-index-mcp",
+    "synth-zapkit/zapier-app-starter"
+   ]
+  },
+  {
+   "id": "N20",
+   "requete": "Une alternative à Tesseract qui reconnaisse mieux les tableaux dans les plans et documents scannés.",
+   "candidats": [
+    "bytedance/dolphin",
+    "paddlepaddle/paddleocr",
+    "synth-pdfcraft/pdfcraft",
+    "synth-pdfstack/pdf-toolbox-server",
+    "synth-tablevision/tablereader"
+   ]
+  },
+  {
+   "id": "N21",
+   "requete": "J'aimerais faire une recherche sémantique dans le code de mes projets : poser une question en français et retrouver la fonction concernée.",
+   "candidats": [
+    "datagouv/datagouv-mcp",
+    "synth-codelens/codelens",
+    "synth-docsense/pdfseek",
+    "synth-notesearch/semantic-drive",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "N22",
+   "requete": "Semantic code search across several of my repositories, to find code similar to a snippet.",
+   "candidats": [
+    "davila7/claude-code-templates",
+    "neuml/txtai",
+    "synth-agentskills/claude-code-skills",
+    "synth-codelens/codelens",
+    "synth-docsense/pdfseek",
+    "synth-notesearch/semantic-drive",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "N23",
+   "requete": "Give my coding agent a way to search a large codebase by meaning, through an MCP server.",
+   "candidats": [
+    "datagouv/datagouv-mcp",
+    "invest-composer/composer-trade-mcp",
+    "jlowin/fastmcp",
+    "modelcontextprotocol/servers",
+    "punkpeye/awesome-mcp-servers",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "N24",
+   "requete": "Rechercher par le sens dans ma bibliothèque de PDF (DTU, normes, cours) et retrouver la page exacte du passage.",
+   "candidats": [
+    "caviraoss/pagelm",
+    "synth-docsense/pdfseek",
+    "synth-notesearch/semantic-drive",
+    "synth-symbolic/code-index-mcp",
+    "vectifyai/pageindex"
+   ]
+  },
+  {
+   "id": "N25",
+   "requete": "Semantic search over a folder of Word files, PDFs and Notion exports.",
+   "candidats": [
+    "docling-project/docling",
+    "synth-docsense/pdfseek",
+    "synth-notesearch/semantic-drive",
+    "synth-notionsync/notion-export-md",
+    "vectifyai/pageindex"
+   ]
+  },
+  {
+   "id": "N26",
+   "requete": "Une brique Python de recherche sémantique sur des documents, que je pourrais intégrer dans mon application web.",
+   "candidats": [
+    "docling-project/docling",
+    "neuml/txtai",
+    "paddlepaddle/paddleocr",
+    "rdumasia303/deepseek_ocr_app",
+    "synth-docsense/pdfseek"
+   ]
+  },
+  {
+   "id": "N27",
+   "requete": "Un OCR qui tourne sans GPU, sur mon petit VPS.",
+   "candidats": [
+    "synth-cpuocr/onnx-ocr-lite",
+    "synth-migratekit/zap2n8n",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-notesearch/semantic-drive",
+    "synth-pdfstack/pdf-toolbox-server"
+   ]
+  },
+  {
+   "id": "N28",
+   "requete": "I need to transcribe my recorded lectures to text on a laptop that has no NVIDIA GPU.",
+   "candidats": [
+    "ohf-voice/piper1-gpl",
+    "synth-voxscribe/whisper-batch"
+   ]
+  },
+  {
+   "id": "N29",
+   "requete": "Un outil pour fusionner et compresser des PDF, que je peux installer sans Docker.",
+   "candidats": [
+    "docling-project/docling",
+    "synth-agentskills/claude-code-skills",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-pdfcraft/pdfcraft",
+    "synth-pdfstack/pdf-toolbox-server",
+    "vectifyai/pageindex"
+   ]
+  },
+  {
+   "id": "N30",
+   "requete": "A web UI to manage the containers on a single VPS, no Kubernetes, just plain Docker.",
+   "candidats": [
+    "huginn/huginn",
+    "rdumasia303/deepseek_ocr_app",
+    "synth-harbor/dockpanel",
+    "synth-notesearch/semantic-drive",
+    "synth-pdfstack/pdf-toolbox-server"
+   ]
+  },
+  {
+   "id": "N31",
+   "requete": "Je veux générer des voix off en français pour mes vidéos pédagogiques : de la synthèse vocale, pas de la transcription.",
+   "candidats": [
+    "datagouv/datagouv-mcp",
+    "ohf-voice/piper1-gpl",
+    "resemble-ai/chatterbox"
+   ]
+  },
+  {
+   "id": "N32",
+   "requete": "Semantic search for my lesson notes and PDFs, not for source code.",
+   "candidats": [
+    "caviraoss/pagelm",
+    "neuml/txtai",
+    "synth-codelens/codelens",
+    "synth-docsense/pdfseek",
+    "synth-notesearch/semantic-drive",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "N33",
+   "requete": "Un logiciel pour calculer le ferraillage d'une poutre en béton armé selon l'Eurocode 2.",
+   "candidats": []
+  },
+  {
+   "id": "N34",
+   "requete": "A mobile app to track my crypto wallet balances across several blockchains.",
+   "candidats": []
+  },
+  {
+   "id": "N35",
+   "requete": "Générer automatiquement l'emploi du temps des classes et des salles de mon lycée.",
+   "candidats": [
+    "huginn/huginn",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-mailroom/inbox-parser",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-voxscribe/whisper-batch"
+   ]
+  },
+  {
+   "id": "N36",
+   "requete": "A browser-based CAD tool to draw 2D floor plans.",
+   "candidats": [
+    "browser-use/browser-use",
+    "microsoft/omniparser",
+    "paddlepaddle/paddleocr",
+    "synth-bimtools/ifc-quantities",
+    "synth-pdfstack/pdf-toolbox-server"
+   ]
+  },
+  {
+   "id": "N37",
+   "requete": "Extraire les tableaux des DPGF reçus en PDF pour les reprendre dans Excel.",
+   "candidats": [
+    "docling-project/docling",
+    "synth-bimtools/ifc-quantities",
+    "synth-mailroom/inbox-parser",
+    "synth-scanflow/receipt-extractor",
+    "synth-tablevision/tablereader"
+   ]
+  },
+  {
+   "id": "N38",
+   "requete": "Turn my course PDFs into quizzes and revision sheets for my students.",
+   "candidats": [
+    "caviraoss/pagelm",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-openflow/flowpilot"
+   ]
+  },
+  {
+   "id": "N39",
+   "requete": "Un agent IA qui mène des recherches financières approfondies sur des entreprises cotées.",
+   "candidats": [
+    "ai4finance-foundation/finrobot",
+    "assafelovic/gpt-researcher",
+    "invest-composer/composer-trade-mcp",
+    "virattt/ai-hedge-fund",
+    "virattt/dexter"
+   ]
+  },
+  {
+   "id": "N40",
+   "requete": "Automatically produce short vertical videos for TikTok and YouTube Shorts.",
+   "candidats": [
+    "gyoridavid/short-video-maker",
+    "ohf-voice/piper1-gpl",
+    "remotion-dev/remotion",
+    "synth-voxscribe/whisper-batch"
+   ]
+  }
+ ]
+}

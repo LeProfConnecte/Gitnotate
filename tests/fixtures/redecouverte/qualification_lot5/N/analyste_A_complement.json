@@ -1,0 +1,25 @@
+{
+  "analyste": "A",
+  "jugements": {
+    "N05": {
+      "synth-mailroom/inbox-parser": {
+        "etiquette": "hors_sujet",
+        "raison": "Service d'extraction de factures reçues par e-mail, pas une plateforme no-code d'automatisation ; il sert au contraire à « Déclencher un workflow n8n, Make ou Zapier par webhook »."
+      }
+    },
+    "N18": {
+      "anomalyco/opencode": {
+        "etiquette": "plausible",
+        "raison": "Agent de code open source proche du besoin (« Agent de code open source pour le terminal, multi-fournisseurs de LLM »), mais la fiche ne confirme pas explicitement l'usage de modèles locaux."
+      },
+      "assafelovic/gpt-researcher": {
+        "etiquette": "hors_sujet",
+        "raison": "Agent de recherche documentaire et non de code : il « mène des recherches approfondies, locales et web » et « produit un long rapport avec citations »."
+      },
+      "openhands/openhands": {
+        "etiquette": "plausible",
+        "raison": "Agent de développement open source répondant au cœur du besoin (« Agent de développement autonome open source (édition de code, commandes) auto-hébergeable via Docker »), mais rien sur les modèles locaux."
+      }
+    }
+  }
+}

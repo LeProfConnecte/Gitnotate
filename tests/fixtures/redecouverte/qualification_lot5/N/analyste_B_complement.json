@@ -1,0 +1,25 @@
+{
+ "analyste": "B",
+ "jugements": {
+  "N05": {
+   "synth-mailroom/inbox-parser": {
+    "etiquette": "hors_sujet",
+    "raison": "C'est un service d'extraction de factures reçues par e-mail qui sert de brique à n8n/Zapier (« Déclencher un workflow n8n, Make ou Zapier par webhook »), et non une plateforme no-code alternative à n8n et Zapier."
+   }
+  },
+  "N18": {
+   "anomalyco/opencode": {
+    "etiquette": "plausible",
+    "raison": "C'est bien un agent de code open source proche de Claude Code (« Agent de code open source pour le terminal, multi-fournisseurs de LLM »), mais la fiche ne confirme pas explicitement l'usage de modèles locaux."
+   },
+   "assafelovic/gpt-researcher": {
+    "etiquette": "hors_sujet",
+    "raison": "La fiche décrit un agent de recherche documentaire (« mène des recherches approfondies, locales et web […] et produit un long rapport avec citations »), pas un agent de programmation."
+   },
+   "openhands/openhands": {
+    "etiquette": "plausible",
+    "raison": "C'est un agent de développement open source (« Agent de développement autonome open source (édition de code, commandes) auto-hébergeable via Docker »), mais la compatibilité avec des modèles locaux n'est pas indiquée par ses fiches."
+   }
+  }
+ }
+}

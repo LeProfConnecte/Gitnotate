@@ -1,0 +1,13 @@
+--- a/redecouverte_lexique.py
++++ b/redecouverte_lexique.py
+@@ -147,8 +147,9 @@
+         'automatiquement', 'automatisé', 'automatisée', 'automatisés', 'automatise', 'automatisent',
+         'automate', 'automates', 'automation', 'automated', 'automating', 'tâches planifiées', 'cron'],
+         ['workflow']),
+-    'workflow': (E, ['workflow', 'workflows', 'flux de travail', 'flux de travaux', 'zapier', 'n8n',
++    'workflow': (E, ['workflow', 'workflows', 'flux de travail', 'flux de travaux', 'zapier',
+         'orchestration'], ['automatisation', 'nocode']),
++    'n8n': (E, ['n8n'], []),
+     'nocode': (E, ['no-code', 'sans code', 'low-code', 'nocode', 'lowcode', 'glisser-déposer', 'drag and drop'],
+         ['workflow']),
+     'scraping': (E, ['scraping', 'scraper', 'scrapers', 'scrape', 'scrapes', 'scraped', 'crawler', 'crawlers',

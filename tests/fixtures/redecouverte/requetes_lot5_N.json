@@ -1,0 +1,817 @@
+{
+  "protocole": "lot5-independant/1",
+  "requetes": [
+    {
+      "id": "N01",
+      "jeu": "independant_lot5",
+      "requete": "Je cherche une bibliothèque de workflows tout prêts à importer directement dans mon instance n8n.",
+      "options": {},
+      "en_tete": ["synth-flowkit/n8n-workflow-templates"],
+      "acceptables": ["synth-migratekit/zap2n8n"],
+      "a_exclure": ["synth-openflow/flowpilot"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-flowkit/n8n-workflow-templates": "Répond exactement : « Collection de plus de 300 modèles de workflows n8n prêts à importer ».",
+        "synth-migratekit/zap2n8n": "Produit des « workflows n8n importables », mais seulement à partir de Zaps existants : réponse partielle.",
+        "synth-openflow/flowpilot": "Ses modèles servent une autre plateforme, « présentée comme une alternative à Zapier et à n8n » : contredit le besoin."
+      },
+      "role_identifiant": "cible",
+      "theme": "identifiants",
+      "langue": "fr"
+    },
+    {
+      "id": "N02",
+      "jeu": "independant_lot5",
+      "requete": "Is there a community node I can install in n8n to generate PDF quotes and invoices from a template?",
+      "options": {},
+      "en_tete": ["synth-nodeforge/n8n-nodes-pdfgen"],
+      "acceptables": [],
+      "a_exclure": ["synth-openflow/flowpilot"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-nodeforge/n8n-nodes-pdfgen": "Répond exactement : « Nœud communautaire n8n qui génère des PDF à partir de modèles HTML ou Handlebars (devis, factures, attestations) ».",
+        "synth-openflow/flowpilot": "Plateforme concurrente (« alternative à Zapier et à n8n »), pas un nœud à installer dans n8n."
+      },
+      "role_identifiant": "cible",
+      "theme": "identifiants",
+      "langue": "en"
+    },
+    {
+      "id": "N03",
+      "jeu": "independant_lot5",
+      "requete": "Comment être prévenu quand un des workflows qui tournent sur mon n8n plante en production ? J'aimerais un vrai suivi des exécutions.",
+      "options": {},
+      "en_tete": ["synth-opswatch/n8n-watchtower"],
+      "acceptables": ["synth-flowkit/n8n-workflow-templates"],
+      "a_exclure": [],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-opswatch/n8n-watchtower": "« Tableau de bord de supervision des exécutions n8n » avec « alertes Slack, Telegram ou e-mail quand une exécution échoue ».",
+        "synth-flowkit/n8n-workflow-templates": "Fournit seulement un « modèle de gestion d'erreurs (Error Trigger vers e-mail ou Telegram) » : alerte possible, mais pas de suivi des exécutions."
+      },
+      "role_identifiant": "contexte",
+      "theme": "identifiants",
+      "langue": "fr"
+    },
+    {
+      "id": "N04",
+      "jeu": "independant_lot5",
+      "requete": "Invoices arrive by email; I'd like their data extracted automatically and pushed into my n8n automations.",
+      "options": {},
+      "en_tete": ["synth-mailroom/inbox-parser"],
+      "acceptables": ["synth-scanflow/receipt-extractor"],
+      "a_exclure": ["synth-nodeforge/n8n-nodes-pdfgen"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-mailroom/inbox-parser": "Extrait « les données des factures et bons de commande reçus » et peut « Déclencher un workflow n8n, Make ou Zapier par webhook ».",
+        "synth-scanflow/receipt-extractor": "Extrait de factures « fournisseur, date, montants HT, TVA et TTC », mais sans relève des e-mails ni lien avec n8n : partiel.",
+        "synth-nodeforge/n8n-nodes-pdfgen": "Fait l'inverse : il « génère des PDF » (devis, factures) au lieu d'en extraire les données."
+      },
+      "role_identifiant": "contexte",
+      "theme": "identifiants",
+      "langue": "en"
+    },
+    {
+      "id": "N05",
+      "jeu": "independant_lot5",
+      "requete": "Une alternative no-code à n8n et à Zapier, que je puisse héberger moi-même.",
+      "options": {},
+      "en_tete": ["synth-openflow/flowpilot"],
+      "acceptables": ["huginn/huginn"],
+      "a_exclure": [
+        "synth-flowkit/n8n-workflow-templates",
+        "synth-opswatch/n8n-watchtower",
+        "synth-nodeforge/n8n-nodes-pdfgen",
+        "synth-migratekit/zap2n8n",
+        "synth-zapkit/zapier-app-starter",
+        "synth-durable/taskweave"
+      ],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-openflow/flowpilot": "« Plateforme d'automatisation no-code open source et auto-hébergeable, présentée comme une alternative à Zapier et à n8n ».",
+        "huginn/huginn": "« Plateforme auto-hébergée d'agents qui surveillent des sources (sites web, flux, e-mails) et agissent automatiquement » : automatisation auto-hébergée, plus orientée surveillance.",
+        "synth-flowkit/n8n-workflow-templates": "Modèles pour n8n qui exigent « Une instance n8n 1.x » : ne remplace pas n8n.",
+        "synth-opswatch/n8n-watchtower": "Supervise n8n (« Instance n8n avec l'API publique activée ») : suppose de garder n8n.",
+        "synth-nodeforge/n8n-nodes-pdfgen": "« Nœud communautaire n8n » : extension de n8n, pas une alternative.",
+        "synth-migratekit/zap2n8n": "Migre vers n8n (« transforme des Zaps exportés depuis Zapier en workflows n8n ») : l'inverse d'une alternative à n8n.",
+        "synth-zapkit/zapier-app-starter": "Sert à « créer une intégration privée Zapier » ; « utile seulement si l'on reste sur Zapier ».",
+        "synth-durable/taskweave": "« Moteur de workflows en code pour Python », « Aucun éditeur visuel » : contredit le besoin no-code."
+      },
+      "role_identifiant": "reference",
+      "theme": "identifiants",
+      "langue": "fr"
+    },
+    {
+      "id": "N06",
+      "jeu": "independant_lot5",
+      "requete": "Our Zapier bill keeps growing. What could replace it, ideally something we can host ourselves?",
+      "options": {},
+      "en_tete": ["synth-openflow/flowpilot"],
+      "acceptables": ["huginn/huginn", "synth-migratekit/zap2n8n", "synth-durable/taskweave"],
+      "a_exclure": ["synth-zapkit/zapier-app-starter"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-openflow/flowpilot": "Cas d'usage explicite : « Remplacer des Zaps payants par des scénarios auto-hébergés ».",
+        "huginn/huginn": "Automatisation auto-hébergée (« Plateforme auto-hébergée d'agents qui surveillent des sources ») mais moins généraliste qu'un remplaçant de Zapier.",
+        "synth-migratekit/zap2n8n": "Aide à partir vers n8n : « utile pour quitter un abonnement Zapier ».",
+        "synth-durable/taskweave": "Remplaçant possible pour un développeur (« Moteur de workflows en code pour Python »), sans interface no-code.",
+        "synth-zapkit/zapier-app-starter": "Développe pour Zapier : « utile seulement si l'on reste sur Zapier »."
+      },
+      "role_identifiant": "reference",
+      "theme": "identifiants",
+      "langue": "en"
+    },
+    {
+      "id": "N07",
+      "jeu": "independant_lot5",
+      "requete": "Je veux orchestrer mes scripts Python de traitement de factures (enchaînement d'étapes, reprises sur erreur, planification) sans passer par n8n ni par un outil no-code.",
+      "options": {},
+      "en_tete": ["synth-durable/taskweave"],
+      "acceptables": [],
+      "a_exclure": [
+        "synth-flowkit/n8n-workflow-templates",
+        "synth-opswatch/n8n-watchtower",
+        "synth-nodeforge/n8n-nodes-pdfgen",
+        "synth-openflow/flowpilot",
+        "synth-migratekit/zap2n8n"
+      ],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-durable/taskweave": "« Moteur de workflows en code pour Python » avec « reprises automatiques sur erreur, planification » ; cas d'usage sur les factures.",
+        "synth-flowkit/n8n-workflow-templates": "Exige « Une instance n8n 1.x » : exclu par la demande.",
+        "synth-opswatch/n8n-watchtower": "« supervision des exécutions n8n » : suppose n8n.",
+        "synth-nodeforge/n8n-nodes-pdfgen": "« Nœud communautaire n8n » : dépend de n8n.",
+        "synth-openflow/flowpilot": "« Plateforme d'automatisation no-code » : exclue par la demande.",
+        "synth-migratekit/zap2n8n": "Produit des « workflows n8n importables » : dépend de n8n."
+      },
+      "role_identifiant": "exclusion",
+      "theme": "identifiants",
+      "langue": "fr"
+    },
+    {
+      "id": "N08",
+      "jeu": "independant_lot5",
+      "requete": "I need incoming order emails turned into JSON records, without depending on n8n or Zapier.",
+      "options": {},
+      "en_tete": ["synth-mailroom/inbox-parser"],
+      "acceptables": [],
+      "a_exclure": [
+        "synth-nodeforge/n8n-nodes-pdfgen",
+        "synth-flowkit/n8n-workflow-templates",
+        "synth-zapkit/zapier-app-starter"
+      ],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-mailroom/inbox-parser": "Traite les « bons de commande reçus » et « les publie en JSON vers un webhook ou un fichier » ; la fiche précise qu'il « fonctionne seul », n8n n'étant qu'une option.",
+        "synth-nodeforge/n8n-nodes-pdfgen": "« Nœud communautaire n8n » : dépend de n8n, et génère des PDF au lieu de lire des e-mails.",
+        "synth-flowkit/n8n-workflow-templates": "Modèles qui exigent « Une instance n8n 1.x ».",
+        "synth-zapkit/zapier-app-starter": "Nécessite « Un compte Zapier et la Zapier Platform CLI »."
+      },
+      "role_identifiant": "exclusion",
+      "theme": "identifiants",
+      "langue": "en"
+    },
+    {
+      "id": "N09",
+      "jeu": "independant_lot5",
+      "requete": "We'd like to expose our internal quoting API as a private app that the team can use in their Zaps.",
+      "options": {},
+      "en_tete": ["synth-zapkit/zapier-app-starter"],
+      "acceptables": [],
+      "a_exclure": ["synth-openflow/flowpilot", "synth-migratekit/zap2n8n"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-zapkit/zapier-app-starter": "Cas d'usage exact : « Publier une API interne comme application privée utilisable dans les Zaps de l'équipe ».",
+        "synth-openflow/flowpilot": "Sert à « Remplacer des Zaps payants » : quitte Zapier au lieu de l'étendre.",
+        "synth-migratekit/zap2n8n": "« Migrer une vingtaine de Zaps existants vers une instance n8n » : quitte Zapier."
+      },
+      "role_identifiant": "cible",
+      "theme": "identifiants",
+      "langue": "en"
+    },
+    {
+      "id": "N10",
+      "jeu": "independant_lot5",
+      "requete": "Quels serveurs MCP pourrais-je brancher sur l'agent IA de mes workflows n8n ?",
+      "options": {},
+      "en_tete": ["modelcontextprotocol/servers", "punkpeye/awesome-mcp-servers"],
+      "acceptables": [
+        "datagouv/datagouv-mcp",
+        "jlowin/fastmcp",
+        "invest-composer/composer-trade-mcp",
+        "gyoridavid/short-video-maker"
+      ],
+      "a_exclure": [],
+      "aucun_fort": false,
+      "raisons": {
+        "modelcontextprotocol/servers": "« Serveurs MCP de référence (fichiers, Git, fetch) pour connecter des agents à des outils ».",
+        "punkpeye/awesome-mcp-servers": "« Liste organisée de serveurs MCP ; ressource de découverte pour les agents et les automatisations ».",
+        "datagouv/datagouv-mcp": "Un serveur MCP précis (data.gouv.fr), déjà rattaché au « projet actif Automatisations n8n ».",
+        "jlowin/fastmcp": "Sert à « créer des serveurs et des clients MCP » soi-même : partiel.",
+        "invest-composer/composer-trade-mcp": "Serveur MCP spécialisé (« tester des idées de trading ») : plausible selon l'usage.",
+        "gyoridavid/short-video-maker": "Crée des vidéos « via le Model Context Protocol (MCP) et une API REST » : serveur MCP de niche."
+      },
+      "role_identifiant": "contexte",
+      "theme": "identifiants",
+      "langue": "fr"
+    },
+    {
+      "id": "N11",
+      "jeu": "independant_lot5",
+      "requete": "Une interface web pour gérer les conteneurs Docker de mon VPS : redémarrer, consulter les logs, mettre à jour mes stacks compose.",
+      "options": {},
+      "en_tete": ["synth-harbor/dockpanel"],
+      "acceptables": [],
+      "a_exclure": [],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-harbor/dockpanel": "« Interface web légère pour gérer Docker sur un serveur : conteneurs, images, volumes, réseaux, journaux en direct et stacks Docker Compose »."
+      },
+      "role_identifiant": "cible",
+      "theme": "technologies",
+      "langue": "fr"
+    },
+    {
+      "id": "N12",
+      "jeu": "independant_lot5",
+      "requete": "An operator that schedules PostgreSQL and persistent volume backups to S3 on our Kubernetes cluster.",
+      "options": {},
+      "en_tete": ["synth-kubeops/kube-backup-operator"],
+      "acceptables": [],
+      "a_exclure": [],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-kubeops/kube-backup-operator": "« Opérateur Kubernetes qui planifie les sauvegardes de volumes persistants et de bases PostgreSQL vers un stockage S3 »."
+      },
+      "role_identifiant": "cible",
+      "theme": "technologies",
+      "langue": "en"
+    },
+    {
+      "id": "N13",
+      "jeu": "independant_lot5",
+      "requete": "Un gabarit de projet FastAPI avec authentification, base de données et tests déjà en place, pour démarrer une API.",
+      "options": {},
+      "en_tete": ["synth-apiforge/fastapi-starter"],
+      "acceptables": [],
+      "a_exclure": ["synth-swiftapi/velora"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-apiforge/fastapi-starter": "« Gabarit de projet FastAPI prêt pour la production : SQLModel, migrations Alembic, authentification JWT, tests pytest ».",
+        "synth-swiftapi/velora": "Autre framework, « présenté comme une alternative à FastAPI » : pas un gabarit FastAPI."
+      },
+      "role_identifiant": "cible",
+      "theme": "technologies",
+      "langue": "fr"
+    },
+    {
+      "id": "N14",
+      "jeu": "independant_lot5",
+      "requete": "I'd like a Python web framework that's faster than FastAPI, as an alternative for a high-traffic API.",
+      "options": {},
+      "en_tete": ["synth-swiftapi/velora"],
+      "acceptables": [],
+      "a_exclure": ["synth-apiforge/fastapi-starter"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-swiftapi/velora": "« Framework web Python asynchrone (ASGI) axé sur la performance, présenté comme une alternative à FastAPI ».",
+        "synth-apiforge/fastapi-starter": "C'est un « Gabarit de projet FastAPI » : reste sur FastAPI."
+      },
+      "role_identifiant": "reference",
+      "theme": "technologies",
+      "langue": "en"
+    },
+    {
+      "id": "N15",
+      "jeu": "independant_lot5",
+      "requete": "A React component library with accessible, sortable data tables and forms for an admin dashboard.",
+      "options": {},
+      "en_tete": ["synth-uikit/react-blocks"],
+      "acceptables": [],
+      "a_exclure": ["synth-hyperui/htmx-kit"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-uikit/react-blocks": "« Bibliothèque de composants React accessibles » avec « tableaux de données triables, formulaires ».",
+        "synth-hyperui/htmx-kit": "Composants faits « sans React ni étape de build JavaScript » : pas une bibliothèque React."
+      },
+      "role_identifiant": "cible",
+      "theme": "technologies",
+      "langue": "en"
+    },
+    {
+      "id": "N16",
+      "jeu": "independant_lot5",
+      "requete": "Des composants d'interface (tableaux, formulaires) pour un petit back-office, mais sans React ni étape de build JavaScript.",
+      "options": {},
+      "en_tete": ["synth-hyperui/htmx-kit"],
+      "acceptables": [],
+      "a_exclure": ["synth-uikit/react-blocks", "remotion-dev/remotion"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-hyperui/htmx-kit": "« Composants d'interface rendus côté serveur avec htmx et Alpine.js (tableaux, formulaires, onglets, modales) : de l'interactivité sans React ».",
+        "synth-uikit/react-blocks": "« Bibliothèque de composants React », prérequis « React 18+ ».",
+        "remotion-dev/remotion": "« Créez des vidéos par programmation avec React » : fondé sur React, malgré le cas d'usage « Prototypage d'interfaces utilisateur »."
+      },
+      "role_identifiant": "exclusion",
+      "theme": "technologies",
+      "langue": "fr"
+    },
+    {
+      "id": "N17",
+      "jeu": "independant_lot5",
+      "requete": "Des skills et sous-agents déjà écrits à ajouter à Claude Code, pour la revue de code et l'écriture de tests.",
+      "options": {},
+      "en_tete": ["synth-agentskills/claude-code-skills"],
+      "acceptables": ["davila7/claude-code-templates"],
+      "a_exclure": ["synth-codecrew/termpilot"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-agentskills/claude-code-skills": "« Collection de skills, de sous-agents et de commandes slash pour Claude Code : revue de code, écriture de tests ».",
+        "davila7/claude-code-templates": "« Modèles et commandes pour Claude Code » : proche, sans mention de revue de code ni de tests.",
+        "synth-codecrew/termpilot": "Agent concurrent (« alternative libre à Claude Code »), pas une extension."
+      },
+      "role_identifiant": "cible",
+      "theme": "technologies",
+      "langue": "fr"
+    },
+    {
+      "id": "N18",
+      "jeu": "independant_lot5",
+      "requete": "An open-source coding agent similar to Claude Code that I can run with local models.",
+      "options": {},
+      "en_tete": ["synth-codecrew/termpilot"],
+      "acceptables": ["anomalyco/opencode", "openhands/openhands", "all-hands-ai/openhands"],
+      "a_exclure": [
+        "davila7/claude-code-templates",
+        "synth-agentskills/claude-code-skills",
+        "synth-hooksmith/cc-notify"
+      ],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-codecrew/termpilot": "« Agent de code open source pour le terminal », utilisable avec « des modèles locaux via Ollama ».",
+        "anomalyco/opencode": "« Agent de code open source pour le terminal, multi-fournisseurs de LLM » ; modèles locaux non mentionnés explicitement.",
+        "openhands/openhands": "« Agent de développement autonome open source (édition de code, commandes) auto-hébergeable via Docker » ; modèles locaux non précisés.",
+        "all-hands-ai/openhands": "Ancien nom d'OpenHands (« codez moins, produisez plus »), fiche peu détaillée.",
+        "davila7/claude-code-templates": "Sert à « configurer et superviser Claude Code » ; « ce n'est pas un agent autonome ».",
+        "synth-agentskills/claude-code-skills": "Extensions de Claude Code : « complète l'assistant de code sans le remplacer ».",
+        "synth-hooksmith/cc-notify": "« Hooks pour Claude Code » : suppose Claude Code."
+      },
+      "role_identifiant": "reference",
+      "theme": "technologies",
+      "langue": "en"
+    },
+    {
+      "id": "N19",
+      "jeu": "independant_lot5",
+      "requete": "How can I get a push notification on my phone when a long Claude Code session finishes?",
+      "options": {},
+      "en_tete": ["synth-hooksmith/cc-notify"],
+      "acceptables": ["davila7/claude-code-templates"],
+      "a_exclure": [],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-hooksmith/cc-notify": "« Recevoir une notification sur son téléphone quand Claude Code a fini une longue refactorisation ».",
+        "davila7/claude-code-templates": "Outil pour « configurer et superviser Claude Code » : supervision générale, notification non mentionnée."
+      },
+      "role_identifiant": "contexte",
+      "theme": "technologies",
+      "langue": "en"
+    },
+    {
+      "id": "N20",
+      "jeu": "independant_lot5",
+      "requete": "Une alternative à Tesseract qui reconnaisse mieux les tableaux dans les plans et documents scannés.",
+      "options": {},
+      "en_tete": ["paddlepaddle/paddleocr", "bytedance/dolphin", "synth-tablevision/tablereader"],
+      "acceptables": [
+        "docling-project/docling",
+        "allenai/olmocr",
+        "deepseek-ai/deepseek-ocr",
+        "rdumasia303/deepseek_ocr_app"
+      ],
+      "a_exclure": [
+        "tesseract-ocr/tesseract",
+        "ub-mannheim/tesseract",
+        "synth-preprocess/scanclean",
+        "synth-pdfcraft/pdfcraft"
+      ],
+      "aucun_fort": false,
+      "raisons": {
+        "paddlepaddle/paddleocr": "« OCR multilingue en Python avec analyse de mise en page et de tableaux » ; « Testé : bon sur les plans scannés ».",
+        "bytedance/dolphin": "« Extraire tableaux et formules d'images de documents ».",
+        "synth-tablevision/tablereader": "« OCR de tableaux par modèle vision-langage : extrait les tableaux de PDF scannés ».",
+        "docling-project/docling": "« Extraire les tableaux de documents PDF », mais testé sur des « PDF texte » plutôt que sur des scans.",
+        "allenai/olmocr": "« Extraction de texte de PDF à grande échelle par un modèle vision-langage » ; tableaux non mentionnés.",
+        "deepseek-ai/deepseek-ocr": "« Modèle OCR convertissant images et PDF en texte ou Markdown » ; tableaux non mentionnés.",
+        "rdumasia303/deepseek_ocr_app": "Application « fondée sur DeepSeek-OCR » pour « numériser des documents » ; tableaux non mentionnés.",
+        "tesseract-ocr/tesseract": "C'est Tesseract lui-même : « Moteur OCR open source Tesseract ».",
+        "ub-mannheim/tesseract": "« Version Windows de Tesseract » : pas une alternative.",
+        "synth-preprocess/scanclean": "Prétraitement pour Tesseract, « sans faire l'OCR lui-même ».",
+        "synth-pdfcraft/pdfcraft": "Son OCR passe « via Tesseract »."
+      },
+      "role_identifiant": "reference",
+      "theme": "technologies",
+      "langue": "fr"
+    },
+    {
+      "id": "N21",
+      "jeu": "independant_lot5",
+      "requete": "J'aimerais faire une recherche sémantique dans le code de mes projets : poser une question en français et retrouver la fonction concernée.",
+      "options": {},
+      "en_tete": ["synth-codelens/codelens", "synth-symbolic/code-index-mcp"],
+      "acceptables": [],
+      "a_exclure": ["synth-docsense/pdfseek", "synth-notesearch/semantic-drive"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-codelens/codelens": "« Recherche sémantique dans le code source » qui « répond aux questions en langage naturel en pointant les fichiers et les lignes ».",
+        "synth-symbolic/code-index-mcp": "Offre « une recherche sémantique et par symboles dans le projet », à travers un agent de développement.",
+        "synth-docsense/pdfseek": "Moteur « pour une bibliothèque de PDF », pas pour du code.",
+        "synth-notesearch/semantic-drive": "Porte sur des « documents bureautiques (PDF, Word, Markdown, exports Notion) », pas sur du code."
+      },
+      "role_identifiant": null,
+      "theme": "semantique",
+      "langue": "fr"
+    },
+    {
+      "id": "N22",
+      "jeu": "independant_lot5",
+      "requete": "Semantic code search across several of my repositories, to find code similar to a snippet.",
+      "options": {},
+      "en_tete": ["synth-codelens/codelens"],
+      "acceptables": ["synth-symbolic/code-index-mcp"],
+      "a_exclure": ["synth-docsense/pdfseek", "synth-notesearch/semantic-drive"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-codelens/codelens": "Cas d'usage exact : « Trouver du code similaire à un extrait dans plusieurs dépôts ».",
+        "synth-symbolic/code-index-mcp": "Recherche sémantique dans le code, mais sur « une base de code » et via un agent.",
+        "synth-docsense/pdfseek": "Moteur « pour une bibliothèque de PDF », pas pour du code.",
+        "synth-notesearch/semantic-drive": "Porte sur des « documents bureautiques », pas sur du code."
+      },
+      "role_identifiant": null,
+      "theme": "semantique",
+      "langue": "en"
+    },
+    {
+      "id": "N23",
+      "jeu": "independant_lot5",
+      "requete": "Give my coding agent a way to search a large codebase by meaning, through an MCP server.",
+      "options": {},
+      "en_tete": ["synth-symbolic/code-index-mcp"],
+      "acceptables": ["synth-codelens/codelens"],
+      "a_exclure": ["synth-notesearch/semantic-drive", "synth-docsense/pdfseek"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-symbolic/code-index-mcp": "« Serveur MCP qui indexe une base de code et offre aux agents de développement » une « recherche sémantique ».",
+        "synth-codelens/codelens": "« Recherche sémantique dans le code source », mais en ligne de commande, sans serveur MCP mentionné.",
+        "synth-notesearch/semantic-drive": "Recherche sémantique « dans des documents bureautiques », pas dans du code.",
+        "synth-docsense/pdfseek": "Moteur « pour une bibliothèque de PDF », pas pour du code."
+      },
+      "role_identifiant": "contexte",
+      "theme": "semantique",
+      "langue": "en"
+    },
+    {
+      "id": "N24",
+      "jeu": "independant_lot5",
+      "requete": "Rechercher par le sens dans ma bibliothèque de PDF (DTU, normes, cours) et retrouver la page exacte du passage.",
+      "options": {},
+      "en_tete": ["synth-docsense/pdfseek"],
+      "acceptables": [
+        "synth-notesearch/semantic-drive",
+        "neuml/txtai",
+        "vectifyai/pageindex",
+        "lfnovo/open-notebook",
+        "infiniflow/ragflow"
+      ],
+      "a_exclure": ["synth-codelens/codelens", "synth-symbolic/code-index-mcp"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-docsense/pdfseek": "« renvoie les passages pertinents avec le document et le numéro de page » ; cas d'usage sur « les DTU et les normes en PDF ».",
+        "synth-notesearch/semantic-drive": "Recherche sémantique sur « PDF, Word, Markdown » ; pas de renvoi à la page mentionné.",
+        "neuml/txtai": "« très pertinent pour la recherche sémantique sur des documents », mais framework à assembler soi-même.",
+        "vectifyai/pageindex": "« Interroger de longs rapports PDF sans base vectorielle » : recherche par raisonnement plutôt que sémantique.",
+        "lfnovo/open-notebook": "« Implémentation open source de Notebook LM » ; note « À tester avec mes cours de métré (PDF) ».",
+        "infiniflow/ragflow": "« Moteur RAG open source, compréhension fine des PDF » : plus lourd que le besoin.",
+        "synth-codelens/codelens": "« Recherche sémantique dans le code source » : pas des PDF.",
+        "synth-symbolic/code-index-mcp": "« indexe une base de code » : pas des documents."
+      },
+      "role_identifiant": null,
+      "theme": "semantique",
+      "langue": "fr"
+    },
+    {
+      "id": "N25",
+      "jeu": "independant_lot5",
+      "requete": "Semantic search over a folder of Word files, PDFs and Notion exports.",
+      "options": {},
+      "en_tete": ["synth-notesearch/semantic-drive"],
+      "acceptables": [
+        "synth-docsense/pdfseek",
+        "neuml/txtai",
+        "infiniflow/ragflow",
+        "lfnovo/open-notebook"
+      ],
+      "a_exclure": ["synth-codelens/codelens", "synth-symbolic/code-index-mcp"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-notesearch/semantic-drive": "« Recherche sémantique auto-hébergée dans des documents bureautiques (PDF, Word, Markdown, exports Notion) stockés dans un dossier ».",
+        "synth-docsense/pdfseek": "Recherche sémantique « pour une bibliothèque de PDF » seulement.",
+        "neuml/txtai": "« Framework d'IA open source tout-en-un pour la recherche sémantique » : à intégrer soi-même.",
+        "infiniflow/ragflow": "« moteur RAG (génération augmentée par récupération) open source fondé sur une compréhension approfondie des documents ».",
+        "lfnovo/open-notebook": "« Implémentation open source de Notebook LM » : interrogation de documents, recherche sémantique non explicitée.",
+        "synth-codelens/codelens": "« Recherche sémantique dans le code source » : pas des documents.",
+        "synth-symbolic/code-index-mcp": "« indexe une base de code » : pas des documents."
+      },
+      "role_identifiant": null,
+      "theme": "semantique",
+      "langue": "en"
+    },
+    {
+      "id": "N26",
+      "jeu": "independant_lot5",
+      "requete": "Une brique Python de recherche sémantique sur des documents, que je pourrais intégrer dans mon application web.",
+      "options": {},
+      "en_tete": ["neuml/txtai"],
+      "acceptables": ["synth-docsense/pdfseek", "infiniflow/ragflow", "vectifyai/pageindex"],
+      "a_exclure": ["synth-codelens/codelens", "synth-symbolic/code-index-mcp"],
+      "aucun_fort": false,
+      "raisons": {
+        "neuml/txtai": "« Base d'embeddings et pipelines RAG en Python, avec une API web construite sur FastAPI ; très pertinent pour la recherche sémantique sur des documents et l'intégration dans une application web ».",
+        "synth-docsense/pdfseek": "Paquet Python (« pip install pdfseek ») de recherche sémantique, limité aux PDF et pensé comme outil autonome.",
+        "infiniflow/ragflow": "« Moteur RAG open source » complet : plus lourd qu'une brique.",
+        "vectifyai/pageindex": "Index de documents en Python, « sans base vectorielle ni découpage en morceaux » : alternative par raisonnement à la recherche sémantique.",
+        "synth-codelens/codelens": "Paquet Python de « Recherche sémantique dans le code source » : pas des documents.",
+        "synth-symbolic/code-index-mcp": "« indexe une base de code » : pas des documents."
+      },
+      "role_identifiant": null,
+      "theme": "semantique",
+      "langue": "fr"
+    },
+    {
+      "id": "N27",
+      "jeu": "independant_lot5",
+      "requete": "Un OCR qui tourne sans GPU, sur mon petit VPS.",
+      "options": {},
+      "en_tete": ["synth-cpuocr/onnx-ocr-lite"],
+      "acceptables": [
+        "tesseract-ocr/tesseract",
+        "paddlepaddle/paddleocr",
+        "synth-pdfcraft/pdfcraft",
+        "synth-scanflow/receipt-extractor",
+        "docling-project/docling"
+      ],
+      "a_exclure": [
+        "allenai/olmocr",
+        "deepseek-ai/deepseek-ocr",
+        "rdumasia303/deepseek_ocr_app",
+        "synth-tablevision/tablereader"
+      ],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-cpuocr/onnx-ocr-lite": "« conçu pour fonctionner entièrement sur CPU, y compris sur un petit VPS » ; « aucun GPU n'est requis ».",
+        "tesseract-ocr/tesseract": "« Moteur OCR open source Tesseract » ; la fiche ne dit rien du matériel (information inconnue, pas une incompatibilité).",
+        "paddlepaddle/paddleocr": "« Boîte à outils OCR légère » ; besoin en GPU non précisé.",
+        "synth-pdfcraft/pdfcraft": "Couche texte « OCR via Tesseract » en ligne de commande ; matériel non précisé.",
+        "synth-scanflow/receipt-extractor": "OCR spécialisé (« tickets de caisse et de factures ») ; « prérequis non précisés ».",
+        "docling-project/docling": "« très utile pour l'OCR et le traitement documentaire » ; matériel non précisé.",
+        "allenai/olmocr": "« exige un GPU NVIDIA récent avec beaucoup de mémoire ».",
+        "deepseek-ai/deepseek-ocr": "« demande un GPU CUDA puissant, peu adapté au VPS ».",
+        "rdumasia303/deepseek_ocr_app": "Prérequis : « NVIDIA GPU with CUDA support ».",
+        "synth-tablevision/tablereader": "« le README exige un GPU NVIDIA de 12 Go de VRAM, donc pas sur le VPS »."
+      },
+      "role_identifiant": "exclusion",
+      "theme": "exclusions",
+      "langue": "fr"
+    },
+    {
+      "id": "N28",
+      "jeu": "independant_lot5",
+      "requete": "I need to transcribe my recorded lectures to text on a laptop that has no NVIDIA GPU.",
+      "options": {},
+      "en_tete": ["synth-voxscribe/whisper-batch"],
+      "acceptables": [],
+      "a_exclure": ["ohf-voice/piper1-gpl", "resemble-ai/chatterbox"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-voxscribe/whisper-batch": "« Transcrire les enregistrements de cours » ; « GPU NVIDIA facultatif (CUDA) : fonctionne aussi sur CPU, plus lentement ».",
+        "ohf-voice/piper1-gpl": "« Moteur de synthèse vocale » : produit de la voix, ne transcrit pas.",
+        "resemble-ai/chatterbox": "« SoTA open-source TTS » : synthèse vocale, pas transcription."
+      },
+      "role_identifiant": "exclusion",
+      "theme": "exclusions",
+      "langue": "en"
+    },
+    {
+      "id": "N29",
+      "jeu": "independant_lot5",
+      "requete": "Un outil pour fusionner et compresser des PDF, que je peux installer sans Docker.",
+      "options": {},
+      "en_tete": ["synth-pdfcraft/pdfcraft"],
+      "acceptables": [],
+      "a_exclure": ["synth-pdfstack/pdf-toolbox-server"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-pdfcraft/pdfcraft": "« fusion, découpe, compression » ; « il fonctionne sans Docker ni serveur ».",
+        "synth-pdfstack/pdf-toolbox-server": "« Docker : seul mode de distribution, aucun paquet natif fourni »."
+      },
+      "role_identifiant": "exclusion",
+      "theme": "exclusions",
+      "langue": "fr"
+    },
+    {
+      "id": "N30",
+      "jeu": "independant_lot5",
+      "requete": "A web UI to manage the containers on a single VPS, no Kubernetes, just plain Docker.",
+      "options": {},
+      "en_tete": ["synth-harbor/dockpanel"],
+      "acceptables": [],
+      "a_exclure": ["synth-kubeops/kube-backup-operator"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-harbor/dockpanel": "« Interface web légère pour gérer Docker sur un serveur » ; « pour un serveur unique ; ne gère pas Kubernetes ».",
+        "synth-kubeops/kube-backup-operator": "« Opérateur Kubernetes » qui exige un « Cluster Kubernetes 1.27+ »."
+      },
+      "role_identifiant": "exclusion",
+      "theme": "exclusions",
+      "langue": "en"
+    },
+    {
+      "id": "N31",
+      "jeu": "independant_lot5",
+      "requete": "Je veux générer des voix off en français pour mes vidéos pédagogiques : de la synthèse vocale, pas de la transcription.",
+      "options": {},
+      "en_tete": ["ohf-voice/piper1-gpl"],
+      "acceptables": ["resemble-ai/chatterbox"],
+      "a_exclure": ["synth-voxscribe/whisper-batch"],
+      "aucun_fort": false,
+      "raisons": {
+        "ohf-voice/piper1-gpl": "« Moteur de synthèse vocale (text-to-speech) neuronal, rapide et local » ; cas d'usage « Générer des voix off hors ligne pour des vidéos ».",
+        "resemble-ai/chatterbox": "« SoTA open-source TTS » ; prise en charge du français non précisée.",
+        "synth-voxscribe/whisper-batch": "Fait de la « Transcription en lot de fichiers audio et vidéo » : exclu par la demande."
+      },
+      "role_identifiant": null,
+      "theme": "exclusions",
+      "langue": "fr"
+    },
+    {
+      "id": "N32",
+      "jeu": "independant_lot5",
+      "requete": "Semantic search for my lesson notes and PDFs, not for source code.",
+      "options": {},
+      "en_tete": ["synth-docsense/pdfseek", "synth-notesearch/semantic-drive"],
+      "acceptables": [
+        "neuml/txtai",
+        "lfnovo/open-notebook",
+        "vectifyai/pageindex",
+        "infiniflow/ragflow"
+      ],
+      "a_exclure": ["synth-codelens/codelens", "synth-symbolic/code-index-mcp"],
+      "aucun_fort": false,
+      "raisons": {
+        "synth-docsense/pdfseek": "« Moteur de recherche sémantique local pour une bibliothèque de PDF » ; « Chercher dans plusieurs années de cours ».",
+        "synth-notesearch/semantic-drive": "« Recherche sémantique auto-hébergée dans des documents bureautiques (PDF, Word, Markdown, exports Notion) ».",
+        "neuml/txtai": "« très pertinent pour la recherche sémantique sur des documents » ; framework à intégrer.",
+        "lfnovo/open-notebook": "« Implémentation open source de Notebook LM » ; note « À tester avec mes cours de métré (PDF) ».",
+        "vectifyai/pageindex": "« Interroger de longs rapports PDF sans base vectorielle » : par raisonnement plutôt que sémantique.",
+        "infiniflow/ragflow": "« Moteur RAG open source, compréhension fine des PDF » : plus lourd que le besoin.",
+        "synth-codelens/codelens": "« Recherche sémantique dans le code source » : exclu par la demande.",
+        "synth-symbolic/code-index-mcp": "« indexe une base de code » : exclu par la demande."
+      },
+      "role_identifiant": null,
+      "theme": "exclusions",
+      "langue": "en"
+    },
+    {
+      "id": "N33",
+      "jeu": "independant_lot5",
+      "requete": "Un logiciel pour calculer le ferraillage d'une poutre en béton armé selon l'Eurocode 2.",
+      "options": {},
+      "en_tete": [],
+      "acceptables": [],
+      "a_exclure": [],
+      "aucun_fort": true,
+      "raisons": {},
+      "role_identifiant": null,
+      "theme": "sans_reponse",
+      "langue": "fr"
+    },
+    {
+      "id": "N34",
+      "jeu": "independant_lot5",
+      "requete": "A mobile app to track my crypto wallet balances across several blockchains.",
+      "options": {},
+      "en_tete": [],
+      "acceptables": [],
+      "a_exclure": [],
+      "aucun_fort": true,
+      "raisons": {},
+      "role_identifiant": null,
+      "theme": "sans_reponse",
+      "langue": "en"
+    },
+    {
+      "id": "N35",
+      "jeu": "independant_lot5",
+      "requete": "Générer automatiquement l'emploi du temps des classes et des salles de mon lycée.",
+      "options": {},
+      "en_tete": [],
+      "acceptables": [],
+      "a_exclure": [],
+      "aucun_fort": true,
+      "raisons": {},
+      "role_identifiant": null,
+      "theme": "sans_reponse",
+      "langue": "fr"
+    },
+    {
+      "id": "N36",
+      "jeu": "independant_lot5",
+      "requete": "A browser-based CAD tool to draw 2D floor plans.",
+      "options": {},
+      "en_tete": [],
+      "acceptables": [],
+      "a_exclure": [],
+      "aucun_fort": true,
+      "raisons": {},
+      "role_identifiant": null,
+      "theme": "sans_reponse",
+      "langue": "en"
+    },
+    {
+      "id": "N37",
+      "jeu": "independant_lot5",
+      "requete": "Extraire les tableaux des DPGF reçus en PDF pour les reprendre dans Excel.",
+      "options": {},
+      "en_tete": ["docling-project/docling", "synth-tablevision/tablereader"],
+      "acceptables": ["paddlepaddle/paddleocr", "bytedance/dolphin"],
+      "a_exclure": [],
+      "aucun_fort": false,
+      "raisons": {
+        "docling-project/docling": "Note : « Testé pour extraire les tableaux des DPGF (PDF texte) : OK ».",
+        "synth-tablevision/tablereader": "« Récupérer dans Excel les tableaux de quantités de DPGF scannés » (GPU NVIDIA requis).",
+        "paddlepaddle/paddleocr": "« Extraire le texte et les tableaux de PDF scannés ».",
+        "bytedance/dolphin": "« Extraire tableaux et formules d'images de documents »."
+      },
+      "role_identifiant": null,
+      "theme": "generique",
+      "langue": "fr"
+    },
+    {
+      "id": "N38",
+      "jeu": "independant_lot5",
+      "requete": "Turn my course PDFs into quizzes and revision sheets for my students.",
+      "options": {},
+      "en_tete": ["caviraoss/pagelm"],
+      "acceptables": ["lfnovo/open-notebook"],
+      "a_exclure": [],
+      "aucun_fort": false,
+      "raisons": {
+        "caviraoss/pagelm": "« Générer des quiz et des fiches de révision à partir de supports de cours ».",
+        "lfnovo/open-notebook": "« Implémentation open source de Notebook LM » ; note « À tester avec mes cours de métré (PDF) » ; quiz non mentionnés."
+      },
+      "role_identifiant": null,
+      "theme": "generique",
+      "langue": "en"
+    },
+    {
+      "id": "N39",
+      "jeu": "independant_lot5",
+      "requete": "Un agent IA qui mène des recherches financières approfondies sur des entreprises cotées.",
+      "options": {},
+      "en_tete": ["virattt/dexter"],
+      "acceptables": [
+        "ai4finance-foundation/finrobot",
+        "assafelovic/gpt-researcher",
+        "virattt/ai-hedge-fund"
+      ],
+      "a_exclure": [],
+      "aucun_fort": false,
+      "raisons": {
+        "virattt/dexter": "« Automatiser des recherches financières sur des entreprises cotées ».",
+        "ai4finance-foundation/finrobot": "« plateforme open source d'agents IA pour l'analyse financière ».",
+        "assafelovic/gpt-researcher": "Agent de recherche généraliste, « réutilisable pour automatiser une veille technique ou financière ».",
+        "virattt/ai-hedge-fund": "« Une équipe de hedge fund pilotée par l'IA » : orientée décisions d'investissement plus que recherche."
+      },
+      "role_identifiant": null,
+      "theme": "generique",
+      "langue": "fr"
+    },
+    {
+      "id": "N40",
+      "jeu": "independant_lot5",
+      "requete": "Automatically produce short vertical videos for TikTok and YouTube Shorts.",
+      "options": {},
+      "en_tete": ["gyoridavid/short-video-maker"],
+      "acceptables": ["remotion-dev/remotion"],
+      "a_exclure": [],
+      "aucun_fort": false,
+      "raisons": {
+        "gyoridavid/short-video-maker": "« Crée des vidéos courtes pour TikTok, Instagram Reels et YouTube Shorts ».",
+        "remotion-dev/remotion": "« Créez des vidéos par programmation avec React » : brique générique, sans automatisation des formats courts."
+      },
+      "role_identifiant": null,
+      "theme": "generique",
+      "langue": "en"
+    }
+  ]
+}

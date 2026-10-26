@@ -1,0 +1,29 @@
+{
+  "analyste": "A",
+  "jugements": {
+    "M07": {
+      "public-apis/public-apis": {
+        "etiquette": "hors_sujet",
+        "raison": "Simple catalogue d'API, pas un framework web Python : « Une liste collective d'API gratuites »."
+      },
+      "synth-coinbook/coinledger-lite": {
+        "etiquette": "hors_sujet",
+        "raison": "Application de suivi crypto sans rapport avec un framework d'API : « Suivi de portefeuille de cryptomonnaies auto-hébergé »."
+      },
+      "synth-cpuocr/onnx-ocr-lite": {
+        "etiquette": "hors_sujet",
+        "raison": "Bibliothèque d'OCR, pas un remplaçant de FastAPI ; elle sert seulement à « Ajouter de l'OCR à une API Python avec une faible empreinte mémoire »."
+      },
+      "synth-migratekit/zap2n8n": {
+        "etiquette": "hors_sujet",
+        "raison": "Outil de migration d'automatisations, pas de routes d'API Python : « Convertisseur qui transforme des Zaps exportés depuis Zapier en workflows n8n »."
+      }
+    },
+    "M13": {
+      "synth-codeseek/repo-ask": {
+        "etiquette": "pertinent",
+        "raison": "Recherche sémantique « dans le code d'un ou plusieurs dépôts Git », et la fiche précise que « les PDF et documents bureautiques ne sont pas indexés »."
+      }
+    }
+  }
+}

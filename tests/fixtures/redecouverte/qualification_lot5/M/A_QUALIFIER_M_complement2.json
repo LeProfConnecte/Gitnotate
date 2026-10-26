@@ -1,0 +1,19 @@
+{
+ "requetes": [
+  {
+   "id": "M09",
+   "requete": "Self-hosted workflow automation that doesn't rely on Docker — containers aren't allowed on that server.",
+   "candidats": [
+    "synth-flowgen/n8n-flow-genie",
+    "synth-mailroom/inbox-parser"
+   ]
+  },
+  {
+   "id": "M14",
+   "requete": "One search box that answers questions from both the source code and the design documentation of a project.",
+   "candidats": [
+    "synth-agentskills/claude-code-skills"
+   ]
+  }
+ ]
+}

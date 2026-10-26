@@ -1,0 +1,684 @@
+{
+  "format": "gitnotate-supplement-lot5/1",
+  "fiches": [
+    {
+      "id": "P01",
+      "depot": "synth-flowkit/n8n-workflow-templates",
+      "nom": "n8n-workflow-templates",
+      "description": "Collection de plus de 300 modèles de workflows n8n prêts à importer (fichiers JSON), classés par thème : CRM, e-mail, réseaux sociaux, IA et gestion d'erreurs.",
+      "cas_usage": [
+        "Importer dans son instance n8n un workflow de veille RSS vers Telegram",
+        "Partir d'un modèle de gestion d'erreurs (Error Trigger vers e-mail ou Telegram) pour être prévenu des exécutions en échec",
+        "Récupérer des exemples d'agents IA (OpenAI, Ollama) déjà câblés dans n8n"
+      ],
+      "installation": "git clone https://github.com/synth-flowkit/n8n-workflow-templates.git\nPuis, dans l'éditeur n8n : Import from File",
+      "exemple": "workflows/veille/rss-vers-telegram.json",
+      "prerequis": [
+        "Une instance n8n 1.x",
+        "Les identifiants des services utilisés par chaque workflow"
+      ],
+      "langage": "Autres langages",
+      "licence": "MIT",
+      "categorie": "Automatisation/No-code",
+      "brique_pour": ["Automatisations n8n"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U3·P3·T2·I2·C2·M2·L2 = 10 — Modèles de workflows n8n importables (veille, e-mail, IA, gestion d'erreurs) ; point de départ direct pour le projet actif Automatisations n8n.",
+      "stars": 4800
+    },
+    {
+      "id": "P02",
+      "depot": "synth-opswatch/n8n-watchtower",
+      "nom": "n8n-watchtower",
+      "description": "Tableau de bord de supervision des exécutions n8n : historique, taux d'échec par workflow, durées, et alertes Slack, Telegram ou e-mail quand une exécution échoue.",
+      "cas_usage": [
+        "Recevoir une alerte Telegram dès qu'un workflow de production échoue",
+        "Repérer les workflows les plus lents ou les plus souvent en erreur",
+        "Suivre sur un même écran les instances n8n de test et de production"
+      ],
+      "installation": "docker run -d -p 8080:8080 -e N8N_API_URL=https://n8n.example.org/api/v1 -e N8N_API_KEY=... ghcr.io/synth-opswatch/n8n-watchtower\nou : npm install -g n8n-watchtower",
+      "exemple": "n8n-watchtower --alert telegram --failed-only",
+      "prerequis": [
+        "Instance n8n avec l'API publique activée et une clé d'API",
+        "Docker ou Node.js 20+"
+      ],
+      "langage": "TypeScript",
+      "licence": "Apache-2.0",
+      "categorie": "Automatisation/No-code",
+      "brique_pour": ["Automatisations n8n"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U3·P3·T2·I2·C2·M2·L2 = 10 — Supervision des exécutions n8n par son API (échecs, durées, alertes) ; complète les automatisations n8n en production sur le VPS.",
+      "stars": 640
+    },
+    {
+      "id": "P03",
+      "depot": "synth-nodeforge/n8n-nodes-pdfgen",
+      "nom": "n8n-nodes-pdfgen",
+      "description": "Nœud communautaire n8n qui génère des PDF à partir de modèles HTML ou Handlebars (devis, factures, attestations), sans service externe.",
+      "cas_usage": [
+        "Produire un devis PDF à partir des lignes d'un Google Sheets dans un workflow n8n",
+        "Générer en lot les attestations de stage d'une classe",
+        "Joindre automatiquement une facture PDF à un e-mail"
+      ],
+      "installation": "Dans n8n : Settings > Community Nodes > Install, puis saisir n8n-nodes-pdfgen",
+      "exemple": "Nœud « PDF Generator » : modèle HTML + données JSON → fichier PDF binaire",
+      "prerequis": [
+        "n8n 1.x auto-hébergé avec les nœuds communautaires activés",
+        "Chromium sur l'hôte (moteur de rendu)"
+      ],
+      "langage": "TypeScript",
+      "licence": "MIT",
+      "categorie": "Automatisation/No-code",
+      "brique_pour": ["Automatisations n8n", "Documents et OCR"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U3·P2·T2·I2·C2·M2·L2 = 9 — Nœud communautaire de génération de PDF depuis des modèles HTML, à utiliser dans les workflows n8n ; utile pour les devis et documents administratifs.",
+      "stars": 210
+    },
+    {
+      "id": "P04",
+      "depot": "synth-openflow/flowpilot",
+      "nom": "flowpilot",
+      "description": "Plateforme d'automatisation no-code open source et auto-hébergeable, présentée comme une alternative à Zapier et à n8n : éditeur visuel de scénarios, plus de 200 connecteurs et une bibliothèque de modèles.",
+      "cas_usage": [
+        "Remplacer des Zaps payants par des scénarios auto-hébergés",
+        "Construire sans code un flux formulaire web → Google Sheets → e-mail",
+        "Partir d'un des 150 modèles de scénarios fournis"
+      ],
+      "installation": "docker compose up -d (fichier fourni)\nEssai local sans Docker : npx flowpilot start (SQLite)\nChart Helm disponible pour Kubernetes",
+      "exemple": "npx flowpilot start --port 8090",
+      "prerequis": [
+        "Node.js 20+ ou Docker",
+        "PostgreSQL en production (SQLite pour les essais)"
+      ],
+      "langage": "TypeScript",
+      "licence": "AGPL-3.0",
+      "categorie": "Automatisation/No-code",
+      "brique_pour": ["Automatisations n8n"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L1 = 9 — Plateforme no-code auto-hébergeable, alternative directe à Zapier et à n8n ; à comparer avec n8n avant toute migration, licence AGPL.",
+      "stars": 9100
+    },
+    {
+      "id": "P05",
+      "depot": "synth-durable/taskweave",
+      "nom": "taskweave",
+      "description": "Moteur de workflows en code pour Python : les étapes s'écrivent comme des fonctions décorées, avec reprises automatiques sur erreur, planification et exécution durable. Aucun éditeur visuel.",
+      "cas_usage": [
+        "Enchaîner téléchargement, OCR et import en base de factures, avec reprise à l'étape en échec",
+        "Planifier toutes les heures des scripts de collecte de données",
+        "Remplacer une série de tâches cron fragiles par des workflows suivis"
+      ],
+      "installation": "pip install taskweave",
+      "exemple": "@workflow\ndef traiter_facture(chemin):\n    texte = step(ocr, chemin)\n    step(enregistrer, texte)",
+      "prerequis": [
+        "Python 3.10+",
+        "PostgreSQL ou SQLite pour l'état des workflows"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "Automatisation/No-code",
+      "brique_pour": ["Données"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P2·T2·I2·C2·M2·L2 = 9 — Orchestration de workflows Python définis en code (reprises, planification, exécution durable) ; destiné aux développeurs, approche code-first et non no-code.",
+      "stars": 3200
+    },
+    {
+      "id": "P06",
+      "depot": "synth-mailroom/inbox-parser",
+      "nom": "inbox-parser",
+      "description": "Service qui relève une boîte e-mail (IMAP), extrait les données des factures et bons de commande reçus (corps du message et pièces jointes PDF) et les publie en JSON vers un webhook ou un fichier.",
+      "cas_usage": [
+        "Transformer chaque facture fournisseur reçue par e-mail en enregistrement JSON (fournisseur, montant, date)",
+        "Déclencher un workflow n8n, Make ou Zapier par webhook à chaque nouveau bon de commande",
+        "Archiver les pièces jointes PDF dans des dossiers classés par fournisseur"
+      ],
+      "installation": "pip install inbox-parser\ninbox-parser --config config.yaml",
+      "exemple": "inbox-parser --config config.yaml --output webhook --url https://exemple.org/hook",
+      "prerequis": [
+        "Python 3.10+",
+        "Accès IMAP à la boîte e-mail",
+        "Clé d'API d'un LLM (OpenAI, Mistral) ou Ollama en local pour l'extraction"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "OCR/Documents",
+      "brique_pour": ["Automatisations n8n", "Documents et OCR"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U3·P3·T2·I2·C2·M2·L2 = 10 — Extraction des données d'e-mails et de factures PDF vers JSON ; fonctionne seul, et reste compatible avec n8n via un webhook pour enchaîner les traitements.",
+      "stars": 1150
+    },
+    {
+      "id": "P07",
+      "depot": "synth-migratekit/zap2n8n",
+      "nom": "zap2n8n",
+      "description": "Convertisseur qui transforme des Zaps exportés depuis Zapier en workflows n8n importables, en signalant les étapes sans équivalent.",
+      "cas_usage": [
+        "Migrer une vingtaine de Zaps existants vers une instance n8n auto-hébergée",
+        "Obtenir la liste des étapes Zapier à reconstruire à la main"
+      ],
+      "installation": "npm install -g zap2n8n",
+      "exemple": "zap2n8n export-zapier.json -o workflows/",
+      "prerequis": [
+        "Node.js 18+",
+        "Export JSON des Zaps depuis le compte Zapier"
+      ],
+      "langage": "TypeScript",
+      "licence": "MIT",
+      "categorie": "Automatisation/No-code",
+      "brique_pour": ["Automatisations n8n"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P2·T2·I2·C2·M2·L2 = 8 — Migration de Zaps vers des workflows n8n ; utile pour quitter un abonnement Zapier, couverture des connecteurs partielle.",
+      "stars": 380
+    },
+    {
+      "id": "P08",
+      "depot": "synth-harbor/dockpanel",
+      "nom": "dockpanel",
+      "description": "Interface web légère pour gérer Docker sur un serveur : conteneurs, images, volumes, réseaux, journaux en direct et stacks Docker Compose.",
+      "cas_usage": [
+        "Redémarrer un conteneur et lire ses journaux depuis le navigateur",
+        "Déployer ou mettre à jour une stack Docker Compose sur un VPS",
+        "Nettoyer les images et volumes inutilisés"
+      ],
+      "installation": "docker run -d -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/synth-harbor/dockpanel",
+      "exemple": "Ouvrir http://mon-vps:9000 puis Stacks > Ajouter > coller le docker-compose.yml",
+      "prerequis": [
+        "Docker Engine 24+",
+        "Accès au socket Docker de l'hôte"
+      ],
+      "langage": "Go",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": [],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Tableau de bord web de gestion de Docker (conteneurs, stacks Compose, journaux) pour un serveur unique ; ne gère pas Kubernetes.",
+      "stars": 5600
+    },
+    {
+      "id": "P09",
+      "depot": "synth-pdfstack/pdf-toolbox-server",
+      "nom": "pdf-toolbox-server",
+      "description": "Application web auto-hébergée de manipulation de PDF : fusion, découpe, compression, rotation, filigrane et conversion en images, avec une API REST.",
+      "cas_usage": [
+        "Fusionner et compresser des dossiers de plans PDF depuis le navigateur",
+        "Appeler l'API REST de découpe depuis un script ou un workflow",
+        "Proposer aux collègues un outil PDF interne, sans envoyer les fichiers en ligne"
+      ],
+      "installation": "docker run -d -p 8080:8080 synthpdfstack/pdf-toolbox-server:latest",
+      "exemple": "curl -F file=@plans.pdf http://localhost:8080/api/v1/compress -o plans-compresses.pdf",
+      "prerequis": [
+        "Docker : seul mode de distribution, aucun paquet natif fourni",
+        "2 Go de RAM"
+      ],
+      "langage": "Autres langages",
+      "licence": "GPL-3.0",
+      "categorie": "OCR/Documents",
+      "brique_pour": ["Documents et OCR"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T1·I2·C2·M2·L2 = 9 — Boîte à outils PDF web (fusion, découpe, compression) avec API ; distribuée uniquement en image Docker.",
+      "stars": 7400
+    },
+    {
+      "id": "P10",
+      "depot": "synth-pdfcraft/pdfcraft",
+      "nom": "pdfcraft",
+      "description": "Boîte à outils PDF en ligne de commande : fusion, découpe, compression, réorganisation des pages et ajout d'une couche texte OCR via Tesseract.",
+      "cas_usage": [
+        "Fusionner les PDF d'un dossier de consultation en un seul fichier",
+        "Compresser des plans scannés avant de les envoyer par e-mail",
+        "Rendre un PDF scanné cherchable en ajoutant une couche texte"
+      ],
+      "installation": "pip install pdfcraft",
+      "exemple": "pdfcraft merge *.pdf -o dossier.pdf && pdfcraft compress dossier.pdf --quality ebook",
+      "prerequis": [
+        "Python 3.9+",
+        "Tesseract (facultatif, uniquement pour l'OCR)"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "OCR/Documents",
+      "brique_pour": ["Documents et OCR"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Outil PDF en ligne de commande installé avec pip ; le README précise qu'il fonctionne sans Docker ni serveur, sous Linux, macOS et Windows.",
+      "stars": 2300
+    },
+    {
+      "id": "P11",
+      "depot": "synth-kubeops/kube-backup-operator",
+      "nom": "kube-backup-operator",
+      "description": "Opérateur Kubernetes qui planifie les sauvegardes de volumes persistants et de bases PostgreSQL vers un stockage S3, avec rétention et restauration par ressources personnalisées.",
+      "cas_usage": [
+        "Sauvegarder chaque nuit une base PostgreSQL du cluster vers S3",
+        "Restaurer un volume persistant à une date donnée",
+        "Définir des politiques de rétention par espace de noms"
+      ],
+      "installation": "helm repo add synth-kubeops https://synth-kubeops.github.io/charts\nhelm install kube-backup synth-kubeops/kube-backup-operator",
+      "exemple": "kind: BackupSchedule\nspec:\n  schedule: \"0 2 * * *\"\n  target: s3://sauvegardes/pg",
+      "prerequis": [
+        "Cluster Kubernetes 1.27+",
+        "Helm 3",
+        "Stockage compatible S3"
+      ],
+      "langage": "Go",
+      "licence": "Apache-2.0",
+      "categorie": "Autre",
+      "brique_pour": [],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T2·I2·C2·M2·L2 = 8 — Opérateur de sauvegarde (volumes, PostgreSQL vers S3) ; suppose un cluster Kubernetes, sans intérêt pour un simple VPS sous Docker.",
+      "stars": 1900
+    },
+    {
+      "id": "P12",
+      "depot": "synth-apiforge/fastapi-starter",
+      "nom": "fastapi-starter",
+      "description": "Gabarit de projet FastAPI prêt pour la production : SQLModel, migrations Alembic, authentification JWT, tests pytest et Docker Compose.",
+      "cas_usage": [
+        "Démarrer en quelques minutes une API REST avec comptes utilisateurs",
+        "Servir un modèle d'IA derrière des routes authentifiées",
+        "Disposer d'une structure de tests et d'intégration continue déjà configurée"
+      ],
+      "installation": "pipx run copier copy gh:synth-apiforge/fastapi-starter mon-api",
+      "exemple": "cd mon-api && uv run fastapi dev app/main.py",
+      "prerequis": [
+        "Python 3.11+",
+        "Docker et Docker Compose (facultatifs, pour PostgreSQL en local)"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": [],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Squelette de projet FastAPI (auth JWT, SQLModel, Alembic, pytest) ; accélère la création d'API Python pour les projets web et IA.",
+      "stars": 2700
+    },
+    {
+      "id": "P13",
+      "depot": "synth-swiftapi/velora",
+      "nom": "velora",
+      "description": "Framework web Python asynchrone (ASGI) axé sur la performance, présenté comme une alternative à FastAPI : validation avec msgspec, injection de dépendances et documentation OpenAPI générée.",
+      "cas_usage": [
+        "Écrire une API REST à forte charge avec une latence plus faible qu'avec FastAPI",
+        "Migrer progressivement des routes FastAPI grâce à une couche de compatibilité"
+      ],
+      "installation": "pip install velora",
+      "exemple": "from velora import App, get\n\n@get(\"/ping\")\nasync def ping() -> dict:\n    return {\"ok\": True}\n\napp = App([ping])",
+      "prerequis": [
+        "Python 3.10+"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": [],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T2·I2·C2·M2·L2 = 8 — Framework ASGI concurrent de FastAPI, plus rapide d'après ses propres bancs d'essai ; écosystème encore réduit.",
+      "stars": 4100
+    },
+    {
+      "id": "P14",
+      "depot": "synth-uikit/react-blocks",
+      "nom": "react-blocks",
+      "description": "Bibliothèque de composants React accessibles, stylés avec Tailwind CSS : tableaux de données triables, formulaires, modales, graphiques et mises en page de tableau de bord.",
+      "cas_usage": [
+        "Monter rapidement l'interface d'un back-office en React",
+        "Afficher un tableau de données filtrable et paginé",
+        "Construire des formulaires validés et accessibles (ARIA)"
+      ],
+      "installation": "npm install @synth-uikit/react-blocks",
+      "exemple": "<DataTable columns={colonnes} data={lignes} sortable paginate={20} />",
+      "prerequis": [
+        "React 18+",
+        "Tailwind CSS 3"
+      ],
+      "langage": "TypeScript",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": [],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Composants d'interface React (tableaux, formulaires, graphiques) pour accélérer le développement web ; dépend de React et de Tailwind.",
+      "stars": 8300
+    },
+    {
+      "id": "P15",
+      "depot": "synth-hyperui/htmx-kit",
+      "nom": "htmx-kit",
+      "description": "Composants d'interface rendus côté serveur avec htmx et Alpine.js (tableaux, formulaires, onglets, modales) : de l'interactivité sans React ni étape de build JavaScript.",
+      "cas_usage": [
+        "Ajouter une interface d'administration à une application FastAPI ou Flask avec des gabarits Jinja",
+        "Construire un petit back-office interactif sans framework JavaScript lourd"
+      ],
+      "installation": "pip install htmx-kit",
+      "exemple": "{{ htmx_kit.table(rows=factures, sortable=True) }}",
+      "prerequis": [
+        "Python 3.9+ avec Jinja2 (pour les gabarits fournis)"
+      ],
+      "langage": "Autres langages",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": [],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P2·T2·I2·C2·M2·L2 = 8 — Composants web htmx et Alpine.js rendus côté serveur, sans React ; adaptés à un back-end Python (FastAPI, Flask) pour des interfaces simples.",
+      "stars": 1300
+    },
+    {
+      "id": "P16",
+      "depot": "synth-agentskills/claude-code-skills",
+      "nom": "claude-code-skills",
+      "description": "Collection de skills, de sous-agents et de commandes slash pour Claude Code : revue de code, écriture de tests, documentation et migrations de base de données.",
+      "cas_usage": [
+        "Ajouter à Claude Code un sous-agent de revue de sécurité avant chaque commit",
+        "Installer une skill de génération de tests pytest",
+        "Partager des commandes slash communes à toute une équipe"
+      ],
+      "installation": "git clone https://github.com/synth-agentskills/claude-code-skills.git\nPuis copier les dossiers voulus dans ~/.claude/skills ou .claude/agents",
+      "exemple": "/review-security src/",
+      "prerequis": [
+        "Claude Code installé (abonnement ou clé d'API Anthropic)"
+      ],
+      "langage": "Autres langages",
+      "licence": "MIT",
+      "categorie": "MCP/Intégrations",
+      "brique_pour": ["IA et agents"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Extensions prêtes à l'emploi pour Claude Code (skills, sous-agents, commandes) ; complète l'assistant de code sans le remplacer.",
+      "stars": 6200
+    },
+    {
+      "id": "P17",
+      "depot": "synth-hooksmith/cc-notify",
+      "nom": "cc-notify",
+      "description": "Hooks pour Claude Code qui envoient une notification (ntfy, Telegram, Pushover ou bureau) quand une session termine sa tâche ou attend une autorisation.",
+      "cas_usage": [
+        "Recevoir une notification sur son téléphone quand Claude Code a fini une longue refactorisation",
+        "Être prévenu quand l'agent attend la validation d'une commande"
+      ],
+      "installation": "npx cc-notify install",
+      "exemple": "npx cc-notify install --channel ntfy --topic mes-sessions (ajoute les hooks Stop et Notification dans ~/.claude/settings.json)",
+      "prerequis": [
+        "Claude Code",
+        "Node.js 18+",
+        "Un sujet ntfy, un bot Telegram ou un compte Pushover"
+      ],
+      "langage": "TypeScript",
+      "licence": "MIT",
+      "categorie": "Autre",
+      "brique_pour": ["IA et agents"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T2·I2·C2·M2·L2 = 8 — Notifications de fin de tâche pour Claude Code, branchées sur ses hooks ; petit outil pratique pour les longues sessions d'agent.",
+      "stars": 450
+    },
+    {
+      "id": "P18",
+      "depot": "synth-codecrew/termpilot",
+      "nom": "termpilot",
+      "description": "Agent de code open source pour le terminal : il lit le dépôt, modifie les fichiers et lance des commandes, avec n'importe quel fournisseur de LLM ou des modèles locaux via Ollama.",
+      "cas_usage": [
+        "Utiliser un agent de code avec un modèle local, sans envoyer le code à un service externe",
+        "Remplacer Claude Code ou Aider par un outil libre et multi-fournisseurs",
+        "Automatiser des corrections répétitives sur plusieurs fichiers"
+      ],
+      "installation": "pip install termpilot",
+      "exemple": "termpilot --model ollama/qwen2.5-coder \"ajoute des tests pour le module factures\"",
+      "prerequis": [
+        "Python 3.10+",
+        "Une clé d'API (OpenAI, Anthropic, Mistral) ou Ollama pour les modèles locaux"
+      ],
+      "langage": "Python",
+      "licence": "Apache-2.0",
+      "categorie": "Autre",
+      "brique_pour": ["IA et agents"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Agent de code en terminal, alternative libre à Claude Code, compatible avec les modèles locaux via Ollama.",
+      "stars": 12500,
+      "type": ["Agent IA"]
+    },
+    {
+      "id": "P19",
+      "depot": "synth-codelens/codelens",
+      "nom": "codelens",
+      "description": "Recherche sémantique dans le code source : indexe un ou plusieurs dépôts (découpage par fonctions avec tree-sitter, embeddings) et répond aux questions en langage naturel en pointant les fichiers et les lignes.",
+      "cas_usage": [
+        "Retrouver l'endroit où est calculée la TVA dans un projet sans connaître le nom de la fonction",
+        "Trouver du code similaire à un extrait dans plusieurs dépôts",
+        "Explorer rapidement une base de code inconnue"
+      ],
+      "installation": "pip install codelens",
+      "exemple": "codelens index ~/projets\ncodelens ask \"où sont gérées les sessions utilisateur ?\"",
+      "prerequis": [
+        "Python 3.10+",
+        "Un modèle d'embeddings local (téléchargé au premier lancement) ou une clé d'API OpenAI"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "RAG/Recherche",
+      "brique_pour": ["IA et agents"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Recherche sémantique dans le code (tree-sitter et embeddings) avec des résultats au niveau des fonctions ; centré sur le code source.",
+      "stars": 2900
+    },
+    {
+      "id": "P20",
+      "depot": "synth-symbolic/code-index-mcp",
+      "nom": "code-index-mcp",
+      "description": "Serveur MCP qui indexe une base de code et offre aux agents de développement (Claude Code, Cursor, opencode) une recherche sémantique et par symboles dans le projet.",
+      "cas_usage": [
+        "Permettre à Claude Code de retrouver les fonctions utiles d'un gros dépôt sans tout relire",
+        "Rechercher par le sens (validation des formulaires, gestion des droits) plutôt que par nom de fichier"
+      ],
+      "installation": "uvx code-index-mcp --root .",
+      "exemple": "claude mcp add code-index -- uvx code-index-mcp --root .",
+      "prerequis": [
+        "Python 3.11+ avec uv",
+        "Un client compatible MCP"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "MCP/Intégrations",
+      "brique_pour": ["IA et agents"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Serveur MCP de recherche sémantique dans le code pour les agents de développement ; utile avec Claude Code sur de gros projets.",
+      "stars": 1700
+    },
+    {
+      "id": "P21",
+      "depot": "synth-docsense/pdfseek",
+      "nom": "pdfseek",
+      "description": "Moteur de recherche sémantique local pour une bibliothèque de PDF : on pose une question en langage naturel et il renvoie les passages pertinents avec le document et le numéro de page.",
+      "cas_usage": [
+        "Retrouver dans les DTU et les normes en PDF le passage qui traite d'un sujet, même formulé autrement",
+        "Chercher dans plusieurs années de cours et de sujets d'examen",
+        "Citer la page exacte d'un document source"
+      ],
+      "installation": "pip install pdfseek",
+      "exemple": "pdfseek index ~/Documents/normes\npdfseek ask \"distance maximale entre deux joints de dilatation\"",
+      "prerequis": [
+        "Python 3.10+",
+        "Poppler (extraction du texte des PDF)"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "RAG/Recherche",
+      "brique_pour": ["Documents et OCR", "Enseignement"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 10 — Recherche sémantique dans des PDF avec renvoi à la page ; installation pip, tout en local ; adaptée aux bibliothèques de normes et de cours.",
+      "stars": 1400,
+      "notes": "À essayer avec les DTU du CDI."
+    },
+    {
+      "id": "P22",
+      "depot": "synth-notesearch/semantic-drive",
+      "nom": "semantic-drive",
+      "description": "Recherche sémantique auto-hébergée dans des documents bureautiques (PDF, Word, Markdown, exports Notion) stockés dans un dossier ou sur Google Drive, avec une interface web.",
+      "cas_usage": [
+        "Interroger par le sens l'ensemble des documents d'un dossier partagé",
+        "Retrouver une note Notion exportée sans se souvenir des mots exacts"
+      ],
+      "installation": "docker compose up -d",
+      "exemple": "docker compose up -d (lance l'application et la base vectorielle Qdrant), puis ouvrir http://localhost:3000",
+      "prerequis": [
+        "Docker et Docker Compose",
+        "4 Go de RAM"
+      ],
+      "langage": "TypeScript",
+      "licence": "AGPL-3.0",
+      "categorie": "RAG/Recherche",
+      "brique_pour": ["Documents et OCR"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L1 = 9 — Moteur de recherche sémantique sur documents (PDF, Word, Notion) avec base vectorielle Qdrant, déployé avec Docker Compose.",
+      "stars": 3300
+    },
+    {
+      "id": "P23",
+      "depot": "synth-tablevision/tablereader",
+      "nom": "tablereader",
+      "description": "OCR de tableaux par modèle vision-langage : extrait les tableaux de PDF scannés et de photos de documents vers CSV, Excel ou Markdown.",
+      "cas_usage": [
+        "Récupérer dans Excel les tableaux de quantités de DPGF scannés",
+        "Convertir en CSV des tableaux de relevés photographiés"
+      ],
+      "installation": "pip install tablereader[cuda]",
+      "exemple": "tablereader dpgf-scanne.pdf --format xlsx -o dpgf.xlsx",
+      "prerequis": [
+        "GPU NVIDIA avec au moins 12 Go de VRAM",
+        "CUDA 12.1+",
+        "Python 3.10+"
+      ],
+      "langage": "Python",
+      "licence": "Apache-2.0",
+      "categorie": "OCR/Documents",
+      "brique_pour": ["Documents et OCR"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T2·I1·C2·M2·L2 = 8 — Extraction de tableaux de documents scannés par modèle vision-langage ; précise, mais le README exige un GPU NVIDIA de 12 Go de VRAM, donc pas sur le VPS.",
+      "stars": 2100
+    },
+    {
+      "id": "P24",
+      "depot": "synth-cpuocr/onnx-ocr-lite",
+      "nom": "onnx-ocr-lite",
+      "description": "OCR léger fondé sur des modèles ONNX quantifiés, conçu pour fonctionner entièrement sur CPU, y compris sur un petit VPS ou un Raspberry Pi ; aucun GPU n'est requis.",
+      "cas_usage": [
+        "Numériser des documents imprimés sur un VPS sans carte graphique",
+        "Ajouter de l'OCR à une API Python avec une faible empreinte mémoire"
+      ],
+      "installation": "pip install onnx-ocr-lite",
+      "exemple": "from onnx_ocr_lite import OCR\ntexte = OCR(lang=\"fr\").read(\"facture.png\")",
+      "prerequis": [
+        "Python 3.9+",
+        "CPU x86-64 ou ARM64 (aucun GPU nécessaire)"
+      ],
+      "langage": "Python",
+      "licence": "Apache-2.0",
+      "categorie": "OCR/Documents",
+      "brique_pour": ["Documents et OCR"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 10 — OCR sur CPU (modèles ONNX) adapté au VPS ; texte imprimé uniquement, le README le déconseille pour l'écriture manuscrite.",
+      "stars": 1600,
+      "notes": "Testé sur le VPS (2 vCPU) : correct sur des factures imprimées."
+    },
+    {
+      "id": "P25",
+      "depot": "synth-voxscribe/whisper-batch",
+      "nom": "whisper-batch",
+      "description": "Transcription en lot de fichiers audio et vidéo avec Whisper : sous-titres SRT ou VTT, texte horodaté et détection automatique de la langue.",
+      "cas_usage": [
+        "Transcrire les enregistrements de cours pour en tirer des supports écrits",
+        "Générer automatiquement les sous-titres de vidéos pédagogiques"
+      ],
+      "installation": "pip install whisper-batch",
+      "exemple": "whisper-batch cours/*.mp4 --model medium --format srt",
+      "prerequis": [
+        "Python 3.9+",
+        "FFmpeg",
+        "GPU NVIDIA facultatif (CUDA) : fonctionne aussi sur CPU, plus lentement"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "Audio/Vidéo",
+      "brique_pour": ["Création audiovisuelle", "Enseignement"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Transcription et sous-titrage en lot avec Whisper ; le GPU accélère le traitement mais n'est pas obligatoire.",
+      "stars": 2600
+    },
+    {
+      "id": "P26",
+      "depot": "synth-scanflow/receipt-extractor",
+      "nom": "receipt-extractor",
+      "description": "Extraction des données de tickets de caisse et de factures photographiés ou scannés (fournisseur, date, montants HT, TVA et TTC) vers CSV ou JSON.",
+      "cas_usage": [
+        "Saisir automatiquement des notes de frais à partir de photos de tickets",
+        "Préparer un export CSV des factures pour la comptabilité"
+      ],
+      "installation": "pip install receipt-extractor",
+      "exemple": "receipt-extractor tickets/*.jpg --csv notes-de-frais.csv",
+      "prerequis": [],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "OCR/Documents",
+      "brique_pour": ["Documents et OCR"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P2·T2·I2·C2·M2·L? = 8 — Extraction structurée de tickets et de factures (montants, TVA) vers CSV ; README succinct, prérequis non précisés.",
+      "stars": 870
+    },
+    {
+      "id": "P27",
+      "depot": "synth-zapkit/zapier-app-starter",
+      "nom": "zapier-app-starter",
+      "description": "Gabarit pour créer une intégration privée Zapier avec la Zapier Platform CLI : authentification, déclencheurs, actions et tests.",
+      "cas_usage": [
+        "Publier une API interne comme application privée utilisable dans les Zaps de l'équipe",
+        "Ajouter un déclencheur « nouveau dossier » et une action « créer un devis »"
+      ],
+      "installation": "git clone https://github.com/synth-zapkit/zapier-app-starter.git mon-app\ncd mon-app && npm install\nzapier push",
+      "exemple": "zapier test && zapier push",
+      "prerequis": [
+        "Node.js 18+",
+        "Un compte Zapier et la Zapier Platform CLI"
+      ],
+      "langage": "JavaScript",
+      "licence": "MIT",
+      "categorie": "Automatisation/No-code",
+      "brique_pour": [],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P2·T2·I2·C2·M2·L2 = 7 — Point de départ pour développer une intégration Zapier ; utile seulement si l'on reste sur Zapier.",
+      "stars": 150
+    },
+    {
+      "id": "P28",
+      "depot": "synth-preprocess/scanclean",
+      "nom": "scanclean",
+      "description": "Prétraitement d'images scannées avant OCR : redressement, suppression des bords et du bruit, binarisation adaptative et découpe des pages doubles.",
+      "cas_usage": [
+        "Améliorer la reconnaissance de Tesseract sur des scans de mauvaise qualité",
+        "Préparer en lot des photos de documents prises au téléphone"
+      ],
+      "installation": "pip install scanclean",
+      "exemple": "scanclean entree/ sortie/ --deskew --denoise --binarize",
+      "prerequis": [
+        "Python 3.9+",
+        "OpenCV"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "OCR/Documents",
+      "brique_pour": ["Documents et OCR"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T2·I2·C2·M2·L2 = 8 — Nettoyage et redressement d'images avant OCR ; améliore nettement les résultats de Tesseract sur les scans anciens, sans faire l'OCR lui-même.",
+      "stars": 980
+    },
+    {
+      "id": "P29",
+      "depot": "synth-notionsync/notion-export-md",
+      "nom": "notion-export-md",
+      "description": "Exporte des pages et des bases de données Notion en fichiers Markdown avec leurs images, de façon incrémentale, pour la sauvegarde ou la publication.",
+      "cas_usage": [
+        "Sauvegarder chaque nuit une base Notion de fiches en Markdown dans un dépôt Git",
+        "Publier des pages Notion sur un site statique"
+      ],
+      "installation": "pip install notion-export-md",
+      "exemple": "notion-export-md --token $NOTION_TOKEN --database <id> --out ./export",
+      "prerequis": [
+        "Python 3.9+",
+        "Un jeton d'intégration Notion"
+      ],
+      "langage": "Python",
+      "licence": "MIT",
+      "categorie": "Données/Analyse",
+      "brique_pour": ["Données"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P2·T2·I2·C2·M2·L2 = 8 — Export incrémental de Notion vers Markdown ; se planifie avec cron ou depuis un workflow n8n pour des sauvegardes régulières.",
+      "stars": 1250
+    },
+    {
+      "id": "P30",
+      "depot": "synth-bimtools/ifc-quantities",
+      "nom": "ifc-quantities",
+      "description": "Extraction des quantités d'une maquette IFC (volumes de béton, surfaces de murs et de dalles, longueurs) vers un tableau Excel organisé par niveau et par lot.",
+      "cas_usage": [
+        "Préparer un avant-métré à partir de la maquette IFC d'un projet",
+        "Créer des exercices de quantitatif pour les étudiants de BTS à partir de maquettes réelles"
+      ],
+      "installation": "pip install ifc-quantities",
+      "exemple": "ifc-quantities projet.ifc --par niveau --xlsx metre.xlsx",
+      "prerequis": [
+        "Python 3.10+",
+        "IfcOpenShell"
+      ],
+      "langage": "Python",
+      "licence": "LGPL-3.0",
+      "categorie": "Données/Analyse",
+      "brique_pour": ["Outils pédagogiques BTS MEC", "Données"],
+      "justification": "[LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 10 — Métrés automatiques depuis des maquettes IFC vers Excel ; directement utile au génie civil et aux TD de BTS MEC.",
+      "stars": 340,
+      "notes": "Voir avec les maquettes du TD R+2."
+    }
+  ]
+}

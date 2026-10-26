@@ -1,0 +1,27 @@
+{
+  "analyste": "A",
+  "jugements": {
+    "N08": {
+      "docling-project/docling": {
+        "etiquette": "plausible",
+        "raison": "Brique voisine utile pour les pièces jointes, puisqu'il « convertit des documents (PDF, DOCX, PPTX, HTML, images) en Markdown ou JSON », mais aucune fiche ne mentionne la relève d'e-mails ni l'extraction de champs de commande en enregistrements."
+      },
+      "synth-pdfcraft/pdfcraft": {
+        "etiquette": "hors_sujet",
+        "raison": "Simple « Boîte à outils PDF en ligne de commande : fusion, découpe, compression, réorganisation des pages » avec OCR, sans traitement d'e-mails ni production de JSON."
+      }
+    },
+    "N11": {
+      "synth-openflow/flowpilot": {
+        "etiquette": "hors_sujet",
+        "raison": "C'est une « Plateforme d'automatisation no-code » avec éditeur de scénarios et connecteurs, et non une interface de gestion des conteneurs Docker (redémarrage, logs, stacks compose)."
+      }
+    },
+    "N30": {
+      "synth-openflow/flowpilot": {
+        "etiquette": "hors_sujet",
+        "raison": "Outil d'automatisation « présentée comme une alternative à Zapier et à n8n », qui ne sert pas à gérer les conteneurs d'un VPS ; Docker n'y apparaît que comme mode d'installation."
+      }
+    }
+  }
+}
