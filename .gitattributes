@@ -12,3 +12,5 @@ tests/fixtures/redecouverte/requetes_lot5_M.json -text
 tests/fixtures/redecouverte/PROTOCOLE_LOT5_M.md -text
 # Lot 5 : règles de décision figées, empreintes du code des variantes et jugements des analystes, à l'octet près
 tests/fixtures/redecouverte/qualification_lot5/** -text
+# Jeu R (lot 6) : corpus historique de non-régression du moteur stable, conservé à l'octet près
+tests/fixtures/redecouverte/qualification_lot6/** -text

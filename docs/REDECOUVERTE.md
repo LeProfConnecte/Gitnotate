@@ -1067,6 +1067,14 @@ exclusions est mesurée à part, sur un banc de champs et de requêtes étiquet�
 champs sont lus dans le bon état, un « requis » sur cinq environ est faux (précision 0,78) et 83 % des rôles de
 requête sont justes ; une ligne `Exclusion` est donc à vérifier avant d'écarter un dépôt.
 
+**Jeu R (lot 6), corpus historique de non-régression.** Le jeu R (48 besoins R01-R48, 24 fiches fictives, deux
+juges et une qualification en double aveugle) a servi à refuser une variante du moteur (la v2 du lot 6 : deux
+régressions confirmées, aucune amélioration) ; le moteur reste celui de `9aa4c6e`. Ses fichiers sont conservés à
+l'octet dans `tests/fixtures/redecouverte/qualification_lot6/jeu_R/` et `tests/test_lot6_jeu_r.py` y vérifie les
+mesures du moteur stable (nDCG@10 0,9152 selon W2, 0,9053 selon X). Ce jeu est **consommé** : il n'est pas
+indépendant et ne doit pas servir à valider une nouvelle variante ; provenance et conditions de révision d'une
+valeur attendue dans le `LISEZMOI.md` du dossier.
+
 ## 11. Limites
 
 - **Recherche lexicale** : en dehors du lexique, aucune proximité de sens. Un besoin formulé avec des
