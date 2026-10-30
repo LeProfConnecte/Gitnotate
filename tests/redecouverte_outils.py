@@ -287,18 +287,24 @@ def pages_du_corpus(corpus=None):
     return [c['page'] for c in corpus if c['version_attendue'] != 'corbeille']
 
 
+# format d'un supplément de fiches fictives -> préfixe de l'identifiant de page (uuid5)
+FORMATS_SUPPLEMENT = {'gitnotate-supplement-lot5/1': 'gitnotate-lot5/',
+                      'gitnotate-lot6-supplement/1': 'gitnotate-lot6-jeu-r/'}
+
+
 def pages_du_supplement(nom):
-    """Fiches fictives v7.3+ d'un supplément du lot 5 (format gitnotate-supplement-lot5/1), en pages Notion : mêmes
-    champs et mêmes dates que l'outil de conversion utilisé pour les mesures (docs/QUALIFICATION_LOT5.md)."""
+    """Fiches fictives v7.3+ d'un supplément (lot 5 : gitnotate-supplement-lot5/1 ; jeu R du lot 6 :
+    gitnotate-lot6-supplement/1), en pages Notion : mêmes champs et mêmes dates que l'outil de conversion utilisé
+    pour les mesures (docs/QUALIFICATION_LOT5.md ; provenance du jeu R : qualification_lot6/jeu_R/LISEZMOI.md)."""
     donnees = json.loads((FIXTURES / nom).read_text(encoding='utf-8'))
-    assert donnees['format'] == 'gitnotate-supplement-lot5/1'
+    prefixe = FORMATS_SUPPLEMENT[donnees['format']]
     pages = []
     for f in donnees['fiches']:
         justification = ("[LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — "
                          + f['justification'].strip())
         prerequis = '\n'.join('- ' + x for x in f['prerequis']) if f['prerequis'] else 'Non vérifié'
         pages.append(page(f['nom'], 'https://github.com/' + f['depot'], id=str(uuid.uuid5(uuid.NAMESPACE_URL,
-                          'gitnotate-lot5/' + f['id'])), cree='2026-10-20T10:00:00.000Z', props={
+                          prefixe + f['id'])), cree='2026-10-20T10:00:00.000Z', props={
             'Description': p_texte(f['description']),
             "Cas d'usage": p_texte('\n'.join('• ' + x for x in f['cas_usage'])),
             'Installation': p_texte(f['installation']), 'Exemple': p_texte(f['exemple']),

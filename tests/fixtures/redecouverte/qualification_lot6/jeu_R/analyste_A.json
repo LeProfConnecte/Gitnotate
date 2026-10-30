@@ -1,0 +1,349 @@
+{"format": "gitnotate-lot6-qualification/1", "analyste": "A", "jugements": {
+"R01": {
+"synth-bimbridge/revit-ifc-exporter-cli": {"etiquette": "hors_sujet", "raison": "Produit de l'IFC depuis Revit, pas une DPGF : « Exporte en lot des projets Revit vers IFC »."},
+"synth-bimtools/ifc-quantities": {"etiquette": "plausible", "raison": "Quantités IFC vers Excel mais sans DPGF chiffrée : « vers un tableau Excel organisé par niveau et par lot »."},
+"synth-metrelab/dpgf-from-ifc": {"etiquette": "pertinent", "raison": "Répond exactement : « Génère une DPGF (décomposition du prix global et forfaitaire) au format Excel à partir d'une maquette IFC »."},
+"synth-planread/plan-cotes": {"etiquette": "hors_sujet", "raison": "Part de plans scannés, pas d'une maquette IFC : « sur des plans PDF scannés »."},
+"synth-reactifc/react-ifc-viewer": {"etiquette": "hors_sujet", "raison": "Simple visionneuse : « Composant React qui affiche une maquette IFC dans le navigateur »."}
+},
+"R02": {
+"paddlepaddle/paddleocr": {"etiquette": "plausible", "raison": "Brique OCR à assembler, sans métré : « Testé : bon sur les plans scannés. »"},
+"synth-docmind/docmind": {"etiquette": "hors_sujet", "raison": "Outil de recherche, pas de métré : « Recherche sémantique dans des documents »."},
+"synth-pdfcraft/pdfcraft": {"etiquette": "hors_sujet", "raison": "Manipulation de PDF, pas de relevé de dimensions : « ajout d'une couche texte OCR via Tesseract »."},
+"synth-pdfstack/pdf-toolbox-server": {"etiquette": "hors_sujet", "raison": "Manipulation de PDF sans métré : « fusion, découpe, compression, rotation, filigrane »."},
+"synth-planread/plan-cotes": {"etiquette": "pertinent", "raison": "Plans PDF scannés vers avant-métré : « exporte un tableau de longueurs et de surfaces pour l'avant-métré »."},
+"synth-reactpdf/react-pdf-annotator": {"etiquette": "hors_sujet", "raison": "Visionneuse/annotation : « ne fait ni OCR ni extraction de texte »."},
+"synth-tablevision/tablereader": {"etiquette": "hors_sujet", "raison": "Extrait des tableaux, pas les cotes d'un plan : « extrait les tableaux de PDF scannés »."}
+},
+"R03": {
+"synth-flowgen/n8n-flow-genie": {"etiquette": "plausible", "raison": "Évite de partir de zéro mais génère au lieu de fournir un modèle : « Générateur de workflows n8n à partir d'une description en langage naturel »."},
+"synth-flowkit/n8n-workflow-templates": {"etiquette": "pertinent", "raison": "Modèles prêts : « plus de 300 modèles de workflows n8n prêts à importer »."},
+"synth-n8nbridge/n8n-mcp-bridge": {"etiquette": "hors_sujet", "raison": "Pont MCP, pas de modèles : « Serveur MCP qui donne à un assistant IA (Claude Code, Claude Desktop, Cursor) l'accès à une instance n8n »."},
+"synth-nodeforge/n8n-nodes-pdfgen": {"etiquette": "hors_sujet", "raison": "Un nœud, pas un modèle de workflow : « Nœud communautaire n8n qui génère des PDF »."},
+"synth-openflow/flowpilot": {"etiquette": "hors_sujet", "raison": "Autre plateforme que n8n : « présentée comme une alternative à Zapier et à n8n »."},
+"synth-opswatch/n8n-watchtower": {"etiquette": "hors_sujet", "raison": "Supervision, pas de modèles : « Tableau de bord de supervision des exécutions n8n »."}
+},
+"R04": {
+"synth-flowport/make2n8n": {"etiquette": "hors_sujet", "raison": "Source Make, pas Zapier : « Convertit les scénarios Make (ex-Integromat) exportés en JSON »."},
+"synth-mailroom/inbox-parser": {"etiquette": "hors_sujet", "raison": "Extraction d'e-mails, pas de conversion : « Service qui relève une boîte e-mail (IMAP) »."},
+"synth-migratekit/zap2n8n": {"etiquette": "pertinent", "raison": "Exactement le besoin : « transforme des Zaps exportés depuis Zapier en workflows n8n importables »."},
+"synth-openflow/flowpilot": {"etiquette": "hors_sujet", "raison": "Remplace Zapier par une autre plateforme que n8n : « Remplacer des Zaps payants par des scénarios auto-hébergés »."},
+"synth-zapbridge/zapier-invoice-to-sheets": {"etiquette": "hors_sujet", "raison": "Étend Zapier au lieu de migrer : « Application Zapier privée »."}
+},
+"R05": {
+"paddlepaddle/paddleocr": {"etiquette": "plausible", "raison": "OCR générique sur images, rien de propre aux factures : « transforme des PDF et des images en données structurées »."},
+"synth-invoicer/n8n-nodes-facture-ocr": {"etiquette": "plausible", "raison": "Lit les factures photographiées mais uniquement comme brique dans n8n : « lit les factures PDF ou photographiées »."},
+"synth-preprocess/scanclean": {"etiquette": "plausible", "raison": "Prétraitement des photos sans OCR : « Préparer en lot des photos de documents prises au téléphone »."},
+"synth-scanflow/receipt-extractor": {"etiquette": "pertinent", "raison": "Factures photographiées vers données : « tickets de caisse et de factures photographiés ou scannés »."},
+"synth-tablevision/tablereader": {"etiquette": "plausible", "raison": "Extrait seulement des tableaux depuis des photos : « extrait les tableaux de PDF scannés et de photos de documents »."}
+},
+"R06": {
+"synth-bimtools/ifc-quantities": {"etiquette": "pertinent", "raison": "Cas d'usage explicite : « Créer des exercices de quantitatif pour les étudiants de BTS à partir de maquettes réelles »."},
+"synth-coursgen/bts-cours-builder": {"etiquette": "hors_sujet", "raison": "Rédige des supports depuis un référentiel, sans maquette : « rédigent des fiches de cours, des TD et leurs corrigés »."},
+"synth-eurocalc/ba-ec2": {"etiquette": "hors_sujet", "raison": "Calcul de béton armé, pas de quantitatif sur maquette : « calcul de sections en béton armé »."},
+"synth-markslides/md2reveal-cours": {"etiquette": "hors_sujet", "raison": "Outil de diaporama : « Convertit des fichiers Markdown en diaporamas Reveal.js »."},
+"synth-metrelab/dpgf-from-ifc": {"etiquette": "pertinent", "raison": "Cas d'usage explicite : « Préparer un TD de chiffrage en BTS en partant d'une maquette fournie aux étudiants »."},
+"synth-planread/plan-cotes": {"etiquette": "plausible", "raison": "Exercices de métré mais depuis des plans papier et non des maquettes : « Préparer un exercice de métré de cloisons à partir d'anciens plans papier »."}
+},
+"R07": {
+"neuml/txtai": {"etiquette": "hors_sujet", "raison": "Framework d'IA, pas un moteur de workflow avec reprise : « Framework d'IA open source tout-en-un pour la recherche sémantique »."},
+"synth-durable/taskweave": {"etiquette": "pertinent", "raison": "Moteur Python avec reprise : « avec reprises automatiques sur erreur, planification et exécution durable »."},
+"synth-flowgen/n8n-flow-genie": {"etiquette": "hors_sujet", "raison": "Génère des workflows n8n, pas un moteur Python : « Générateur de workflows n8n »."},
+"synth-flowkit/n8n-workflow-templates": {"etiquette": "hors_sujet", "raison": "Modèles n8n, contraire à « à partir de zéro » en Python : « modèles de workflows n8n prêts à importer »."},
+"synth-flowless/cronpipe": {"etiquette": "hors_sujet", "raison": "Moteur YAML en Go, pas Python ; reprise non documentée : « les tâches sont décrites en YAML »."},
+"synth-nodeforge/n8n-nodes-pdfgen": {"etiquette": "hors_sujet", "raison": "Nœud n8n de PDF : « Nœud communautaire n8n qui génère des PDF »."},
+"synth-opswatch/n8n-watchtower": {"etiquette": "hors_sujet", "raison": "Supervision n8n : « Tableau de bord de supervision des exécutions n8n »."}
+},
+"R08": {
+"synth-apiforge/fastapi-starter": {"etiquette": "plausible", "raison": "Base FastAPI générique, sans quiz : « Gabarit de projet FastAPI prêt pour la production »."},
+"synth-fastquiz/fastapi-quiz-api": {"etiquette": "pertinent", "raison": "API de quiz prête : « API REST construite avec FastAPI pour gérer des banques de questions, des sessions de quiz »."},
+"synth-quizforge/moodle-quizgen": {"etiquette": "hors_sujet", "raison": "Générateur de QCM, pas une API FastAPI : « Génère des questions de QCM au format Moodle XML ou GIFT »."},
+"synth-quizmint/quiz-from-slides": {"etiquette": "hors_sujet", "raison": "Génère des fichiers de QCM, pas une API : « les exporte au format Moodle GIFT, Moodle XML ou en CSV »."},
+"synth-swiftapi/velora": {"etiquette": "hors_sujet", "raison": "Framework concurrent de FastAPI, sans quiz : « présenté comme une alternative à FastAPI »."}
+},
+"R09": {
+"synth-budgetbox/releve-categorizer": {"etiquette": "hors_sujet", "raison": "Finances : « Classe automatiquement les opérations de relevés bancaires »."},
+"synth-codecrew/termpilot": {"etiquette": "hors_sujet", "raison": "Agent de code : « Agent de code open source pour le terminal »."},
+"synth-flowgen/n8n-flow-genie": {"etiquette": "hors_sujet", "raison": "Workflows n8n : « Générateur de workflows n8n »."},
+"synth-podcastify/notes2podcast": {"etiquette": "hors_sujet", "raison": "Produit un podcast, pas des sous-titres : « Transforme des notes de cours ou un article en épisode de podcast »."},
+"synth-quizforge/moodle-quizgen": {"etiquette": "hors_sujet", "raison": "Génère des QCM : « Génère des questions de QCM au format Moodle XML ou GIFT »."},
+"synth-subtitle/srt-forge": {"etiquette": "pertinent", "raison": "Sous-titrage local : « Sous-titrage local complet, de la transcription à l'incrustation »."},
+"synth-voxscribe/whisper-batch": {"etiquette": "pertinent", "raison": "Sous-titres de vidéos de cours, CPU possible : « Générer automatiquement les sous-titres de vidéos pédagogiques »."}
+},
+"R10": {
+"synth-flowkit/n8n-workflow-templates": {"etiquette": "plausible", "raison": "Un modèle d'alerte d'échec, pas un outil de supervision : « Partir d'un modèle de gestion d'erreurs (Error Trigger vers e-mail ou Telegram) »."},
+"synth-flowless/cronpipe": {"etiquette": "hors_sujet", "raison": "Remplace n8n au lieu de le surveiller : « Présenté comme une alternative légère à n8n et Zapier »."},
+"synth-flowops/n8n-operator": {"etiquette": "hors_sujet", "raison": "Déploiement, pas supervision : « Opérateur Kubernetes qui déploie n8n en mode file d'attente »."},
+"synth-n8nbridge/n8n-mcp-bridge": {"etiquette": "plausible", "raison": "Accès ponctuel aux échecs via un assistant, Node 20+ : « lire le détail des exécutions en échec »."},
+"synth-opswatch/n8n-watchtower": {"etiquette": "pertinent", "raison": "Supervision dédiée compatible Node 20 : « Tableau de bord de supervision des exécutions n8n »."},
+"synth-yamlops/hookrunner": {"etiquette": "hors_sujet", "raison": "Moteur YAML autonome : « Moteur d'automatisation léger piloté par des fichiers YAML »."}
+},
+"R11": {
+"caviraoss/pagelm": {"etiquette": "pertinent", "raison": "Fait les deux depuis les supports : « quiz, fiches de révision, notes structurées et podcasts »."},
+"synth-eurocalc/ba-ec2": {"etiquette": "hors_sujet", "raison": "Calcul de béton armé : « calcul de sections en béton armé selon l'Eurocode 2 »."},
+"synth-podcastify/notes2podcast": {"etiquette": "plausible", "raison": "Podcast seulement, pas de quiz : « Transforme des notes de cours ou un article en épisode de podcast »."},
+"synth-quizforge/moodle-quizgen": {"etiquette": "plausible", "raison": "Quiz seulement, pas de podcast : « à partir d'un cours en PDF ou Markdown »."},
+"synth-quizmint/quiz-from-slides": {"etiquette": "plausible", "raison": "Quiz seulement : « à partir de diaporamas PowerPoint ou de PDF de cours »."}
+},
+"R12": {
+"gyoridavid/short-video-maker": {"etiquette": "plausible", "raison": "Génère des vidéos, mais la saisie d'un simple texte n'est pas décrite : « Crée des vidéos courtes pour TikTok, Instagram Reels et YouTube Shorts »."},
+"remotion-dev/remotion": {"etiquette": "plausible", "raison": "Brique qui demande de coder la vidéo : « Créez des vidéos par programmation avec React »."},
+"synth-subtitle/srt-forge": {"etiquette": "hors_sujet", "raison": "Sous-titre une vidéo existante : « Produit des sous-titres SRT ou VTT depuis un fichier vidéo ou audio »."},
+"synth-videoscript/script2video": {"etiquette": "pertinent", "raison": "Vidéo depuis un texte : « Produire une capsule vidéo de cours inversé »."},
+"synth-voxscribe/whisper-batch": {"etiquette": "hors_sujet", "raison": "Transcription, l'inverse du besoin : « Transcription en lot de fichiers audio et vidéo »."}
+},
+"R13": {
+"synth-codeseek/repo-ask": {"etiquette": "hors_sujet", "raison": "Code uniquement : « les PDF et documents bureautiques ne sont pas indexés »."},
+"synth-docmind/docmind": {"etiquette": "pertinent", "raison": "Recherche par le sens dans des normes PDF : « Préparer un cours à partir des passages pertinents de plusieurs normes »."},
+"synth-docsense/pdfseek": {"etiquette": "pertinent", "raison": "Exactement le besoin : « Retrouver dans les DTU et les normes en PDF le passage qui traite d'un sujet, même formulé autrement »."},
+"synth-notesearch/semantic-drive": {"etiquette": "pertinent", "raison": "Recherche sémantique sur PDF : « Interroger par le sens l'ensemble des documents d'un dossier partagé »."},
+"synth-symbolic/code-index-mcp": {"etiquette": "hors_sujet", "raison": "Code source seulement : « Serveur MCP qui indexe une base de code »."}
+},
+"R14": {
+"synth-budgetbox/releve-categorizer": {"etiquette": "pertinent", "raison": "OFX et Linux couverts : « relevés bancaires (CSV, OFX, QIF) en catégories de dépenses »."},
+"synth-codeseek/repo-ask": {"etiquette": "hors_sujet", "raison": "Recherche de code : « Recherche sémantique en ligne de commande dans le code »."},
+"synth-flowgen/n8n-flow-genie": {"etiquette": "hors_sujet", "raison": "Workflows n8n : « Générateur de workflows n8n »."},
+"synth-flowkit/n8n-workflow-templates": {"etiquette": "hors_sujet", "raison": "Modèles n8n sans catégorisation bancaire : « classés par thème : CRM, e-mail, réseaux sociaux, IA et gestion d'erreurs »."},
+"synth-flowless/cronpipe": {"etiquette": "hors_sujet", "raison": "Moteur d'automatisation générique : « Moteur d'automatisation minimaliste »."},
+"synth-mailroom/inbox-parser": {"etiquette": "hors_sujet", "raison": "Factures par e-mail, pas relevés OFX : « extrait les données des factures et bons de commande reçus »."},
+"synth-quizforge/moodle-quizgen": {"etiquette": "hors_sujet", "raison": "QCM : « Génère des questions de QCM au format Moodle XML ou GIFT »."},
+"synth-quizmint/quiz-from-slides": {"etiquette": "hors_sujet", "raison": "QCM : « Crée des questionnaires à choix multiples »."},
+"synth-yamlops/hookrunner": {"etiquette": "hors_sujet", "raison": "Moteur générique : « Moteur d'automatisation léger piloté par des fichiers YAML »."}
+},
+"R15": {
+"gyoridavid/short-video-maker": {"etiquette": "hors_sujet", "raison": "Crée des vidéos, ne les sous-titre pas : « Crée des vidéos courtes pour TikTok »."},
+"synth-k8sjobs/whisper-k8s-batch": {"etiquette": "plausible", "raison": "Transcription Whisper sur Kubernetes, sous-titres non mentionnés : « déploie une file de transcription Whisper sur un cluster Kubernetes »."},
+"synth-subtitle/srt-forge": {"etiquette": "pertinent", "raison": "Exactement : « Produit des sous-titres SRT ou VTT depuis un fichier vidéo ou audio »."},
+"synth-videoscript/script2video": {"etiquette": "hors_sujet", "raison": "Fait l'inverse : « Assemble une vidéo explicative en partant d'un script Markdown »."},
+"synth-voxscribe/whisper-batch": {"etiquette": "pertinent", "raison": "Sous-titres depuis vidéo : « sous-titres SRT ou VTT, texte horodaté »."}
+},
+"R16": {
+"synth-deskbot/winflow-recorder": {"etiquette": "hors_sujet", "raison": "RPA par macros, pas de YAML : « enregistrement de macros (clics, saisies) »."},
+"synth-durable/taskweave": {"etiquette": "hors_sujet", "raison": "Workflows en code Python, pas YAML : « les étapes s'écrivent comme des fonctions décorées »."},
+"synth-flowless/cronpipe": {"etiquette": "pertinent", "raison": "YAML versionné : « Remplacer un petit workflow n8n de veille RSS par un fichier YAML versionné »."},
+"synth-nok8s/compose-lite": {"etiquette": "hors_sujet", "raison": "Outil de déploiement, pas d'automatisation : « Petit outil de déploiement pour un ou deux serveurs »."},
+"synth-yamlops/hookrunner": {"etiquette": "pertinent", "raison": "YAML versionné : « Versionner ses automatisations dans Git plutôt que dans une base de données »."}
+},
+"R17": {
+"caviraoss/pagelm": {"etiquette": "plausible", "raison": "Génère des quiz mais ni Moodle ni LLM local documentés : « Générer des quiz et des fiches de révision à partir de supports de cours »."},
+"synth-fastquiz/fastapi-quiz-api": {"etiquette": "hors_sujet", "raison": "Gère des quiz sans les générer : « API REST construite avec FastAPI pour gérer des banques de questions »."},
+"synth-podcastify/notes2podcast": {"etiquette": "hors_sujet", "raison": "Podcast : « Transforme des notes de cours ou un article en épisode de podcast »."},
+"synth-quizforge/moodle-quizgen": {"etiquette": "pertinent", "raison": "QCM Moodle par LLM local : « au format Moodle XML ou GIFT à partir d'un cours en PDF ou Markdown, avec un LLM local ou distant »."},
+"synth-quizmint/quiz-from-slides": {"etiquette": "pertinent", "raison": "Export Moodle avec modèle local : « Ollama with a local model »."}
+},
+"R18": {
+"synth-bimtools/ifc-quantities": {"etiquette": "pertinent", "raison": "Basé sur IfcOpenShell : « Extraction des quantités d'une maquette IFC »."},
+"synth-ifcconv/ifc2gltf-batch": {"etiquette": "hors_sujet", "raison": "Conversion de format, pas de quantités : « Convertit par lots des maquettes IFC en glTF, OBJ ou XKT »."},
+"synth-markslides/md2reveal-cours": {"etiquette": "hors_sujet", "raison": "Diaporamas : « Convertit des fichiers Markdown en diaporamas Reveal.js »."},
+"synth-metrelab/dpgf-from-ifc": {"etiquette": "pertinent", "raison": "Extrait les quantités via IfcOpenShell 0.7+ : « en regroupant les quantités par lot et par ouvrage élémentaire »."},
+"synth-tablevision/tablereader": {"etiquette": "hors_sujet", "raison": "OCR de tableaux, pas de maquette : « OCR de tableaux par modèle vision-langage »."}
+},
+"R19": {
+"paddlepaddle/paddleocr": {"etiquette": "plausible", "raison": "Brique OCR sans export de longueurs : « Testé : bon sur les plans scannés. »"},
+"synth-bimtools/ifc-quantities": {"etiquette": "hors_sujet", "raison": "Part d'une maquette IFC, pas d'un PDF scanné : « Extraction des quantités d'une maquette IFC »."},
+"synth-pdfcraft/pdfcraft": {"etiquette": "hors_sujet", "raison": "OCR limité à une couche texte, sans longueurs ni surfaces : « Rendre un PDF scanné cherchable en ajoutant une couche texte »."},
+"synth-planread/plan-cotes": {"etiquette": "pertinent", "raison": "Exactement : « exporte un tableau de longueurs et de surfaces pour l'avant-métré »."},
+"synth-tablevision/tablereader": {"etiquette": "hors_sujet", "raison": "Extrait des tableaux, pas les cotes des plans : « extrait les tableaux de PDF scannés »."}
+},
+"R20": {
+"neuml/txtai": {"etiquette": "hors_sujet", "raison": "Framework d'IA, pas de décorateurs documentés : « Framework d'IA open source tout-en-un pour la recherche sémantique »."},
+"synth-adminkit/fastapi-backoffice": {"etiquette": "hors_sujet", "raison": "Interface d'administration : « Interface d'administration générée automatiquement pour une application FastAPI »."},
+"synth-durable/taskweave": {"etiquette": "pertinent", "raison": "Exactement : « les étapes s'écrivent comme des fonctions décorées »."},
+"synth-flowgen/n8n-flow-genie": {"etiquette": "hors_sujet", "raison": "Génère du JSON n8n : « Générateur de workflows n8n »."},
+"synth-mailroom/inbox-parser": {"etiquette": "hors_sujet", "raison": "Extraction d'e-mails : « Service qui relève une boîte e-mail (IMAP) »."}
+},
+"R21": {
+"microsoft/omniparser": {"etiquette": "hors_sujet", "raison": "Analyse d'écran : « A simple screen parsing tool towards pure vision based GUI agent »."},
+"synth-bimbridge/revit-ifc-exporter-cli": {"etiquette": "hors_sujet", "raison": "Produit de l'IFC, pas du glTF : « Exporte en lot des projets Revit vers IFC »."},
+"synth-bimtools/ifc-quantities": {"etiquette": "hors_sujet", "raison": "Quantités, pas conversion : « Extraction des quantités d'une maquette IFC »."},
+"synth-ifcconv/ifc2gltf-batch": {"etiquette": "pertinent", "raison": "IFC vers glTF avec IfcConvert : « Python 3.10+ with IfcOpenShell and IfcConvert »."},
+"synth-reactifc/react-ifc-viewer": {"etiquette": "hors_sujet", "raison": "Visionneuse, pas de conversion : « affiche une maquette IFC dans le navigateur (web-ifc et Three.js) »."}
+},
+"R22": {
+"gyoridavid/short-video-maker": {"etiquette": "hors_sujet", "raison": "Création de vidéos : « Crée des vidéos courtes pour TikTok »."},
+"remotion-dev/remotion": {"etiquette": "hors_sujet", "raison": "Création de vidéos : « Créez des vidéos par programmation avec React »."},
+"synth-k8sjobs/whisper-k8s-batch": {"etiquette": "plausible", "raison": "Pipeline Whisper, mais transcriptions et non sous-titres : « les transcriptions sont écrites à côté des originaux »."},
+"synth-subtitle/srt-forge": {"etiquette": "pertinent", "raison": "Sous-titres via Whisper : « grâce à faster-whisper »."},
+"synth-voxscribe/whisper-batch": {"etiquette": "pertinent", "raison": "Sous-titres de cours via Whisper : « Générer automatiquement les sous-titres de vidéos pédagogiques »."}
+},
+"R23": {
+"synth-nok8s/compose-lite": {"etiquette": "hors_sujet", "raison": "Outil de déploiement, pas une plateforme d'automatisation : « Petit outil de déploiement pour un ou deux serveurs »."}
+},
+"R24": {
+"openhands/openhands": {"etiquette": "plausible", "raison": "Agent de code libre, mais modèles locaux non documentés : « Agent de développement autonome open source »."},
+"synth-codecrew/termpilot": {"etiquette": "pertinent", "raison": "Exactement : « Remplacer Claude Code ou Aider par un outil libre et multi-fournisseurs »."},
+"synth-flowkit/n8n-workflow-templates": {"etiquette": "hors_sujet", "raison": "Modèles n8n : « Collection de plus de 300 modèles de workflows n8n »."},
+"synth-localcoder/ollama-coder": {"etiquette": "pertinent", "raison": "Agent sur modèles locaux : « Se présente comme une alternative à Claude Code sans abonnement »."},
+"synth-openflow/flowpilot": {"etiquette": "hors_sujet", "raison": "Automatisation no-code : « Plateforme d'automatisation no-code open source »."}
+},
+"R25": {
+"synth-flowgen/n8n-flow-genie": {"etiquette": "hors_sujet", "raison": "Génère des workflows hors instance, pas d'alerte d'échec : « Générateur de workflows n8n à partir d'une description en langage naturel »."},
+"synth-flowkit/n8n-workflow-templates": {"etiquette": "pertinent", "raison": "Modèle prévu pour cela : « Partir d'un modèle de gestion d'erreurs (Error Trigger vers e-mail ou Telegram) pour être prévenu des exécutions en échec »."},
+"synth-flowless/cronpipe": {"etiquette": "hors_sujet", "raison": "Remplace n8n au lieu de le surveiller : « alternative légère à n8n et Zapier »."},
+"synth-n8nbridge/n8n-mcp-bridge": {"etiquette": "hors_sujet", "raison": "Lecture des échecs par un assistant, sans alerte : « lire le détail des exécutions en échec »."},
+"synth-opswatch/n8n-watchtower": {"etiquette": "pertinent", "raison": "Exactement : « Recevoir une alerte Telegram dès qu'un workflow de production échoue »."}
+},
+"R26": {
+"synth-flowport/make2n8n": {"etiquette": "hors_sujet", "raison": "Migration Make : « Convertit les scénarios Make (ex-Integromat) »."},
+"synth-invoicer/n8n-nodes-facture-ocr": {"etiquette": "pertinent", "raison": "Nœud communautaire OCR : « Nœud communautaire n8n qui lit les factures PDF ou photographiées »."},
+"synth-mailroom/inbox-parser": {"etiquette": "plausible", "raison": "Extraction utilisable avec n8n mais par webhook, pas comme nœud : « compatible avec n8n via un webhook »."},
+"synth-migratekit/zap2n8n": {"etiquette": "hors_sujet", "raison": "Migration Zapier : « Convertisseur qui transforme des Zaps exportés depuis Zapier »."},
+"synth-nodeforge/n8n-nodes-pdfgen": {"etiquette": "hors_sujet", "raison": "Nœud qui génère des PDF, pas d'OCR : « Nœud communautaire n8n qui génère des PDF »."}
+},
+"R27": {
+"rdumasia303/deepseek_ocr_app": {"etiquette": "hors_sujet", "raison": "Application d'OCR : « Application web d'OCR fondée sur DeepSeek-OCR »."},
+"synth-adminkit/fastapi-backoffice": {"etiquette": "pertinent", "raison": "Exactement : « Permettre à un collègue de corriger des données sans accès direct à la base »."},
+"synth-apiforge/fastapi-starter": {"etiquette": "hors_sujet", "raison": "Gabarit sans interface d'administration : « Gabarit de projet FastAPI prêt pour la production »."},
+"synth-fastquiz/fastapi-quiz-api": {"etiquette": "hors_sujet", "raison": "API de quiz sans interface : « demande de développer soi-même l'interface »."},
+"synth-hyperui/htmx-kit": {"etiquette": "plausible", "raison": "Composants à assembler pour une admin : « Ajouter une interface d'administration à une application FastAPI ou Flask avec des gabarits Jinja »."}
+},
+"R28": {
+"synth-hyperui/htmx-kit": {"etiquette": "hors_sujet", "raison": "Exclut React : « de l'interactivité sans React ni étape de build JavaScript »."},
+"synth-reactifc/react-ifc-viewer": {"etiquette": "hors_sujet", "raison": "Visionneuse IFC, pas une bibliothèque de tableaux : « Composant React qui affiche une maquette IFC »."},
+"synth-reactpdf/react-pdf-annotator": {"etiquette": "hors_sujet", "raison": "Composants PDF, pas de tableaux : « Composants React pour afficher des PDF »."},
+"synth-uikit/react-blocks": {"etiquette": "pertinent", "raison": "Exactement : « Bibliothèque de composants React accessibles, stylés avec Tailwind CSS : tableaux de données triables »."},
+"synth-vuekit/vue-dash-components": {"etiquette": "hors_sujet", "raison": "Vue, pas React : « non utilisable dans une application React »."}
+},
+"R29": {
+"huginn/huginn": {"etiquette": "plausible", "raison": "Agents auto-hébergés d'automatisation, sans présentation comme remplaçant de Zapier : « Plateforme auto-hébergée d'agents qui surveillent des sources »."},
+"synth-flowport/make2n8n": {"etiquette": "hors_sujet", "raison": "Migration depuis Make, pas Zapier : « Convertit les scénarios Make (ex-Integromat) »."},
+"synth-migratekit/zap2n8n": {"etiquette": "plausible", "raison": "Brique de migration vers n8n, pas un remplaçant en soi : « utile pour quitter un abonnement Zapier »."},
+"synth-openflow/flowpilot": {"etiquette": "pertinent", "raison": "Exactement : « Remplacer des Zaps payants par des scénarios auto-hébergés »."},
+"synth-relayhq/relaymesh": {"etiquette": "pertinent", "raison": "Exactement : « Plateforme d'automatisation auto-hébergée qui se présente comme une alternative open source à Zapier »."}
+},
+"R30": {
+"synth-flowless/cronpipe": {"etiquette": "pertinent", "raison": "Binaire unique, alternative à n8n : « Single static binary for Linux, macOS and Windows »."}
+},
+"R31": {
+"rdumasia303/deepseek_ocr_app": {"etiquette": "hors_sujet", "raison": "Application d'OCR à GPU, pas une boîte à outils PDF : « Application web d'OCR fondée sur DeepSeek-OCR »."},
+"synth-apiforge/fastapi-starter": {"etiquette": "hors_sujet", "raison": "Gabarit d'API sans traitement PDF : « Gabarit de projet FastAPI prêt pour la production »."},
+"synth-cpuocr/onnx-ocr-lite": {"etiquette": "hors_sujet", "raison": "Bibliothèque OCR, ni boîte à outils PDF ni API REST : « OCR léger fondé sur des modèles ONNX quantifiés »."},
+"synth-harbor/dockpanel": {"etiquette": "hors_sujet", "raison": "Gestion de Docker, pas de PDF : « Interface web légère pour gérer Docker sur un serveur »."},
+"synth-pdfstack/pdf-toolbox-server": {"etiquette": "pertinent", "raison": "Docker et API REST : « Application web auto-hébergée de manipulation de PDF : fusion, découpe, compression, rotation, filigrane et conversion en images, avec une API REST »."}
+},
+"R32": {
+"davila7/claude-code-templates": {"etiquette": "plausible", "raison": "Modèles et commandes pour Claude Code, revue de code non documentée : « Modèles et commandes pour Claude Code »."},
+"synth-agentskills/claude-code-skills": {"etiquette": "plausible", "raison": "Skills et commandes de revue, mais installés par copie et non par plugin : « Collection de skills, de sous-agents et de commandes slash pour Claude Code : revue de code »."},
+"synth-ccplugins/cc-semantic-search": {"etiquette": "hors_sujet", "raison": "Plugin de recherche, pas de revue : « Plugin Claude Code qui ajoute la commande /find et une skill de recherche sémantique »."},
+"synth-coursgen/bts-cours-builder": {"etiquette": "hors_sujet", "raison": "Production de cours, pas de revue de code : « rédigent des fiches de cours, des TD et leurs corrigés »."},
+"synth-hooksmith/cc-notify": {"etiquette": "hors_sujet", "raison": "Notifications, pas de revue : « Hooks pour Claude Code qui envoient une notification »."}
+},
+"R33": {
+"synth-codelens/codelens": {"etiquette": "pertinent", "raison": "Recherche sémantique de code en CLI : « Recherche sémantique dans le code source »."},
+"synth-codeseek/repo-ask": {"etiquette": "pertinent", "raison": "Exactement : « Chercher du code par le sens depuis un terminal SSH sur le VPS »."},
+"synth-docsense/pdfseek": {"etiquette": "hors_sujet", "raison": "PDF, pas code : « Moteur de recherche sémantique local pour une bibliothèque de PDF »."},
+"synth-notesearch/semantic-drive": {"etiquette": "hors_sujet", "raison": "Documents bureautiques, pas code : « Recherche sémantique auto-hébergée dans des documents bureautiques »."},
+"synth-vpsguard/vps-backup": {"etiquette": "hors_sujet", "raison": "Sauvegarde : « Sauvegardes chiffrées et planifiées d'un serveur Linux »."}
+},
+"R34": {
+"synth-bimbridge/revit-ifc-exporter-cli": {"etiquette": "hors_sujet", "raison": "Export Revit sous Windows, pas d'affichage web : « Exporte en lot des projets Revit vers IFC »."},
+"synth-ifcconv/ifc2gltf-batch": {"etiquette": "plausible", "raison": "Brique de préparation pour le web, pas un composant React : « Alléger des maquettes pour les afficher dans une page web de cours »."},
+"synth-metrelab/dpgf-from-ifc": {"etiquette": "hors_sujet", "raison": "Génère une DPGF : « Génère une DPGF (décomposition du prix global et forfaitaire) au format Excel »."},
+"synth-reactifc/react-ifc-viewer": {"etiquette": "pertinent", "raison": "Exactement : « Intégrer une visionneuse de maquette dans un site de cours »."},
+"synth-reactpdf/react-pdf-annotator": {"etiquette": "hors_sujet", "raison": "Affiche des PDF, pas d'IFC : « Composants React pour afficher des PDF »."}
+},
+"R35": {
+"bytedance/dolphin": {"etiquette": "plausible", "raison": "Analyse de documents scannés, modèle lourd et GPU seulement conseillé : « GPU conseillé »."},
+"paddlepaddle/paddleocr": {"etiquette": "plausible", "raison": "OCR léger, mais factures et absence de GPU non documentées : « Boîte à outils OCR légère »."},
+"synth-cpuocr/onnx-ocr-lite": {"etiquette": "pertinent", "raison": "CPU et factures : « Testé sur le VPS (2 vCPU) : correct sur des factures imprimées. »"},
+"synth-preprocess/scanclean": {"etiquette": "plausible", "raison": "Prétraitement utile mais sans OCR : « Prétraitement d'images scannées avant OCR »."},
+"synth-scanflow/receipt-extractor": {"etiquette": "plausible", "raison": "Factures scannées, mais matériel et modèles non documentés : « Prérequis : Non vérifié »."}
+},
+"R36": {
+"ohf-voice/piper1-gpl": {"etiquette": "hors_sujet", "raison": "Fait l'inverse : « Moteur de synthèse vocale (text-to-speech) »."},
+"synth-podcastify/notes2podcast": {"etiquette": "hors_sujet", "raison": "Fait l'inverse : « Transforme des notes de cours ou un article en épisode de podcast »."},
+"synth-subtitle/srt-forge": {"etiquette": "plausible", "raison": "Transcrit l'audio mais vers des sous-titres : « Produit des sous-titres SRT ou VTT depuis un fichier vidéo ou audio »."},
+"synth-videoscript/script2video": {"etiquette": "hors_sujet", "raison": "Fait l'inverse : « Assemble une vidéo explicative en partant d'un script Markdown »."},
+"synth-voxscribe/whisper-batch": {"etiquette": "pertinent", "raison": "Exactement, sans Kubernetes : « Transcrire les enregistrements de cours pour en tirer des supports écrits »."}
+},
+"R37": {
+"synth-bareservice/unitbox": {"etiquette": "hors_sujet", "raison": "Exclut Docker alors que le besoin part de Compose : « Does not use Docker or Podman »."},
+"synth-flowport/make2n8n": {"etiquette": "hors_sujet", "raison": "Migration Make : « Convertit les scénarios Make (ex-Integromat) »."},
+"synth-harbor/dockpanel": {"etiquette": "plausible", "raison": "Brique de gestion de stacks Compose, rien sur n8n : « Déployer ou mettre à jour une stack Docker Compose sur un VPS »."},
+"synth-nok8s/compose-lite": {"etiquette": "pertinent", "raison": "Exactement : « Déployer n8n, une base de données et un reverse proxy sur un VPS »."},
+"synth-openflow/flowpilot": {"etiquette": "hors_sujet", "raison": "Autre plateforme que n8n : « présentée comme une alternative à Zapier et à n8n »."}
+},
+"R38": {
+"gyoridavid/short-video-maker": {"etiquette": "hors_sujet", "raison": "Vidéos courtes pour réseaux sociaux, ni Markdown ni voix off documentés : « Crée des vidéos courtes pour TikTok »."},
+"ohf-voice/piper1-gpl": {"etiquette": "plausible", "raison": "Brique de synthèse vocale à assembler : « Générer des voix off hors ligne pour des vidéos »."},
+"resemble-ai/chatterbox": {"etiquette": "plausible", "raison": "Brique TTS seule, Windows et GPU non documentés : « SoTA open-source TTS »."},
+"synth-podcastify/notes2podcast": {"etiquette": "hors_sujet", "raison": "Exclut Windows : « Not supported on Windows or Linux »."},
+"synth-videoscript/script2video": {"etiquette": "pertinent", "raison": "Script Markdown, Windows, sans GPU : « Works on Windows, macOS and Linux; no GPU needed »."}
+},
+"R39": {
+"huginn/huginn": {"etiquette": "hors_sujet", "raison": "Installé via Docker, sans YAML : « docker run -it -p 3000:3000 ghcr.io/huginn/huginn »."},
+"synth-budgetbox/releve-categorizer": {"etiquette": "hors_sujet", "raison": "Catégorisation bancaire : « Classe automatiquement les opérations de relevés bancaires »."},
+"synth-flowless/cronpipe": {"etiquette": "pertinent", "raison": "YAML, sans Docker : « No Docker, no Node.js, no database required »."},
+"synth-mailroom/inbox-parser": {"etiquette": "hors_sujet", "raison": "Extraction d'e-mails : « Service qui relève une boîte e-mail (IMAP) »."},
+"synth-yamlops/hookrunner": {"etiquette": "pertinent", "raison": "YAML avec déclencheur cron, sans Docker : « chaque flux associe un déclencheur (cron, webhook, dossier surveillé) »."}
+},
+"R40": {
+"synth-ccplugins/cc-semantic-search": {"etiquette": "hors_sujet", "raison": "Code dans Claude Code : « index local d'embeddings du code »."},
+"synth-codeseek/repo-ask": {"etiquette": "hors_sujet", "raison": "Exclut les PDF : « les PDF et documents bureautiques ne sont pas indexés »."},
+"synth-docmind/docmind": {"etiquette": "pertinent", "raison": "PDF, installable sans Docker : « ou : pip install docmind (sans Docker) »."},
+"synth-docsense/pdfseek": {"etiquette": "pertinent", "raison": "Recherche locale sur PDF : « Moteur de recherche sémantique local pour une bibliothèque de PDF »."},
+"synth-projectbrain/codedoc-search": {"etiquette": "plausible", "raison": "Couvre les PDF mais centré sur un projet de code : « Recherche sémantique unifiée dans le code source et la documentation technique »."}
+},
+"R41": {
+"docling-project/docling": {"etiquette": "pertinent", "raison": "Testé sur ce cas : « Testé pour extraire les tableaux des DPGF (PDF texte) : OK. »"},
+"paddlepaddle/paddleocr": {"etiquette": "pertinent", "raison": "Extraction de tableaux de PDF : « Extraire le texte et les tableaux de PDF scannés »."},
+"synth-bimtools/ifc-quantities": {"etiquette": "hors_sujet", "raison": "Part d'une maquette IFC : « Extraction des quantités d'une maquette IFC »."},
+"synth-planread/plan-cotes": {"etiquette": "hors_sujet", "raison": "Cotes de plans, pas tableaux : « repère les cotes et les annotations sur des plans PDF scannés »."},
+"synth-tablevision/tablereader": {"etiquette": "pertinent", "raison": "Exactement : « Récupérer dans Excel les tableaux de quantités de DPGF scannés »."}
+},
+"R42": {
+"synth-coinbook/coinledger-lite": {"etiquette": "hors_sujet", "raison": "Crypto, pas PEA : « Suivi de portefeuille de cryptomonnaies »."},
+"synth-notion2sheet/notion-to-xlsx": {"etiquette": "hors_sujet", "raison": "Export Notion : « Exporte une base de données Notion vers un classeur Excel »."},
+"synth-pealog/pea-tracker": {"etiquette": "pertinent", "raison": "Exactement : « Tableau de bord de suivi d'un PEA et d'un compte-titres : saisie des ordres, valorisation quotidienne, dividendes, plus-values latentes »."},
+"synth-reactpdf/react-pdf-annotator": {"etiquette": "hors_sujet", "raison": "Annotation de PDF : « Composants React pour afficher des PDF »."},
+"synth-vuekit/vue-dash-components": {"etiquette": "hors_sujet", "raison": "Simples composants d'interface : « Composants Vue 3 pour tableaux de bord »."}
+},
+"R43": {
+"synth-chantierlab/planchantier": {"etiquette": "pertinent", "raison": "Exactement : « Montrer aux étudiants l'effet d'un retard sur le chemin critique »."},
+"synth-docmind/docmind": {"etiquette": "hors_sujet", "raison": "Recherche documentaire : « Recherche sémantique dans des documents »."},
+"synth-inkread/handwrite-ocr": {"etiquette": "hors_sujet", "raison": "OCR manuscrit : « Reconnaissance d'écriture manuscrite par modèle transformeur »."},
+"synth-reactpdf/react-pdf-annotator": {"etiquette": "hors_sujet", "raison": "Annotation de PDF : « Composants React pour afficher des PDF »."},
+"synth-subtitle/srt-forge": {"etiquette": "hors_sujet", "raison": "Sous-titrage : « Produit des sous-titres SRT ou VTT »."}
+},
+"R44": {
+"docling-project/docling": {"etiquette": "hors_sujet", "raison": "Conversion de documents : « Bibliothèque Python qui convertit des documents »."},
+"synth-eurocalc/ba-ec2": {"etiquette": "pertinent", "raison": "Exactement : « Vérifier le ferraillage d'une poutre en flexion simple à l'ELU et à l'ELS »."},
+"synth-inkread/handwrite-ocr": {"etiquette": "hors_sujet", "raison": "OCR manuscrit : « Reconnaissance d'écriture manuscrite »."},
+"synth-quizforge/moodle-quizgen": {"etiquette": "hors_sujet", "raison": "QCM : « Génère des questions de QCM au format Moodle XML ou GIFT »."},
+"synth-quizmint/quiz-from-slides": {"etiquette": "hors_sujet", "raison": "QCM : « Crée des questionnaires à choix multiples »."}
+},
+"R45": {
+"synth-adminkit/fastapi-backoffice": {"etiquette": "hors_sujet", "raison": "Administration FastAPI : « Interface d'administration générée automatiquement pour une application FastAPI »."},
+"synth-bimbridge/revit-ifc-exporter-cli": {"etiquette": "hors_sujet", "raison": "Export BIM : « Exporte en lot des projets Revit vers IFC »."},
+"synth-bimtools/ifc-quantities": {"etiquette": "hors_sujet", "raison": "Métré IFC : « Extraction des quantités d'une maquette IFC »."},
+"synth-chantierlab/planchantier": {"etiquette": "hors_sujet", "raison": "Planning : « Application web de planification de chantier »."},
+"synth-eurocalc/ba-ec2": {"etiquette": "hors_sujet", "raison": "Béton armé : « calcul de sections en béton armé selon l'Eurocode 2 »."},
+"synth-fastquiz/fastapi-quiz-api": {"etiquette": "hors_sujet", "raison": "API de quiz : « gérer des banques de questions, des sessions de quiz »."},
+"synth-inkread/handwrite-ocr": {"etiquette": "pertinent", "raison": "Exactement : « Numériser des copies manuscrites pour les archiver en texte »."},
+"synth-localcoder/ollama-coder": {"etiquette": "hors_sujet", "raison": "Agent de code : « Agent de programmation en terminal »."},
+"synth-metrelab/dpgf-from-ifc": {"etiquette": "hors_sujet", "raison": "DPGF : « Génère une DPGF (décomposition du prix global et forfaitaire) »."},
+"synth-podcastify/notes2podcast": {"etiquette": "hors_sujet", "raison": "Podcast : « Transforme des notes de cours ou un article en épisode de podcast »."},
+"synth-reactifc/react-ifc-viewer": {"etiquette": "hors_sujet", "raison": "Visionneuse IFC : « Composant React qui affiche une maquette IFC »."},
+"synth-reactpdf/react-pdf-annotator": {"etiquette": "hors_sujet", "raison": "Annotation sans OCR : « ne fait ni OCR ni extraction de texte »."},
+"synth-sheetsumm/xlsx-explainer": {"etiquette": "hors_sujet", "raison": "Explication de tableurs : « Analyse un classeur Excel et rédige une explication »."},
+"synth-tabclean/csv-cleaner": {"etiquette": "hors_sujet", "raison": "Nettoyage de tableurs : « Nettoyage de fichiers CSV et Excel »."}
+},
+"R46": {
+"synth-coinbook/coinledger-lite": {"etiquette": "pertinent", "raison": "Exactement : « Calculer les plus-values réalisées sur l'année »."},
+"synth-pealog/pea-tracker": {"etiquette": "hors_sujet", "raison": "PEA et compte-titres, pas crypto : « suivi d'un PEA et d'un compte-titres »."}
+},
+"R47": {
+"synth-eurocalc/ba-ec2": {"etiquette": "hors_sujet", "raison": "Calcul de sections, pas d'éléments finis ni de ponts : « calcul de sections en béton armé selon l'Eurocode 2 »."},
+"synth-inkread/handwrite-ocr": {"etiquette": "hors_sujet", "raison": "OCR manuscrit : « Reconnaissance d'écriture manuscrite »."},
+"synth-quizforge/moodle-quizgen": {"etiquette": "hors_sujet", "raison": "QCM : « Génère des questions de QCM »."},
+"synth-quizmint/quiz-from-slides": {"etiquette": "hors_sujet", "raison": "QCM : « Crée des questionnaires à choix multiples »."},
+"synth-subtitle/srt-forge": {"etiquette": "hors_sujet", "raison": "Sous-titrage : « Produit des sous-titres SRT ou VTT »."}
+},
+"R48": {
+"bytedance/dolphin": {"etiquette": "hors_sujet", "raison": "Analyse d'images de documents, pas de radiographies : « Modèle multimodal d'analyse d'images de documents »."},
+"docling-project/docling": {"etiquette": "hors_sujet", "raison": "Conversion de documents : « Bibliothèque Python qui convertit des documents »."},
+"synth-ifcconv/ifc2gltf-batch": {"etiquette": "hors_sujet", "raison": "Part de maquettes IFC, pas de radiographies : « Convertit par lots des maquettes IFC en glTF, OBJ ou XKT »."},
+"synth-pdfstack/pdf-toolbox-server": {"etiquette": "hors_sujet", "raison": "Manipulation de PDF : « Application web auto-hébergée de manipulation de PDF »."},
+"synth-tablevision/tablereader": {"etiquette": "hors_sujet", "raison": "OCR de tableaux : « OCR de tableaux par modèle vision-langage »."}
+}
+}}

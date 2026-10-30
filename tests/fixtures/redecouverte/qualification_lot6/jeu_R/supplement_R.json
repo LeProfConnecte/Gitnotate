@@ -1,0 +1,565 @@
+{"format": "gitnotate-lot6-supplement/1", "fiches": [
+{
+  "id": "RF01",
+  "depot": "synth-metrelab/dpgf-from-ifc",
+  "nom": "dpgf-from-ifc",
+  "description": "Génère une DPGF (décomposition du prix global et forfaitaire) au format Excel à partir d'une maquette IFC, en regroupant les quantités par lot et par ouvrage élémentaire. Les prix unitaires peuvent être importés depuis une bibliothèque CSV.",
+  "cas_usage": [
+    "Produire une DPGF de gros œuvre à partir de la maquette IFC d'un petit collectif",
+    "Comparer les quantités d'une DPGF d'entreprise avec celles calculées depuis la maquette",
+    "Préparer un TD de chiffrage en BTS en partant d'une maquette fournie aux étudiants"
+  ],
+  "installation": "pip install dpgf-from-ifc",
+  "exemple": "dpgf-from-ifc projet_R+2.ifc --prix bibliotheque_prix.csv -o DPGF_GO.xlsx",
+  "prerequis": [
+    "Python 3.10+",
+    "IfcOpenShell 0.7+",
+    "IFC2x3 or IFC4 model with quantity sets (Qto_*) recommended"
+  ],
+  "langage": "Python",
+  "licence": "LGPL-3.0",
+  "categorie": "Données/Analyse",
+  "brique_pour": ["Outils pédagogiques BTS MEC", "Données"],
+  "justification": "Passe directement de la maquette IFC à une DPGF chiffrée, ce qui correspond au cœur des TD de métré et d'économie de la construction.",
+  "stars": 214,
+  "notes": "À tester avec la maquette du TD R+2 et la bibliothèque de prix de l'an dernier.",
+  "type": ["CLI", "Bibliothèque"]
+},
+{
+  "id": "RF02",
+  "depot": "synth-coursgen/bts-cours-builder",
+  "nom": "bts-cours-builder",
+  "description": "Ensemble de commandes et de sous-agents pour Claude Code qui rédigent des fiches de cours, des TD et leurs corrigés en Markdown puis en PDF, en suivant un référentiel de compétences fourni par l'enseignant.",
+  "cas_usage": [
+    "Générer une séquence de cours sur les fondations superficielles alignée sur le référentiel du BTS",
+    "Produire un TD et son corrigé détaillé en une seule commande",
+    "Uniformiser la mise en page de supports existants"
+  ],
+  "installation": "git clone https://github.com/synth-coursgen/bts-cours-builder.git\nPuis copier le dossier .claude/ dans le répertoire du projet de cours",
+  "exemple": "/cours-sequence referentiel.md --chapitre 'Fondations superficielles' --format pdf",
+  "prerequis": [
+    "Claude Code installed and authenticated",
+    "Pandoc 3.x (for PDF export)",
+    "A LaTeX distribution (optional, for PDF output)"
+  ],
+  "langage": "Autres langages",
+  "licence": "MIT",
+  "categorie": "Éducation/Cours",
+  "brique_pour": ["Enseignement", "IA et agents"],
+  "justification": "Extension de Claude Code orientée production de supports de BTS ; utile si l'on dispose déjà d'un abonnement Claude.",
+  "stars": 389,
+  "type": ["Plugin", "Modèles"]
+},
+{
+  "id": "RF03",
+  "depot": "synth-quizmint/quiz-from-slides",
+  "nom": "quiz-from-slides",
+  "description": "Crée des questionnaires à choix multiples à partir de diaporamas PowerPoint ou de PDF de cours, puis les exporte au format Moodle GIFT, Moodle XML ou en CSV pour Kahoot.",
+  "cas_usage": [
+    "Transformer le diaporama d'un cours de RDM en QCM d'auto-évaluation sur Moodle",
+    "Produire rapidement un quiz de révision avant un contrôle",
+    "Générer une banque de questions par chapitre"
+  ],
+  "installation": "pip install quiz-from-slides",
+  "exemple": "quiz-from-slides cours_rdm.pptx --questions 20 --format gift -o rdm.gift",
+  "prerequis": [
+    "Python 3.9+",
+    "Ollama with a local model, or an OpenAI-compatible API key",
+    "GPU optional: runs on CPU with small models (slower)"
+  ],
+  "langage": "Python",
+  "licence": "Apache-2.0",
+  "categorie": "Éducation/Cours",
+  "brique_pour": ["Enseignement", "Outils pédagogiques BTS MEC"],
+  "justification": "Génère des QCM importables dans Moodle depuis les supports existants, avec un modèle local possible sans carte graphique.",
+  "stars": 642
+},
+{
+  "id": "RF04",
+  "depot": "synth-subtitle/srt-forge",
+  "nom": "srt-forge",
+  "description": "Produit des sous-titres SRT ou VTT depuis un fichier vidéo ou audio grâce à faster-whisper, avec découpage des lignes, traduction facultative et incrustation dans la vidéo via FFmpeg.",
+  "cas_usage": [
+    "Sous-titrer en français une vidéo de démonstration de chantier",
+    "Traduire les sous-titres d'une vidéo YouTube anglaise pour la classe",
+    "Incruster les sous-titres avant diffusion sur l'ENT"
+  ],
+  "installation": "pip install srt-forge",
+  "exemple": "srt-forge visite_chantier.mp4 --lang fr --burn -o visite_chantier_st.mp4",
+  "prerequis": [
+    "Python 3.9+",
+    "FFmpeg in PATH",
+    "NVIDIA GPU with CUDA 12 recommended; CPU mode supported"
+  ],
+  "langage": "Python",
+  "licence": "MIT",
+  "categorie": "Audio/Vidéo",
+  "brique_pour": ["Création audiovisuelle"],
+  "justification": "Sous-titrage local complet, de la transcription à l'incrustation, utilisable sur CPU pour des vidéos courtes.",
+  "stars": 1870,
+  "type": ["CLI"]
+},
+{
+  "id": "RF05",
+  "depot": "synth-podcastify/notes2podcast",
+  "nom": "notes2podcast",
+  "description": "Transforme des notes de cours ou un article en épisode de podcast à deux voix : un LLM écrit le dialogue, puis une synthèse vocale locale optimisée pour les puces Apple Silicon (MLX) produit le fichier audio.",
+  "cas_usage": [
+    "Créer un épisode audio de révision sur les règles de métré",
+    "Proposer une version audio d'un chapitre pour les étudiants en alternance"
+  ],
+  "installation": "brew install ffmpeg\npip install notes2podcast",
+  "exemple": "notes2podcast chapitre3.md --voices fr-femme,fr-homme --duree 10 -o episode3.mp3",
+  "prerequis": [
+    "macOS 13+ on Apple Silicon (M1 or later)",
+    "Python 3.11+",
+    "FFmpeg",
+    "Not supported on Windows or Linux"
+  ],
+  "langage": "Python",
+  "licence": "Apache-2.0",
+  "categorie": "Audio/Vidéo",
+  "brique_pour": ["Création audiovisuelle", "Enseignement"],
+  "justification": "Génération de podcasts pédagogiques entièrement locale, mais réservée aux Mac à puce Apple.",
+  "stars": 956,
+  "notes": "Mon PC est sous Windows : à garder pour le Mac du CDI."
+},
+{
+  "id": "RF06",
+  "depot": "synth-invoicer/n8n-nodes-facture-ocr",
+  "nom": "n8n-nodes-facture-ocr",
+  "description": "Nœud communautaire n8n qui lit les factures PDF ou photographiées, en extrait le fournisseur, les dates, les montants HT, TVA et TTC, et renvoie un objet JSON exploitable dans la suite du workflow.",
+  "cas_usage": [
+    "Classer automatiquement les factures reçues par e-mail dans un tableur",
+    "Alimenter un suivi de dépenses personnelles depuis un dossier Google Drive",
+    "Détecter les factures dont le total ne correspond pas à la somme des lignes"
+  ],
+  "installation": "Dans n8n : Settings > Community Nodes > Install, puis saisir n8n-nodes-facture-ocr",
+  "exemple": "Workflow : Gmail Trigger > Facture OCR (mode: auto) > Google Sheets (Append Row)",
+  "prerequis": [
+    "n8n 1.30+ (self-hosted, community nodes enabled)",
+    "Tesseract 5 with the fra language pack on the n8n host",
+    "Docker image n8nio/n8n requires a custom Dockerfile to add Tesseract"
+  ],
+  "langage": "TypeScript",
+  "licence": "MIT",
+  "categorie": "Automatisation/No-code",
+  "brique_pour": ["Automatisations n8n", "Documents et OCR"],
+  "justification": "Ajoute l'OCR de factures directement dans n8n, ce qui évite un service externe pour le projet de suivi des dépenses.",
+  "stars": 312,
+  "type": ["Nœud n8n"]
+},
+{
+  "id": "RF07",
+  "depot": "synth-zapbridge/zapier-invoice-to-sheets",
+  "nom": "zapier-invoice-to-sheets",
+  "description": "Application Zapier privée qui ajoute un déclencheur « Nouvelle facture détectée » et une action d'extraction des montants, pour envoyer les factures reçues dans Gmail vers Google Sheets.",
+  "cas_usage": [
+    "Créer un Zap qui recopie chaque facture reçue dans un tableau de dépenses",
+    "Notifier sur Slack les factures dépassant un montant donné"
+  ],
+  "installation": "npm install -g zapier-platform-cli\nzapier login\nzapier push",
+  "exemple": "zapier invoke trigger new_invoice --inputData '{\"label\": \"Factures\"}'",
+  "prerequis": [
+    "Node.js 18+",
+    "A Zapier account (paid plan for multi-step Zaps)",
+    "Gmail and Google Sheets accounts"
+  ],
+  "langage": "JavaScript",
+  "licence": "MIT",
+  "categorie": "Automatisation/No-code",
+  "brique_pour": ["Automatisations n8n", "Documents et OCR"],
+  "justification": "Solution prête pour qui reste sur Zapier ; moins intéressante si l'automatisation est faite dans n8n.",
+  "stars": 87
+},
+{
+  "id": "RF08",
+  "depot": "synth-flowless/cronpipe",
+  "nom": "cronpipe",
+  "description": "Moteur d'automatisation minimaliste : les tâches sont décrites en YAML (déclencheur, étapes, conditions) et exécutées par un seul binaire planifié, sans interface web ni base de données. Présenté comme une alternative légère à n8n et Zapier.",
+  "cas_usage": [
+    "Remplacer un petit workflow n8n de veille RSS par un fichier YAML versionné",
+    "Lancer chaque nuit une sauvegarde puis envoyer un message Telegram",
+    "Automatiser des tâches sur un Raspberry Pi peu puissant"
+  ],
+  "installation": "curl -sSL https://github.com/synth-flowless/cronpipe/releases/latest/download/cronpipe-linux-amd64 -o /usr/local/bin/cronpipe && chmod +x /usr/local/bin/cronpipe",
+  "exemple": "cronpipe run veille.yaml --dry-run",
+  "prerequis": [
+    "Single static binary for Linux, macOS and Windows",
+    "No Docker, no Node.js, no database required"
+  ],
+  "langage": "Go",
+  "licence": "Apache-2.0",
+  "categorie": "Automatisation/No-code",
+  "brique_pour": ["Automatisations n8n"],
+  "justification": "Alternative sans serveur à n8n pour des automatisations simples, mais sans éditeur visuel ni catalogue d'intégrations comparable.",
+  "stars": 2430,
+  "type": ["CLI"]
+},
+{
+  "id": "RF09",
+  "depot": "synth-flowport/make2n8n",
+  "nom": "make2n8n",
+  "description": "Convertit les scénarios Make (ex-Integromat) exportés en JSON en workflows n8n importables, en faisant correspondre les modules courants (HTTP, Google Sheets, Gmail, routeurs) aux nœuds équivalents.",
+  "cas_usage": [
+    "Migrer une dizaine de scénarios Make vers une instance n8n auto-hébergée",
+    "Repérer les modules Make sans équivalent n8n avant une migration"
+  ],
+  "installation": "npx make2n8n --help",
+  "exemple": "npx make2n8n scenario_factures.blueprint.json -o workflow_factures.json --report",
+  "prerequis": [
+    "Node.js 18+",
+    "Make scenario blueprints exported as JSON"
+  ],
+  "langage": "TypeScript",
+  "licence": "MIT",
+  "categorie": "Automatisation/No-code",
+  "brique_pour": ["Automatisations n8n"],
+  "justification": "Outil de migration de Make vers n8n avec rapport des modules non convertis ; utile seulement si des scénarios Make existent déjà.",
+  "stars": 178
+},
+{
+  "id": "RF10",
+  "depot": "synth-notion2sheet/notion-to-xlsx",
+  "nom": "notion-to-xlsx",
+  "description": "Exporte une base de données Notion vers un classeur Excel en conservant les types de propriétés (sélections, dates, relations, formules calculées) et peut planifier des exports réguliers.",
+  "cas_usage": [
+    "Sauvegarder chaque semaine la base Notion des fiches de dépôts",
+    "Analyser dans Excel le suivi des notes saisi dans Notion"
+  ],
+  "installation": "pip install notion-to-xlsx",
+  "exemple": "notion-to-xlsx --database 1a2b3c4d5e --token $NOTION_TOKEN -o export.xlsx",
+  "prerequis": [
+    "Python 3.9+",
+    "Notion integration token with access to the database"
+  ],
+  "langage": "Python",
+  "licence": "MIT",
+  "categorie": "Données/Analyse",
+  "brique_pour": ["Données"],
+  "justification": "Export fidèle d'une base Notion vers Excel, pratique pour sauvegarder ou analyser la base de fiches.",
+  "stars": 455
+},
+{
+  "id": "RF11",
+  "depot": "synth-planread/plan-cotes",
+  "nom": "plan-cotes",
+  "description": "Application de bureau qui repère les cotes et les annotations sur des plans PDF scannés, les associe aux murs et aux ouvertures, puis exporte un tableau de longueurs et de surfaces pour l'avant-métré.",
+  "cas_usage": [
+    "Relever les dimensions d'un plan de rez-de-chaussée scanné sans le redessiner",
+    "Préparer un exercice de métré de cloisons à partir d'anciens plans papier",
+    "Vérifier les surfaces d'un plan de vente"
+  ],
+  "installation": "Télécharger l'installateur plan-cotes-setup.exe depuis la page Releases",
+  "exemple": "plan-cotes.exe plan_RDC.pdf --echelle 1:100 --export metre_RDC.xlsx",
+  "prerequis": [
+    "Windows 10 or 11 (64-bit) only",
+    ".NET 8 Desktop Runtime",
+    "Scans at 300 dpi or higher"
+  ],
+  "langage": "C#",
+  "licence": "GPL-3.0",
+  "categorie": "OCR/Documents",
+  "brique_pour": ["Documents et OCR", "Outils pédagogiques BTS MEC"],
+  "justification": "Rare outil d'OCR orienté plans et métré ; limité à Windows et à des scans de bonne qualité.",
+  "stars": 133,
+  "notes": "Essayer sur les plans scannés du lycée (dossier Archives)."
+},
+{
+  "id": "RF12",
+  "depot": "synth-budgetbox/releve-categorizer",
+  "nom": "releve-categorizer",
+  "description": "Classe automatiquement les opérations de relevés bancaires (CSV, OFX, QIF) en catégories de dépenses à l'aide de règles et d'un petit modèle local, puis produit un récapitulatif mensuel.",
+  "cas_usage": [
+    "Catégoriser un an de relevés pour établir un budget personnel",
+    "Préparer un import propre dans un logiciel de comptabilité personnelle"
+  ],
+  "installation": "pipx install releve-categorizer",
+  "exemple": "releve-categorizer import releves/*.ofx --regles mes_regles.yaml --rapport 2026-09",
+  "prerequis": [
+    "Python 3.10+",
+    "Linux or macOS (Windows is not supported, use WSL)",
+    "No GPU needed"
+  ],
+  "langage": "Python",
+  "licence": "AGPL-3.0",
+  "categorie": "Finance/Trading",
+  "brique_pour": ["Données"],
+  "justification": "Catégorisation locale des relevés bancaires sans envoyer les données à un service tiers.",
+  "stars": 690
+},
+{
+  "id": "RF13",
+  "depot": "synth-fastquiz/fastapi-quiz-api",
+  "nom": "fastapi-quiz-api",
+  "description": "API REST construite avec FastAPI pour gérer des banques de questions, des sessions de quiz et les résultats des élèves, avec authentification par jeton et export CSV des scores.",
+  "cas_usage": [
+    "Servir de backend à une application de quiz maison pour la classe",
+    "Centraliser les résultats d'entraînements hebdomadaires"
+  ],
+  "installation": "git clone https://github.com/synth-fastquiz/fastapi-quiz-api.git\npip install -r requirements.txt\nuvicorn app.main:app --reload",
+  "exemple": "curl -X POST http://localhost:8000/quiz/42/sessions -H 'Authorization: Bearer <token>'",
+  "prerequis": [
+    "Python 3.11+",
+    "PostgreSQL 14+ or SQLite for development",
+    "Docker Compose file provided (optional)"
+  ],
+  "langage": "Python",
+  "licence": "MIT",
+  "categorie": "Éducation/Cours",
+  "brique_pour": ["Enseignement"],
+  "justification": "Base technique solide pour un outil de quiz, mais demande de développer soi-même l'interface.",
+  "stars": 241,
+  "type": ["Modèle de projet"]
+},
+{
+  "id": "RF14",
+  "depot": "synth-reactifc/react-ifc-viewer",
+  "nom": "react-ifc-viewer",
+  "description": "Composant React qui affiche une maquette IFC dans le navigateur (web-ifc et Three.js), avec sélection d'objets, affichage des propriétés et filtrage par niveau ou par classe IFC.",
+  "cas_usage": [
+    "Intégrer une visionneuse de maquette dans un site de cours",
+    "Permettre aux étudiants d'interroger les propriétés des éléments sans logiciel BIM"
+  ],
+  "installation": "npm install react-ifc-viewer",
+  "exemple": "<IfcViewer src=\"/maquettes/r2.ifc\" showProperties filterBy=\"storey\" />",
+  "prerequis": [
+    "React 18+",
+    "A browser with WebGL 2 support"
+  ],
+  "langage": "TypeScript",
+  "licence": "MPL-2.0",
+  "categorie": "Autre",
+  "brique_pour": ["Outils pédagogiques BTS MEC"],
+  "justification": "Visionneuse IFC prête à intégrer dans une application React ; nécessite de savoir monter un petit projet web.",
+  "stars": 523
+},
+{
+  "id": "RF15",
+  "depot": "synth-k8sjobs/whisper-k8s-batch",
+  "nom": "whisper-k8s-batch",
+  "description": "Chart Helm qui déploie une file de transcription Whisper sur un cluster Kubernetes : les fichiers déposés dans un bucket S3 sont répartis en jobs sur des nœuds GPU et les transcriptions sont écrites à côté des originaux.",
+  "cas_usage": [
+    "Transcrire des centaines d'heures d'enregistrements pour un établissement",
+    "Mutualiser des serveurs GPU entre plusieurs équipes"
+  ],
+  "installation": "helm repo add whisper-batch https://synth-k8sjobs.github.io/whisper-k8s-batch\nhelm install transcription whisper-batch/whisper-k8s-batch -f values.yaml",
+  "exemple": "kubectl logs -l app=whisper-worker -f",
+  "prerequis": [
+    "Kubernetes 1.27+",
+    "Helm 3",
+    "Nodes with NVIDIA GPUs and the NVIDIA device plugin",
+    "S3-compatible object storage"
+  ],
+  "langage": "Python",
+  "licence": "Apache-2.0",
+  "categorie": "Audio/Vidéo",
+  "brique_pour": ["Création audiovisuelle"],
+  "justification": "Pensé pour la transcription à grande échelle sur infrastructure Kubernetes avec GPU, bien au-delà d'un usage personnel.",
+  "stars": 402
+},
+{
+  "id": "RF16",
+  "depot": "synth-nok8s/compose-lite",
+  "nom": "compose-lite",
+  "description": "Petit outil de déploiement pour un ou deux serveurs : il met à jour des piles Docker Compose depuis un dépôt Git, gère les redémarrages et les certificats, sans recourir à Kubernetes.",
+  "cas_usage": [
+    "Déployer n8n, une base de données et un reverse proxy sur un VPS",
+    "Mettre à jour automatiquement les services après un git push"
+  ],
+  "installation": "curl -fsSL https://raw.githubusercontent.com/synth-nok8s/compose-lite/main/install.sh | sh",
+  "exemple": "compose-lite deploy --repo git@github.com:moi/infra.git --stack n8n",
+  "prerequis": [
+    "Linux server (Debian, Ubuntu)",
+    "Docker Engine 24+ with the Compose plugin",
+    "Kubernetes is not required"
+  ],
+  "langage": "Go",
+  "licence": "MIT",
+  "categorie": "Autre",
+  "brique_pour": ["Automatisations n8n"],
+  "justification": "Alternative simple à Kubernetes pour héberger quelques services auto-hébergés sur un VPS.",
+  "stars": 1105,
+  "type": ["CLI"]
+},
+{
+  "id": "RF17",
+  "depot": "synth-bareservice/unitbox",
+  "nom": "unitbox",
+  "description": "Lance et isole des services auto-hébergés à l'aide d'unités systemd générées automatiquement, comme alternative à Docker pour les machines où il n'est pas souhaité ou pas disponible.",
+  "cas_usage": [
+    "Faire tourner n8n et Ollama sur un serveur sans installer Docker",
+    "Réduire la consommation mémoire sur un petit serveur"
+  ],
+  "installation": "sudo apt install ./unitbox_1.4.0_amd64.deb",
+  "exemple": "unitbox up n8n --port 5678 --data /srv/n8n",
+  "prerequis": [
+    "Linux with systemd 250+",
+    "Does not use Docker or Podman",
+    "Not available for Windows or macOS"
+  ],
+  "langage": "Rust",
+  "licence": "GPL-3.0",
+  "categorie": "Autre",
+  "brique_pour": ["Automatisations n8n"],
+  "justification": "Approche originale pour se passer de Docker, mais limitée à Linux et à un catalogue de services plus restreint.",
+  "stars": 298
+},
+{
+  "id": "RF18",
+  "depot": "synth-localcoder/ollama-coder",
+  "nom": "ollama-coder",
+  "description": "Agent de programmation en terminal qui lit le projet, propose des modifications et lance les tests, en s'appuyant uniquement sur des modèles locaux servis par Ollama. Se présente comme une alternative à Claude Code sans abonnement ni envoi de code vers le cloud.",
+  "cas_usage": [
+    "Faire écrire des scripts Python de traitement de données sans connexion Internet",
+    "Expérimenter les agents de code avec les étudiants sans compte payant"
+  ],
+  "installation": "pip install ollama-coder\nollama pull qwen2.5-coder:14b",
+  "exemple": "ollama-coder 'ajoute un export CSV au script metre.py'",
+  "prerequis": [
+    "Python 3.10+",
+    "Ollama 0.4+",
+    "GPU with 12 GB VRAM recommended for 14B models; small models run on CPU"
+  ],
+  "langage": "Python",
+  "licence": "Apache-2.0",
+  "categorie": "Autre",
+  "brique_pour": ["IA et agents"],
+  "justification": "Agent de code local et gratuit, moins performant que les agents hébergés mais intéressant pour la confidentialité.",
+  "stars": 3120
+},
+{
+  "id": "RF19",
+  "depot": "synth-videoscript/script2video",
+  "nom": "script2video",
+  "description": "Assemble une vidéo explicative en partant d'un script Markdown : chaque section devient une diapositive illustrée, la narration est générée par synthèse vocale et le tout est monté avec FFmpeg.",
+  "cas_usage": [
+    "Produire une capsule vidéo de cours inversé sur le calcul des volumes de terrassement",
+    "Créer des tutoriels courts pour les réseaux de l'établissement",
+    "Mettre à jour une vidéo en modifiant seulement le texte du script"
+  ],
+  "installation": "pip install script2video\nscript2video init mon_projet",
+  "exemple": "script2video build terrassement.md --voix fr_FR-siwis --format 1080p",
+  "prerequis": [
+    "Python 3.10+",
+    "FFmpeg",
+    "Piper TTS voices (downloaded on first run)",
+    "Works on Windows, macOS and Linux; no GPU needed"
+  ],
+  "langage": "Python",
+  "licence": "MIT",
+  "categorie": "Audio/Vidéo",
+  "brique_pour": ["Création audiovisuelle", "Enseignement"],
+  "justification": "Permet de produire des capsules pédagogiques reproductibles depuis un simple texte, sans logiciel de montage.",
+  "stars": 1480,
+  "notes": "Idée : capsules pour le chapitre terrassements."
+},
+{
+  "id": "RF20",
+  "depot": "synth-ifcconv/ifc2gltf-batch",
+  "nom": "ifc2gltf-batch",
+  "description": "Convertit par lots des maquettes IFC en glTF, OBJ ou XKT pour l'affichage web, en conservant les identifiants GlobalId et un fichier de propriétés JSON associé.",
+  "cas_usage": [
+    "Alléger des maquettes pour les afficher dans une page web de cours",
+    "Préparer des modèles 3D pour une présentation ou de la réalité virtuelle"
+  ],
+  "installation": "docker pull ghcr.io/synth-ifcconv/ifc2gltf-batch:latest\nou : pip install ifc2gltf-batch",
+  "exemple": "docker run --rm -v $(pwd):/data ghcr.io/synth-ifcconv/ifc2gltf-batch /data/maquettes --to glb",
+  "prerequis": [
+    "Docker (recommended), or Python 3.10+ with IfcOpenShell and IfcConvert",
+    "4 GB RAM for large models"
+  ],
+  "langage": "Python",
+  "licence": "LGPL-3.0",
+  "categorie": "Données/Analyse",
+  "brique_pour": ["Outils pédagogiques BTS MEC"],
+  "justification": "Conversion IFC vers formats web en une commande, avec image Docker prête ou installation Python classique.",
+  "stars": 267
+},
+{
+  "id": "RF21",
+  "depot": "synth-sheetsumm/xlsx-explainer",
+  "nom": "xlsx-explainer",
+  "description": "Analyse un classeur Excel et rédige une explication en langage courant de sa structure : feuilles, plages nommées, formules principales et dépendances entre cellules.",
+  "cas_usage": [
+    "Documenter un ancien tableur de métré hérité d'un collègue",
+    "Expliquer aux étudiants la logique d'un tableau de calcul de quantités"
+  ],
+  "installation": "pip install xlsx-explainer",
+  "exemple": "xlsx-explainer metre_lot02.xlsx --langue fr -o explication.md",
+  "prerequis": [],
+  "langage": "Python",
+  "licence": "MIT",
+  "categorie": "Données/Analyse",
+  "brique_pour": ["Données", "Enseignement"],
+  "justification": "Aide à comprendre et documenter des tableurs complexes ; le README ne précise pas les dépendances ni le modèle utilisé.",
+  "stars": 59
+},
+{
+  "id": "RF22",
+  "depot": "synth-bimbridge/revit-ifc-exporter-cli",
+  "nom": "revit-ifc-exporter-cli",
+  "description": "Exporte en lot des projets Revit vers IFC avec des paramètres d'export enregistrés, et produit un journal des éléments ignorés ou mal classés pendant la conversion.",
+  "cas_usage": [
+    "Convertir les maquettes Revit d'un dossier de projet en IFC4 pour les étudiants",
+    "Contrôler la qualité de l'export IFC avant un échange avec un bureau d'études"
+  ],
+  "installation": "Copier le dossier du complément dans %APPDATA%/Autodesk/Revit/Addins/2024",
+  "exemple": "RevitIfcExport.exe --input projets/ --config ifc4_reference_view.json --log export.log",
+  "prerequis": [
+    "Windows 10/11",
+    "Autodesk Revit 2023, 2024 or 2025 (licensed)",
+    ".NET Framework 4.8"
+  ],
+  "langage": "C#",
+  "licence": "MIT",
+  "categorie": "Données/Analyse",
+  "brique_pour": ["Outils pédagogiques BTS MEC", "Données"],
+  "justification": "Utile pour passer de Revit à IFC en série, mais dépend d'une licence Revit et de Windows.",
+  "stars": 146
+},
+{
+  "id": "RF23",
+  "depot": "synth-pealog/pea-tracker",
+  "nom": "pea-tracker",
+  "description": "Tableau de bord de suivi d'un PEA et d'un compte-titres : saisie des ordres, valorisation quotidienne, dividendes, plus-values latentes et répartition par secteur.",
+  "cas_usage": [
+    "Suivre la performance réelle de son portefeuille, frais inclus",
+    "Préparer les montants utiles à la déclaration de revenus"
+  ],
+  "installation": "pip install pea-tracker\npea-tracker init",
+  "exemple": "pea-tracker serve --port 8050",
+  "prerequis": [
+    "Python 3.10+"
+  ],
+  "langage": "Python",
+  "licence": "GPL-3.0",
+  "categorie": "Finance/Trading",
+  "brique_pour": ["Données"],
+  "justification": "Suivi de portefeuille personnel simple et local, adapté aux enveloppes fiscales françaises.",
+  "stars": 377,
+  "type": ["Application web"]
+},
+{
+  "id": "RF24",
+  "depot": "synth-markslides/md2reveal-cours",
+  "nom": "md2reveal-cours",
+  "description": "Convertit des fichiers Markdown en diaporamas Reveal.js autonomes, avec des modèles adaptés aux cours techniques : formules, schémas, tableaux de quantités et diapositives d'exercices.",
+  "cas_usage": [
+    "Rédiger un cours en Markdown et le projeter en classe sans PowerPoint",
+    "Publier les diaporamas sur l'ENT sous forme de pages HTML"
+  ],
+  "installation": "npm install -g md2reveal-cours",
+  "exemple": "md2reveal-cours cours_beton.md --theme bts -o cours_beton.html",
+  "prerequis": [
+    "Node.js 18+",
+    "Based on Reveal.js 5"
+  ],
+  "langage": "JavaScript",
+  "licence": "MIT",
+  "categorie": "Éducation/Cours",
+  "brique_pour": ["Enseignement"],
+  "justification": "Production rapide de diaporamas de cours versionnables, sans dépendance à un logiciel de présentation.",
+  "stars": 204
+}
+]}

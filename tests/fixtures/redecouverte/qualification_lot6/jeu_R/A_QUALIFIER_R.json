@@ -1,0 +1,630 @@
+{
+ "requetes": [
+  {
+   "id": "R01",
+   "requete": "Je voudrais une DPGF Excel générée à partir d'une maquette IFC",
+   "candidats": [
+    "synth-bimbridge/revit-ifc-exporter-cli",
+    "synth-bimtools/ifc-quantities",
+    "synth-metrelab/dpgf-from-ifc",
+    "synth-planread/plan-cotes",
+    "synth-reactifc/react-ifc-viewer"
+   ]
+  },
+  {
+   "id": "R02",
+   "requete": "Un outil pour faire un avant-métré à partir d'un plan PDF scanné, pas à partir d'une maquette IFC",
+   "candidats": [
+    "paddlepaddle/paddleocr",
+    "synth-docmind/docmind",
+    "synth-pdfcraft/pdfcraft",
+    "synth-pdfstack/pdf-toolbox-server",
+    "synth-planread/plan-cotes",
+    "synth-reactpdf/react-pdf-annotator",
+    "synth-tablevision/tablereader"
+   ]
+  },
+  {
+   "id": "R03",
+   "requete": "Je cherche un workflow n8n à partir d’un modèle déjà prêt, pas de zéro",
+   "candidats": [
+    "synth-flowgen/n8n-flow-genie",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-n8nbridge/n8n-mcp-bridge",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-openflow/flowpilot",
+    "synth-opswatch/n8n-watchtower"
+   ]
+  },
+  {
+   "id": "R04",
+   "requete": "Convertir des Zaps en workflows n8n, à partir de l'export JSON de Zapier",
+   "candidats": [
+    "synth-flowport/make2n8n",
+    "synth-mailroom/inbox-parser",
+    "synth-migratekit/zap2n8n",
+    "synth-openflow/flowpilot",
+    "synth-zapbridge/zapier-invoice-to-sheets"
+   ]
+  },
+  {
+   "id": "R05",
+   "requete": "OCR de factures, à partir de photos prises au téléphone",
+   "candidats": [
+    "paddlepaddle/paddleocr",
+    "synth-invoicer/n8n-nodes-facture-ocr",
+    "synth-preprocess/scanclean",
+    "synth-scanflow/receipt-extractor",
+    "synth-tablevision/tablereader"
+   ]
+  },
+  {
+   "id": "R06",
+   "requete": "Des exercices de quantitatif à partir de maquettes réelles pour mes étudiants de BTS",
+   "candidats": [
+    "synth-bimtools/ifc-quantities",
+    "synth-coursgen/bts-cours-builder",
+    "synth-eurocalc/ba-ec2",
+    "synth-markslides/md2reveal-cours",
+    "synth-metrelab/dpgf-from-ifc",
+    "synth-planread/plan-cotes"
+   ]
+  },
+  {
+   "id": "R07",
+   "requete": "A partir de zéro, quel moteur de workflow Python avec reprise sur erreur ?",
+   "candidats": [
+    "neuml/txtai",
+    "synth-durable/taskweave",
+    "synth-flowgen/n8n-flow-genie",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-flowless/cronpipe",
+    "synth-nodeforge/n8n-nodes-pdfgen",
+    "synth-opswatch/n8n-watchtower"
+   ]
+  },
+  {
+   "id": "R08",
+   "requete": "Je ne veux pas partir de zéro : une API de quiz FastAPI pour ma classe",
+   "candidats": [
+    "synth-apiforge/fastapi-starter",
+    "synth-fastquiz/fastapi-quiz-api",
+    "synth-quizforge/moodle-quizgen",
+    "synth-quizmint/quiz-from-slides",
+    "synth-swiftapi/velora"
+   ]
+  },
+  {
+   "id": "R09",
+   "requete": "Sous-titres automatiques pour mes vidéos de cours, à partir de 2024 je veux tout faire en local",
+   "candidats": [
+    "synth-budgetbox/releve-categorizer",
+    "synth-codecrew/termpilot",
+    "synth-flowgen/n8n-flow-genie",
+    "synth-podcastify/notes2podcast",
+    "synth-quizforge/moodle-quizgen",
+    "synth-subtitle/srt-forge",
+    "synth-voxscribe/whisper-batch"
+   ]
+  },
+  {
+   "id": "R10",
+   "requete": "À partir de la version 20 de Node.js, quels outils existent pour surveiller les exécutions n8n ?",
+   "candidats": [
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-flowless/cronpipe",
+    "synth-flowops/n8n-operator",
+    "synth-n8nbridge/n8n-mcp-bridge",
+    "synth-opswatch/n8n-watchtower",
+    "synth-yamlops/hookrunner"
+   ]
+  },
+  {
+   "id": "R11",
+   "requete": "Un podcast de révision à partir de mes notes de cours et un quiz à partir du même PDF",
+   "candidats": [
+    "caviraoss/pagelm",
+    "synth-eurocalc/ba-ec2",
+    "synth-podcastify/notes2podcast",
+    "synth-quizforge/moodle-quizgen",
+    "synth-quizmint/quiz-from-slides"
+   ]
+  },
+  {
+   "id": "R12",
+   "requete": "Une capsule vidéo à partir de rien, juste un texte",
+   "candidats": [
+    "gyoridavid/short-video-maker",
+    "remotion-dev/remotion",
+    "synth-subtitle/srt-forge",
+    "synth-videoscript/script2video",
+    "synth-voxscribe/whisper-batch"
+   ]
+  },
+  {
+   "id": "R13",
+   "requete": "Retrouver un passage de norme dans mes PDF par le sens, pas à partir de mots exacts",
+   "candidats": [
+    "synth-codeseek/repo-ask",
+    "synth-docmind/docmind",
+    "synth-docsense/pdfseek",
+    "synth-notesearch/semantic-drive",
+    "synth-symbolic/code-index-mcp"
+   ]
+  },
+  {
+   "id": "R14",
+   "requete": "Catégoriser mes relevés bancaires sous Linux, à partir des fichiers OFX de ma banque",
+   "candidats": [
+    "synth-budgetbox/releve-categorizer",
+    "synth-codeseek/repo-ask",
+    "synth-flowgen/n8n-flow-genie",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-flowless/cronpipe",
+    "synth-mailroom/inbox-parser",
+    "synth-quizforge/moodle-quizgen",
+    "synth-quizmint/quiz-from-slides",
+    "synth-yamlops/hookrunner"
+   ]
+  },
+  {
+   "id": "R15",
+   "requete": "Générer des sous-titres depuis un fichier vidéo",
+   "candidats": [
+    "gyoridavid/short-video-maker",
+    "synth-k8sjobs/whisper-k8s-batch",
+    "synth-subtitle/srt-forge",
+    "synth-videoscript/script2video",
+    "synth-voxscribe/whisper-batch"
+   ]
+  },
+  {
+   "id": "R16",
+   "requete": "Un moteur d'automatisation à base de fichiers YAML versionnés",
+   "candidats": [
+    "synth-deskbot/winflow-recorder",
+    "synth-durable/taskweave",
+    "synth-flowless/cronpipe",
+    "synth-nok8s/compose-lite",
+    "synth-yamlops/hookrunner"
+   ]
+  },
+  {
+   "id": "R17",
+   "requete": "Un générateur de quiz Moodle basé sur un LLM local",
+   "candidats": [
+    "caviraoss/pagelm",
+    "synth-fastquiz/fastapi-quiz-api",
+    "synth-podcastify/notes2podcast",
+    "synth-quizforge/moodle-quizgen",
+    "synth-quizmint/quiz-from-slides"
+   ]
+  },
+  {
+   "id": "R18",
+   "requete": "Un outil issu de IfcOpenShell pour extraire des quantités d'une maquette",
+   "candidats": [
+    "synth-bimtools/ifc-quantities",
+    "synth-ifcconv/ifc2gltf-batch",
+    "synth-markslides/md2reveal-cours",
+    "synth-metrelab/dpgf-from-ifc",
+    "synth-tablevision/tablereader"
+   ]
+  },
+  {
+   "id": "R19",
+   "requete": "OCR on scanned plans starting from a PDF, exporting lengths and surfaces to Excel",
+   "candidats": [
+    "paddlepaddle/paddleocr",
+    "synth-bimtools/ifc-quantities",
+    "synth-pdfcraft/pdfcraft",
+    "synth-planread/plan-cotes",
+    "synth-tablevision/tablereader"
+   ]
+  },
+  {
+   "id": "R20",
+   "requete": "A workflow engine built on top of Python decorators",
+   "candidats": [
+    "neuml/txtai",
+    "synth-adminkit/fastapi-backoffice",
+    "synth-durable/taskweave",
+    "synth-flowgen/n8n-flow-genie",
+    "synth-mailroom/inbox-parser"
+   ]
+  },
+  {
+   "id": "R21",
+   "requete": "Convert IFC models to glTF, based on IfcConvert",
+   "candidats": [
+    "microsoft/omniparser",
+    "synth-bimbridge/revit-ifc-exporter-cli",
+    "synth-bimtools/ifc-quantities",
+    "synth-ifcconv/ifc2gltf-batch",
+    "synth-reactifc/react-ifc-viewer"
+   ]
+  },
+  {
+   "id": "R22",
+   "requete": "Get captions from lecture videos using a pipeline out of Whisper",
+   "candidats": [
+    "gyoridavid/short-video-maker",
+    "remotion-dev/remotion",
+    "synth-k8sjobs/whisper-k8s-batch",
+    "synth-subtitle/srt-forge",
+    "synth-voxscribe/whisper-batch"
+   ]
+  },
+  {
+   "id": "R23",
+   "requete": "Une alternative à Zapier, plus simple que n8n, que je peux héberger moi-même",
+   "candidats": [
+    "synth-nok8s/compose-lite"
+   ]
+  },
+  {
+   "id": "R24",
+   "requete": "Je veux remplacer Claude Code par un agent libre qui tourne avec des modèles locaux",
+   "candidats": [
+    "openhands/openhands",
+    "synth-codecrew/termpilot",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-localcoder/ollama-coder",
+    "synth-openflow/flowpilot"
+   ]
+  },
+  {
+   "id": "R25",
+   "requete": "Je veux être alerté sur Telegram quand un workflow échoue dans mon instance n8n",
+   "candidats": [
+    "synth-flowgen/n8n-flow-genie",
+    "synth-flowkit/n8n-workflow-templates",
+    "synth-flowless/cronpipe",
+    "synth-n8nbridge/n8n-mcp-bridge",
+    "synth-opswatch/n8n-watchtower"
+   ]
+  },
+  {
+   "id": "R26",
+   "requete": "Une brique OCR pour mes workflows n8n, via un nœud communautaire",
+   "candidats": [
+    "synth-flowport/make2n8n",
+    "synth-invoicer/n8n-nodes-facture-ocr",
+    "synth-mailroom/inbox-parser",
+    "synth-migratekit/zap2n8n",
+    "synth-nodeforge/n8n-nodes-pdfgen"
+   ]
+  },
+  {
+   "id": "R27",
+   "requete": "Une interface d'administration pour mon API FastAPI plutôt que d'éditer la base à la main",
+   "candidats": [
+    "rdumasia303/deepseek_ocr_app",
+    "synth-adminkit/fastapi-backoffice",
+    "synth-apiforge/fastapi-starter",
+    "synth-fastquiz/fastapi-quiz-api",
+    "synth-hyperui/htmx-kit"
+   ]
+  },
+  {
+   "id": "R28",
+   "requete": "Une bibliothèque de composants React avec des tableaux triables pour mon back-office",
+   "candidats": [
+    "synth-hyperui/htmx-kit",
+    "synth-reactifc/react-ifc-viewer",
+    "synth-reactpdf/react-pdf-annotator",
+    "synth-uikit/react-blocks",
+    "synth-vuekit/vue-dash-components"
+   ]
+  },
+  {
+   "id": "R29",
+   "requete": "A self-hosted replacement for Zapier instead of paying for Zaps",
+   "candidats": [
+    "huginn/huginn",
+    "synth-flowport/make2n8n",
+    "synth-migratekit/zap2n8n",
+    "synth-openflow/flowpilot",
+    "synth-relayhq/relaymesh"
+   ]
+  },
+  {
+   "id": "R30",
+   "requete": "A lightweight alternative to n8n that ships as a single binary",
+   "candidats": [
+    "synth-flowless/cronpipe"
+   ]
+  },
+  {
+   "id": "R31",
+   "requete": "A PDF toolbox I can run in Docker on my server, with a REST API",
+   "candidats": [
+    "rdumasia303/deepseek_ocr_app",
+    "synth-apiforge/fastapi-starter",
+    "synth-cpuocr/onnx-ocr-lite",
+    "synth-harbor/dockpanel",
+    "synth-pdfstack/pdf-toolbox-server"
+   ]
+  },
+  {
+   "id": "R32",
+   "requete": "Skills and slash commands for Claude Code to review code, via a plugin",
+   "candidats": [
+    "davila7/claude-code-templates",
+    "synth-agentskills/claude-code-skills",
+    "synth-ccplugins/cc-semantic-search",
+    "synth-coursgen/bts-cours-builder",
+    "synth-hooksmith/cc-notify"
+   ]
+  },
+  {
+   "id": "R33",
+   "requete": "Semantic code search I can run on Linux, via SSH on my VPS",
+   "candidats": [
+    "synth-codelens/codelens",
+    "synth-codeseek/repo-ask",
+    "synth-docsense/pdfseek",
+    "synth-notesearch/semantic-drive",
+    "synth-vpsguard/vps-backup"
+   ]
+  },
+  {
+   "id": "R34",
+   "requete": "A React component to show IFC models on my course site",
+   "candidats": [
+    "synth-bimbridge/revit-ifc-exporter-cli",
+    "synth-ifcconv/ifc2gltf-batch",
+    "synth-metrelab/dpgf-from-ifc",
+    "synth-reactifc/react-ifc-viewer",
+    "synth-reactpdf/react-pdf-annotator"
+   ]
+  },
+  {
+   "id": "R35",
+   "requete": "Un OCR pour factures scannées sans GPU, basé sur des modèles légers",
+   "candidats": [
+    "bytedance/dolphin",
+    "paddlepaddle/paddleocr",
+    "synth-cpuocr/onnx-ocr-lite",
+    "synth-preprocess/scanclean",
+    "synth-scanflow/receipt-extractor"
+   ]
+  },
+  {
+   "id": "R36",
+   "requete": "Transcrire des cours depuis des enregistrements audio, sans Kubernetes",
+   "candidats": [
+    "ohf-voice/piper1-gpl",
+    "synth-podcastify/notes2podcast",
+    "synth-subtitle/srt-forge",
+    "synth-videoscript/script2video",
+    "synth-voxscribe/whisper-batch"
+   ]
+  },
+  {
+   "id": "R37",
+   "requete": "Déployer n8n sur mon VPS sans passer par Kubernetes, en partant de Docker Compose",
+   "candidats": [
+    "synth-bareservice/unitbox",
+    "synth-flowport/make2n8n",
+    "synth-harbor/dockpanel",
+    "synth-nok8s/compose-lite",
+    "synth-openflow/flowpilot"
+   ]
+  },
+  {
+   "id": "R38",
+   "requete": "Video voice-over built from a Markdown script, no GPU, must run on Windows",
+   "candidats": [
+    "gyoridavid/short-video-maker",
+    "ohf-voice/piper1-gpl",
+    "resemble-ai/chatterbox",
+    "synth-podcastify/notes2podcast",
+    "synth-videoscript/script2video"
+   ]
+  },
+  {
+   "id": "R39",
+   "requete": "I don't want n8n or Docker, just lightweight YAML automations triggered from cron",
+   "candidats": [
+    "huginn/huginn",
+    "synth-budgetbox/releve-categorizer",
+    "synth-flowless/cronpipe",
+    "synth-mailroom/inbox-parser",
+    "synth-yamlops/hookrunner"
+   ]
+  },
+  {
+   "id": "R40",
+   "requete": "Semantic search over my PDF documents, built from local files only, no Docker",
+   "candidats": [
+    "synth-ccplugins/cc-semantic-search",
+    "synth-codeseek/repo-ask",
+    "synth-docmind/docmind",
+    "synth-docsense/pdfseek",
+    "synth-projectbrain/codedoc-search"
+   ]
+  },
+  {
+   "id": "R41",
+   "requete": "Un outil pour extraire les tableaux des DPGF en PDF",
+   "candidats": [
+    "docling-project/docling",
+    "paddlepaddle/paddleocr",
+    "synth-bimtools/ifc-quantities",
+    "synth-planread/plan-cotes",
+    "synth-tablevision/tablereader"
+   ]
+  },
+  {
+   "id": "R42",
+   "requete": "Un suivi de mon PEA avec dividendes et plus-values",
+   "candidats": [
+    "synth-coinbook/coinledger-lite",
+    "synth-notion2sheet/notion-to-xlsx",
+    "synth-pealog/pea-tracker",
+    "synth-reactpdf/react-pdf-annotator",
+    "synth-vuekit/vue-dash-components"
+   ]
+  },
+  {
+   "id": "R43",
+   "requete": "Un planning de chantier avec chemin critique pour mes TD de BTS",
+   "candidats": [
+    "synth-chantierlab/planchantier",
+    "synth-docmind/docmind",
+    "synth-inkread/handwrite-ocr",
+    "synth-reactpdf/react-pdf-annotator",
+    "synth-subtitle/srt-forge"
+   ]
+  },
+  {
+   "id": "R44",
+   "requete": "Python library to check reinforced concrete beams to Eurocode 2",
+   "candidats": [
+    "docling-project/docling",
+    "synth-eurocalc/ba-ec2",
+    "synth-inkread/handwrite-ocr",
+    "synth-quizforge/moodle-quizgen",
+    "synth-quizmint/quiz-from-slides"
+   ]
+  },
+  {
+   "id": "R45",
+   "requete": "Handwriting recognition for student exam papers",
+   "candidats": [
+    "synth-adminkit/fastapi-backoffice",
+    "synth-bimbridge/revit-ifc-exporter-cli",
+    "synth-bimtools/ifc-quantities",
+    "synth-chantierlab/planchantier",
+    "synth-eurocalc/ba-ec2",
+    "synth-fastquiz/fastapi-quiz-api",
+    "synth-inkread/handwrite-ocr",
+    "synth-localcoder/ollama-coder",
+    "synth-metrelab/dpgf-from-ifc",
+    "synth-podcastify/notes2podcast",
+    "synth-reactifc/react-ifc-viewer",
+    "synth-reactpdf/react-pdf-annotator",
+    "synth-sheetsumm/xlsx-explainer",
+    "synth-tabclean/csv-cleaner"
+   ]
+  },
+  {
+   "id": "R46",
+   "requete": "Track my crypto portfolio and realized capital gains",
+   "candidats": [
+    "synth-coinbook/coinledger-lite",
+    "synth-pealog/pea-tracker"
+   ]
+  },
+  {
+   "id": "R47",
+   "requete": "Un logiciel de calcul de structure par éléments finis pour des ponts",
+   "candidats": [
+    "synth-eurocalc/ba-ec2",
+    "synth-inkread/handwrite-ocr",
+    "synth-quizforge/moodle-quizgen",
+    "synth-quizmint/quiz-from-slides",
+    "synth-subtitle/srt-forge"
+   ]
+  },
+  {
+   "id": "R48",
+   "requete": "Software to convert dental X-ray images into 3D printable models",
+   "candidats": [
+    "bytedance/dolphin",
+    "docling-project/docling",
+    "synth-ifcconv/ifc2gltf-batch",
+    "synth-pdfstack/pdf-toolbox-server",
+    "synth-tablevision/tablereader"
+   ]
+  }
+ ],
+ "fiches": {
+  "bytedance/dolphin": "## bytedance/dolphin — Dolphin\nDescription : Modèle multimodal d'analyse d'images de documents : extraction de la mise en page puis analyse en parallèle des éléments (texte, tableaux, formules).\nCas d'usage : • Convertir des pages de documents scannés en texte structuré\n• Extraire tableaux et formules d'images de documents\nInstallation : git clone https://github.com/ByteDance/Dolphin.git\ncd Dolphin\npip install -r requirements.txt\nExemple : Non vérifié\nPrérequis : Non vérifié\nLangage : Python\nLicence : MIT\nCatégorie : OCR/Documents\nJustification : [LLM google/gemma-3-27b-it:free · profil 2026-10-11/8c41d2] U1·P3·T2·I1·C1·M2·L2 = 9 — Modèle d'analyse d'images de documents : mise en page puis analyse des éléments (texte, tableaux, formules) ; GPU conseillé.\nBrique pour : Documents et OCR",
+  "caviraoss/pagelm": "## caviraoss/pagelm — PageLM\nDescription : Plateforme éducative open source qui transforme des supports d'étude en ressources interactives : quiz, fiches de révision, notes structurées et podcasts.\nCas d'usage : • Générer des quiz et des fiches de révision à partir de supports de cours\n• Transformer un cours PDF en notes structurées\nInstallation : Non vérifié\nExemple : Non vérifié\nPrérequis : Non vérifié\nLangage : TypeScript\nLicence : Non vérifiée\nCatégorie : Éducation/Cours\nJustification : [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T2·I1·C2·M2·L? = 9 — Plateforme éducative qui transforme des supports d'étude en quiz, fiches de révision, notes et podcasts ; auto-hébergeable.\nBrique pour : Outils pédagogiques BTS MEC, Enseignement",
+  "davila7/claude-code-templates": "## davila7/claude-code-templates — claude-code-templates\nDescription : Outil en ligne de commande pour configurer et superviser Claude Code\nCas d'usage : • Intégration dans le développement\n• Tests\n• Adaptation aux besoins métier\nInstallation : See documentation\nExemple : npm install claude-code-templates\nPrérequis : JavaScript recent\nLangage : JavaScript\nJustification : [LLM] Modèles et commandes pour Claude Code ; utile en complément d'un assistant de code, ce n'est pas un agent autonome.\nType : Outils",
+  "docling-project/docling": "## docling-project/docling — docling\nDescription : Préparez vos documents pour l'IA générative\nCas d'usage : • Ajustement fin du modèle\n• Déploiement en production\n• Expérimentation ML\nInstallation : pip install docling\nExemple : pip install docling\nPrérequis : Python recent\nLangage : Python\nNotes : Testé pour extraire les tableaux des DPGF (PDF texte) : OK. Voir la documentation pour l'export Markdown.\nType : ML/AI\n\n## docling-project/docling — docling\nDescription : Docling simplifie le traitement de documents : il analyse de nombreux formats (PDF, DOCX, PPTX, HTML, images) avec une compréhension avancée des PDF et s'intègre aux écosystèmes d'IA générative.\nCas d'usage : • Affinage de modèles\n• Déploiement en production\n• Expérimentation en apprentissage automatique\nInstallation : pip install docling\nExemple : pip install docling\nPrérequis : Python recent\nLangage : Python\nJustification : [LLM] Outil Python de conversion de documents (PDF, DOCX) vers Markdown ou JSON, avec extraction de tableaux ; très utile pour l'OCR et le traitement documentaire du profil, intégrable dans une API FastAPI.\nType : ML/AI\n\n## docling-project/docling — docling\nDescription : Get your documents ready for gen AI\nCas d'usage : • Model fine-tuning\n• Production deployment\n• ML experimentation\nInstallation : pip install docling\nExemple : pip install docling\nPrérequis : Python recent\nLangage : Python\nType : ML/AI\n\n## docling-project/docling — docling\nDescription : Bibliothèque Python qui convertit des documents (PDF, DOCX, PPTX, HTML, images) en Markdown ou JSON pour l'IA générative, avec analyse de mise en page et de tableaux.\nCas d'usage : • Convertir des PDF techniques en Markdown avant un traitement par LLM\n• Extraire les tableaux de documents PDF\nInstallation : pip install docling\nExemple : from docling.document_converter import DocumentConverter\n\nconverter = DocumentConverter()\nresult = converter.convert(source)\nPrérequis : Non vérifié\nLangage : Python\nLicence : MIT\nCatégorie : OCR/Documents\nJustification : [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T2·I2·C2·M2·L2 = 10 — Conversion de PDF, DOCX, PPTX et HTML en Markdown ou JSON, tableaux compris ; bibliothèque Python.\nBrique pour : Documents et OCR, Applications web",
+  "gyoridavid/short-video-maker": "## gyoridavid/short-video-maker — short-video-maker\nDescription : Crée des vidéos courtes pour TikTok, Instagram Reels et YouTube Shorts via le Model Context Protocol (MCP) et une API REST.\nCas d'usage : • Intégration du développement\n• Tests\n• Adaptation commerciale\nInstallation : See documentation\nExemple : npm install short-video-maker\nPrérequis : TypeScript recent\nLangage : TypeScript\nType : Outils",
+  "huginn/huginn": "## huginn/huginn — huginn\nDescription : Créez des agents qui surveillent et agissent à votre place. Vos agents sont prêts !\nCas d'usage : • Automatisation de tâches via des agents IA\n• Orchestration multi-agents\n• Intégration d'agents\nInstallation : docker run -it -p 3000:3000 ghcr.io/huginn/huginn\nExemple : See docs\nPrérequis : Ruby recent\nLangage : Autres langages\nJustification : [LLM] Agents auto-hébergés de surveillance (sites web, flux RSS, alertes) ; utile pour une veille automatisée sur VPS via Docker, mais en Ruby.\nType : Agent IA\n\n## huginn/huginn — huginn\nDescription : Create agents that monitor and act on your behalf. Your agents are standing by!\nCas d'usage : • Task automation via AI agents\n• Multi-agent orchestration\n• Agent integration\nInstallation : See documentation\nExemple : See docs\nPrérequis : Ruby recent\nLangage : Ruby\nType : Agent IA\n\n## huginn/huginn — huginn\nDescription : Plateforme auto-hébergée d'agents qui surveillent des sources (sites web, flux, e-mails) et agissent automatiquement à votre place.\nCas d'usage : • Surveiller des sites web ou des flux RSS et envoyer des alertes par e-mail\n• Agréger plusieurs sources en un résumé périodique\nInstallation : docker run -it -p 3000:3000 ghcr.io/huginn/huginn\nExemple : Non vérifié\nPrérequis : Non vérifié\nLangage : Autre\nLicence : MIT\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U3·P3·T2·I2·C2·M1·L2 = 10 — Agents auto-hébergés qui surveillent sites web et flux, puis alertent ou agissent ; image Docker ; besoin « scraping web » du projet actif Automatisations n8n.\nBrique pour : Automatisations n8n, Automatisation",
+  "microsoft/omniparser": "## microsoft/omniparser — OmniParser\nDescription : A simple screen parsing tool towards pure vision based GUI agent\nCas d'usage : • Task automation via AI agents\n• Multi-agent orchestration\n• Agent integration\nInstallation : See documentation\nExemple : pip install OmniParser\nPrérequis : Python recent\nLangage : Python\nType : Agent IA",
+  "neuml/txtai": "## neuml/txtai — txtai\nDescription : Framework d'IA open source tout-en-un pour la recherche sémantique, l'orchestration de LLM et les workflows de modèles de langage.\nCas d'usage : • Affinage de modèles\n• Déploiement en production\n• Expérimentation en apprentissage automatique\nInstallation : pip install txtai\nExemple : pip install txtai\nPrérequis : Python recent\nLangage : Python\nJustification : [LLM] Base d'embeddings et pipelines RAG en Python, avec une API web construite sur FastAPI ; très pertinent pour la recherche sémantique sur des documents et l'intégration dans une application web.\nType : ML/AI",
+  "ohf-voice/piper1-gpl": "## ohf-voice/piper1-gpl — piper1-gpl\nDescription : Moteur de synthèse vocale (text-to-speech) neuronal, rapide et local.\nCas d'usage : • Générer des voix off hors ligne pour des vidéos\nInstallation : pip install piper-tts\nExemple : Non vérifié\nPrérequis : Non vérifié\nLicence : GPL-3.0\nCatégorie : Audio/Vidéo\nJustification : [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P2·T1·I2·C2·M2·L1 = 8 — Moteur de synthèse vocale neuronal local ; paquet Python piper-tts ; licence GPL-3.0.\nBrique pour : Création audiovisuelle",
+  "openhands/openhands": "## openhands/openhands — OpenHands\nDescription : OpenHands : plateforme d'agents de développement logiciel propulsés par l'IA — codez moins, produisez plus.\nCas d'usage : • Automatisation de tâches via des agents IA\n• Orchestration multi-agents\n• Intégration d'agents\nInstallation : See documentation\nExemple : pip install OpenHands\nPrérequis : Python recent\nLangage : Python\nJustification : [LLM] Agent de développement autonome open source (édition de code, commandes) auto-hébergeable via Docker ; très pertinent pour l'assistance au code.\nType : Agent IA, ML/AI",
+  "paddlepaddle/paddleocr": "## paddlepaddle/paddleocr — PaddleOCR\nDescription : Transformez n'importe quel document PDF ou image en données structurées pour votre IA : boîte à outils OCR légère et puissante, plus de 100 langues. Testé : bon sur les plans scannés.\nCas d'usage : • Extraction de texte à partir d'images et de PDF\n• Tests\n• Adaptation aux besoins métier\nInstallation : See documentation\nExemple : pip install PaddleOCR\nPrérequis : Python recent\nLangage : Python\nJustification : [LLM] OCR multilingue en Python avec analyse de mise en page et de tableaux depuis des PDF ou des images ; directement utile au traitement documentaire et aux supports de BTS, intégrable dans une API.\nType : Outils\n\n## paddlepaddle/paddleocr — PaddleOCR\nDescription : Boîte à outils OCR légère qui transforme des PDF et des images en données structurées pour les LLM, avec plus de 100 langues.\nCas d'usage : • Extraire le texte et les tableaux de PDF scannés\n• Préparer des documents pour un pipeline RAG\nInstallation : python -m pip install paddleocr\nExemple : Non vérifié\nPrérequis : Non vérifié\nLangage : Python\nLicence : Apache-2.0\nCatégorie : OCR/Documents\nJustification : [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T2·I2·C2·M2·L2 = 10 — OCR multilingue et analyse de documents (PDF, images) vers des données structurées ; paquet Python paddleocr.\nBrique pour : Outils pédagogiques BTS MEC, Documents et OCR",
+  "rdumasia303/deepseek_ocr_app": "## rdumasia303/deepseek_ocr_app — deepseek_ocr_app\nDescription : Application web d'OCR fondée sur DeepSeek-OCR, avec une interface React et un back-end FastAPI.\nCas d'usage : • Exposer DeepSeek-OCR derrière une API FastAPI pour numériser des documents\n• Servir d'exemple d'intégration React et FastAPI pour un outil d'OCR\nInstallation : docker compose up --build\nExemple : Non vérifié\nPrérequis : - Docker and Docker Compose\n- NVIDIA GPU with CUDA support\nLangage : Python\nLicence : Non vérifiée\nCatégorie : OCR/Documents\nJustification : [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T1·I2·C1·M2·L? = 9 — Application d'OCR : interface React et back-end FastAPI autour de DeepSeek-OCR, lancée avec Docker Compose ; le README indique un GPU NVIDIA avec CUDA.\nBrique pour : Documents et OCR, Outils pédagogiques BTS MEC",
+  "remotion-dev/remotion": "## remotion-dev/remotion — remotion\nDescription : 🎥 Créez des vidéos par programmation avec React\nCas d'usage : • Développement d'applications web\n• Prototypage d'interfaces utilisateur\n• Intégration à la stack technique\nInstallation : See documentation\nExemple : npm install remotion\nPrérequis : TypeScript recent\nLangage : TypeScript\nJustification : [LLM] Framework React pour générer des vidéos par code ; utile pour des vidéos pédagogiques automatisées. Licence spécifique pour les entreprises.\nType : Outils",
+  "resemble-ai/chatterbox": "## resemble-ai/chatterbox — chatterbox\nDescription : SoTA open-source TTS\nCas d'usage : • Development integration\n• Testing\n• Business adaptation\nInstallation : See documentation\nExemple : pip install chatterbox\nPrérequis : Python recent\nLangage : Python\nType : Outils",
+  "synth-adminkit/fastapi-backoffice": "## synth-adminkit/fastapi-backoffice — fastapi-backoffice\nDescription : Interface d'administration générée automatiquement pour une application FastAPI à partir de ses modèles SQLModel ou SQLAlchemy : listes filtrables, formulaires d'édition et gestion des droits.\nCas d'usage : • Ajouter un back-office de gestion des comptes à une API FastAPI existante\n• Permettre à un collègue de corriger des données sans accès direct à la base\nInstallation : pip install fastapi-backoffice\nExemple : admin = Backoffice(app, engine) puis admin.register(Eleve)\nPrérequis : - Une application FastAPI existante\n- Python 3.10+\n- SQLModel ou SQLAlchemy 2\nLangage : Python\nLicence : MIT\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Extension d'administration pour FastAPI ; ne fonctionne qu'à l'intérieur d'une application FastAPI.",
+  "synth-agentskills/claude-code-skills": "## synth-agentskills/claude-code-skills — claude-code-skills\nDescription : Collection de skills, de sous-agents et de commandes slash pour Claude Code : revue de code, écriture de tests, documentation et migrations de base de données.\nCas d'usage : • Ajouter à Claude Code un sous-agent de revue de sécurité avant chaque commit\n• Installer une skill de génération de tests pytest\n• Partager des commandes slash communes à toute une équipe\nInstallation : git clone https://github.com/synth-agentskills/claude-code-skills.git\nPuis copier les dossiers voulus dans ~/.claude/skills ou .claude/agents\nExemple : /review-security src/\nPrérequis : - Claude Code installé (abonnement ou clé d'API Anthropic)\nLangage : Autres langages\nLicence : MIT\nCatégorie : MCP/Intégrations\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Extensions prêtes à l'emploi pour Claude Code (skills, sous-agents, commandes) ; complète l'assistant de code sans le remplacer.\nBrique pour : IA et agents",
+  "synth-apiforge/fastapi-starter": "## synth-apiforge/fastapi-starter — fastapi-starter\nDescription : Gabarit de projet FastAPI prêt pour la production : SQLModel, migrations Alembic, authentification JWT, tests pytest et Docker Compose.\nCas d'usage : • Démarrer en quelques minutes une API REST avec comptes utilisateurs\n• Servir un modèle d'IA derrière des routes authentifiées\n• Disposer d'une structure de tests et d'intégration continue déjà configurée\nInstallation : pipx run copier copy gh:synth-apiforge/fastapi-starter mon-api\nExemple : cd mon-api && uv run fastapi dev app/main.py\nPrérequis : - Python 3.11+\n- Docker et Docker Compose (facultatifs, pour PostgreSQL en local)\nLangage : Python\nLicence : MIT\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Squelette de projet FastAPI (auth JWT, SQLModel, Alembic, pytest) ; accélère la création d'API Python pour les projets web et IA.",
+  "synth-bareservice/unitbox": "## synth-bareservice/unitbox — unitbox\nDescription : Lance et isole des services auto-hébergés à l'aide d'unités systemd générées automatiquement, comme alternative à Docker pour les machines où il n'est pas souhaité ou pas disponible.\nCas d'usage : • Faire tourner n8n et Ollama sur un serveur sans installer Docker\n• Réduire la consommation mémoire sur un petit serveur\nInstallation : sudo apt install ./unitbox_1.4.0_amd64.deb\nExemple : unitbox up n8n --port 5678 --data /srv/n8n\nPrérequis : - Linux with systemd 250+\n- Does not use Docker or Podman\n- Not available for Windows or macOS\nLangage : Rust\nLicence : GPL-3.0\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Approche originale pour se passer de Docker, mais limitée à Linux et à un catalogue de services plus restreint.\nBrique pour : Automatisations n8n",
+  "synth-bimbridge/revit-ifc-exporter-cli": "## synth-bimbridge/revit-ifc-exporter-cli — revit-ifc-exporter-cli\nDescription : Exporte en lot des projets Revit vers IFC avec des paramètres d'export enregistrés, et produit un journal des éléments ignorés ou mal classés pendant la conversion.\nCas d'usage : • Convertir les maquettes Revit d'un dossier de projet en IFC4 pour les étudiants\n• Contrôler la qualité de l'export IFC avant un échange avec un bureau d'études\nInstallation : Copier le dossier du complément dans %APPDATA%/Autodesk/Revit/Addins/2024\nExemple : RevitIfcExport.exe --input projets/ --config ifc4_reference_view.json --log export.log\nPrérequis : - Windows 10/11\n- Autodesk Revit 2023, 2024 or 2025 (licensed)\n- .NET Framework 4.8\nLangage : C#\nLicence : MIT\nCatégorie : Données/Analyse\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Utile pour passer de Revit à IFC en série, mais dépend d'une licence Revit et de Windows.\nBrique pour : Outils pédagogiques BTS MEC, Données",
+  "synth-bimtools/ifc-quantities": "## synth-bimtools/ifc-quantities — ifc-quantities\nDescription : Extraction des quantités d'une maquette IFC (volumes de béton, surfaces de murs et de dalles, longueurs) vers un tableau Excel organisé par niveau et par lot.\nCas d'usage : • Préparer un avant-métré à partir de la maquette IFC d'un projet\n• Créer des exercices de quantitatif pour les étudiants de BTS à partir de maquettes réelles\nInstallation : pip install ifc-quantities\nExemple : ifc-quantities projet.ifc --par niveau --xlsx metre.xlsx\nPrérequis : - Python 3.10+\n- IfcOpenShell\nLangage : Python\nLicence : LGPL-3.0\nCatégorie : Données/Analyse\nNotes : Voir avec les maquettes du TD R+2.\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 10 — Métrés automatiques depuis des maquettes IFC vers Excel ; directement utile au génie civil et aux TD de BTS MEC.\nBrique pour : Outils pédagogiques BTS MEC, Données",
+  "synth-budgetbox/releve-categorizer": "## synth-budgetbox/releve-categorizer — releve-categorizer\nDescription : Classe automatiquement les opérations de relevés bancaires (CSV, OFX, QIF) en catégories de dépenses à l'aide de règles et d'un petit modèle local, puis produit un récapitulatif mensuel.\nCas d'usage : • Catégoriser un an de relevés pour établir un budget personnel\n• Préparer un import propre dans un logiciel de comptabilité personnelle\nInstallation : pipx install releve-categorizer\nExemple : releve-categorizer import releves/*.ofx --regles mes_regles.yaml --rapport 2026-09\nPrérequis : - Python 3.10+\n- Linux or macOS (Windows is not supported, use WSL)\n- No GPU needed\nLangage : Python\nLicence : AGPL-3.0\nCatégorie : Finance/Trading\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Catégorisation locale des relevés bancaires sans envoyer les données à un service tiers.\nBrique pour : Données",
+  "synth-ccplugins/cc-semantic-search": "## synth-ccplugins/cc-semantic-search — cc-semantic-search\nDescription : Plugin Claude Code qui ajoute la commande /find et une skill de recherche sémantique dans le dépôt courant : index local d'embeddings du code, mis à jour à chaque commit.\nCas d'usage : • Demander à Claude Code où sont validés les formulaires, sans connaître les noms de fichiers\n• Réduire les tokens consommés en évitant de relire tout le dépôt\n• Retrouver du code dupliqué entre modules\nInstallation : Dans Claude Code : /plugin install cc-semantic-search@synth-ccplugins\nExemple : /find calcul des pénalités de retard\nPrérequis : - Claude Code avec la prise en charge des plugins\n- Python 3.10+\n- Fonctionne sur CPU, aucun GPU nécessaire\nLangage : Python\nLicence : MIT\nCatégorie : RAG/Recherche\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Recherche sémantique de code intégrée à Claude Code sous forme de plugin ; ne sert qu'avec Claude Code.\nBrique pour : IA et agents",
+  "synth-chantierlab/planchantier": "## synth-chantierlab/planchantier — planchantier\nDescription : Application web de planification de chantier : diagramme de Gantt, calcul du chemin critique, affectation des équipes et des engins, export PDF du planning.\nCas d'usage : • Construire le planning de gros œuvre d'un R+2 avec ses dépendances\n• Montrer aux étudiants l'effet d'un retard sur le chemin critique\n• Imprimer le planning hebdomadaire à afficher dans la base vie\nInstallation : git clone https://github.com/synth-chantierlab/planchantier.git\ncd planchantier && npm install && npm run build && npm start\nExemple : Créer un projet, importer les tâches depuis un fichier Excel, puis afficher le chemin critique\nPrérequis : - Node.js 20+\n- PostgreSQL 15+\nLangage : TypeScript\nLicence : MIT\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Planning de chantier avec chemin critique, utilisable en TD de BTS comme en conduite de travaux.\nBrique pour : Outils pédagogiques BTS MEC",
+  "synth-codecrew/termpilot": "## synth-codecrew/termpilot — termpilot\nDescription : Agent de code open source pour le terminal : il lit le dépôt, modifie les fichiers et lance des commandes, avec n'importe quel fournisseur de LLM ou des modèles locaux via Ollama.\nCas d'usage : • Utiliser un agent de code avec un modèle local, sans envoyer le code à un service externe\n• Remplacer Claude Code ou Aider par un outil libre et multi-fournisseurs\n• Automatiser des corrections répétitives sur plusieurs fichiers\nInstallation : pip install termpilot\nExemple : termpilot --model ollama/qwen2.5-coder \"ajoute des tests pour le module factures\"\nPrérequis : - Python 3.10+\n- Une clé d'API (OpenAI, Anthropic, Mistral) ou Ollama pour les modèles locaux\nLangage : Python\nLicence : Apache-2.0\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Agent de code en terminal, alternative libre à Claude Code, compatible avec les modèles locaux via Ollama.\nBrique pour : IA et agents\nType : Agent IA",
+  "synth-codelens/codelens": "## synth-codelens/codelens — codelens\nDescription : Recherche sémantique dans le code source : indexe un ou plusieurs dépôts (découpage par fonctions avec tree-sitter, embeddings) et répond aux questions en langage naturel en pointant les fichiers et les lignes.\nCas d'usage : • Retrouver l'endroit où est calculée la TVA dans un projet sans connaître le nom de la fonction\n• Trouver du code similaire à un extrait dans plusieurs dépôts\n• Explorer rapidement une base de code inconnue\nInstallation : pip install codelens\nExemple : codelens index ~/projets\ncodelens ask \"où sont gérées les sessions utilisateur ?\"\nPrérequis : - Python 3.10+\n- Un modèle d'embeddings local (téléchargé au premier lancement) ou une clé d'API OpenAI\nLangage : Python\nLicence : MIT\nCatégorie : RAG/Recherche\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Recherche sémantique dans le code (tree-sitter et embeddings) avec des résultats au niveau des fonctions ; centré sur le code source.\nBrique pour : IA et agents",
+  "synth-codeseek/repo-ask": "## synth-codeseek/repo-ask — repo-ask\nDescription : Recherche sémantique en ligne de commande dans le code d'un ou plusieurs dépôts Git : on pose une question en langage naturel et il renvoie les fonctions pertinentes avec le fichier et les lignes.\nCas d'usage : • Retrouver dans un ancien projet la fonction qui exporte les notes en CSV\n• Comprendre une base de code héritée en interrogeant ses modules\n• Chercher du code par le sens depuis un terminal SSH sur le VPS\nInstallation : cargo install repo-ask\nou : binaire précompilé dans les Releases (Linux, macOS, Windows)\nExemple : repo-ask index ~/projets && repo-ask ask 'envoi des e-mails de relance'\nPrérequis : - Binaire autonome, modèle d'embeddings embarqué : ni Docker ni GPU nécessaires\n- Git\nLangage : Autres langages\nLicence : Apache-2.0\nCatégorie : RAG/Recherche\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Recherche sémantique de code sur CPU, sans service externe ; le README précise que les PDF et documents bureautiques ne sont pas indexés.\nBrique pour : IA et agents",
+  "synth-coinbook/coinledger-lite": "## synth-coinbook/coinledger-lite — coinledger-lite\nDescription : Suivi de portefeuille de cryptomonnaies auto-hébergé : import des transactions depuis les plateformes d'échange (CSV ou API en lecture seule), calcul des plus-values et tableau de bord de répartition.\nCas d'usage : • Regrouper les avoirs de plusieurs plateformes d'échange et portefeuilles\n• Calculer les plus-values réalisées sur l'année\n• Suivre la répartition d'un portefeuille dans le temps\nInstallation : docker run -d -p 8800:8800 ghcr.io/synth-coinbook/coinledger-lite\nou : pip install coinledger-lite\nExemple : coinledger import binance.csv && coinledger report --annee 2025\nPrérequis : - Python 3.11+\n- Docker facultatif\n- Clés d'API en lecture seule des plateformes à synchroniser\nLangage : Python\nLicence : GPL-3.0\nCatégorie : Finance/Trading\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Suivi de portefeuille crypto et des plus-values, sans trading automatique ; Docker facultatif.\nBrique pour : Données",
+  "synth-coursgen/bts-cours-builder": "## synth-coursgen/bts-cours-builder — bts-cours-builder\nDescription : Ensemble de commandes et de sous-agents pour Claude Code qui rédigent des fiches de cours, des TD et leurs corrigés en Markdown puis en PDF, en suivant un référentiel de compétences fourni par l'enseignant.\nCas d'usage : • Générer une séquence de cours sur les fondations superficielles alignée sur le référentiel du BTS\n• Produire un TD et son corrigé détaillé en une seule commande\n• Uniformiser la mise en page de supports existants\nInstallation : git clone https://github.com/synth-coursgen/bts-cours-builder.git\nPuis copier le dossier .claude/ dans le répertoire du projet de cours\nExemple : /cours-sequence referentiel.md --chapitre 'Fondations superficielles' --format pdf\nPrérequis : - Claude Code installed and authenticated\n- Pandoc 3.x (for PDF export)\n- A LaTeX distribution (optional, for PDF output)\nLangage : Autres langages\nLicence : MIT\nCatégorie : Éducation/Cours\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Extension de Claude Code orientée production de supports de BTS ; utile si l'on dispose déjà d'un abonnement Claude.\nBrique pour : Enseignement, IA et agents\nType : Plugin, Modèles",
+  "synth-cpuocr/onnx-ocr-lite": "## synth-cpuocr/onnx-ocr-lite — onnx-ocr-lite\nDescription : OCR léger fondé sur des modèles ONNX quantifiés, conçu pour fonctionner entièrement sur CPU, y compris sur un petit VPS ou un Raspberry Pi ; aucun GPU n'est requis.\nCas d'usage : • Numériser des documents imprimés sur un VPS sans carte graphique\n• Ajouter de l'OCR à une API Python avec une faible empreinte mémoire\nInstallation : pip install onnx-ocr-lite\nExemple : from onnx_ocr_lite import OCR\ntexte = OCR(lang=\"fr\").read(\"facture.png\")\nPrérequis : - Python 3.9+\n- CPU x86-64 ou ARM64 (aucun GPU nécessaire)\nLangage : Python\nLicence : Apache-2.0\nCatégorie : OCR/Documents\nNotes : Testé sur le VPS (2 vCPU) : correct sur des factures imprimées.\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 10 — OCR sur CPU (modèles ONNX) adapté au VPS ; texte imprimé uniquement, le README le déconseille pour l'écriture manuscrite.\nBrique pour : Documents et OCR",
+  "synth-deskbot/winflow-recorder": "## synth-deskbot/winflow-recorder — winflow-recorder\nDescription : Automatisation de bureau (RPA) pour Windows : enregistrement de macros (clics, saisies), lecture et écriture de fichiers Excel, exécution planifiée, le tout sans code.\nCas d'usage : • Automatiser la saisie répétitive de notes dans un logiciel de vie scolaire\n• Recopier chaque semaine des données d'un fichier Excel dans une application métier sans API\nInstallation : Télécharger l'installeur .msi depuis les Releases\nExemple : Enregistrer une macro, puis la planifier chaque lundi à 8 h\nPrérequis : - Windows 10 ou 11 (ne fonctionne pas sous Linux ni macOS)\n- .NET 8\nLangage : Autres langages\nLicence : MIT\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Robot logiciel pour automatiser des applications de bureau Windows sans API ; ne remplace pas un outil d'intégration web comme n8n.",
+  "synth-docmind/docmind": "## synth-docmind/docmind — docmind\nDescription : Recherche sémantique dans des documents (PDF, Word, PowerPoint, scans avec OCR) : questions en langage naturel, réponses citées avec le document et la page. Pensé pour les documents, pas pour le code source.\nCas d'usage : • Interroger tous les CCTP d'une opération pour retrouver les exigences sur les enduits\n• Chercher dans les comptes rendus de réunions de chantier d'une année\n• Préparer un cours à partir des passages pertinents de plusieurs normes\nInstallation : docker compose up -d\nou : pip install docmind (sans Docker)\nExemple : docmind ask 'délai de décoffrage des dalles' --dossier ./cctp\nPrérequis : - Python 3.10+ ou Docker (au choix)\n- GPU NVIDIA facultatif : accélère l'OCR et les embeddings, fonctionne aussi sur CPU\n- Tesseract pour les PDF scannés\nLangage : Python\nLicence : AGPL-3.0\nCatégorie : RAG/Recherche\nNotes : À comparer avec pdfseek sur les CCTP du lycée.\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Recherche sémantique dans des PDF et documents bureautiques avec citation de la page ; Docker et GPU facultatifs.\nBrique pour : Documents et OCR, Enseignement",
+  "synth-docsense/pdfseek": "## synth-docsense/pdfseek — pdfseek\nDescription : Moteur de recherche sémantique local pour une bibliothèque de PDF : on pose une question en langage naturel et il renvoie les passages pertinents avec le document et le numéro de page.\nCas d'usage : • Retrouver dans les DTU et les normes en PDF le passage qui traite d'un sujet, même formulé autrement\n• Chercher dans plusieurs années de cours et de sujets d'examen\n• Citer la page exacte d'un document source\nInstallation : pip install pdfseek\nExemple : pdfseek index ~/Documents/normes\npdfseek ask \"distance maximale entre deux joints de dilatation\"\nPrérequis : - Python 3.10+\n- Poppler (extraction du texte des PDF)\nLangage : Python\nLicence : MIT\nCatégorie : RAG/Recherche\nNotes : À essayer avec les DTU du CDI.\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 10 — Recherche sémantique dans des PDF avec renvoi à la page ; installation pip, tout en local ; adaptée aux bibliothèques de normes et de cours.\nBrique pour : Documents et OCR, Enseignement",
+  "synth-durable/taskweave": "## synth-durable/taskweave — taskweave\nDescription : Moteur de workflows en code pour Python : les étapes s'écrivent comme des fonctions décorées, avec reprises automatiques sur erreur, planification et exécution durable. Aucun éditeur visuel.\nCas d'usage : • Enchaîner téléchargement, OCR et import en base de factures, avec reprise à l'étape en échec\n• Planifier toutes les heures des scripts de collecte de données\n• Remplacer une série de tâches cron fragiles par des workflows suivis\nInstallation : pip install taskweave\nExemple : @workflow\ndef traiter_facture(chemin):\n    texte = step(ocr, chemin)\n    step(enregistrer, texte)\nPrérequis : - Python 3.10+\n- PostgreSQL ou SQLite pour l'état des workflows\nLangage : Python\nLicence : MIT\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P2·T2·I2·C2·M2·L2 = 9 — Orchestration de workflows Python définis en code (reprises, planification, exécution durable) ; destiné aux développeurs, approche code-first et non no-code.\nBrique pour : Données",
+  "synth-eurocalc/ba-ec2": "## synth-eurocalc/ba-ec2 — ba-ec2\nDescription : Bibliothèque Python de calcul de sections en béton armé selon l'Eurocode 2 : flexion simple, effort tranchant, ferraillage minimal, avec génération de notes de calcul en PDF.\nCas d'usage : • Vérifier le ferraillage d'une poutre en flexion simple à l'ELU et à l'ELS\n• Générer des exercices corrigés de béton armé pour les étudiants\n• Produire une note de calcul PDF à joindre à un dossier\nInstallation : pip install ba-ec2\nExemple : Poutre(b=0.25, h=0.50, fck=25).ferraillage(MEd=0.12)\nPrérequis : - Python 3.10+\nLangage : Python\nLicence : MIT\nCatégorie : Autre\nNotes : Vérifier les coefficients avec le cours de RDM avant usage en classe.\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Calculs de béton armé selon l'Eurocode 2 avec notes de calcul ; utile pour préparer et corriger des TD de BTS.\nBrique pour : Outils pédagogiques BTS MEC, Enseignement",
+  "synth-fastquiz/fastapi-quiz-api": "## synth-fastquiz/fastapi-quiz-api — fastapi-quiz-api\nDescription : API REST construite avec FastAPI pour gérer des banques de questions, des sessions de quiz et les résultats des élèves, avec authentification par jeton et export CSV des scores.\nCas d'usage : • Servir de backend à une application de quiz maison pour la classe\n• Centraliser les résultats d'entraînements hebdomadaires\nInstallation : git clone https://github.com/synth-fastquiz/fastapi-quiz-api.git\npip install -r requirements.txt\nuvicorn app.main:app --reload\nExemple : curl -X POST http://localhost:8000/quiz/42/sessions -H 'Authorization: Bearer <token>'\nPrérequis : - Python 3.11+\n- PostgreSQL 14+ or SQLite for development\n- Docker Compose file provided (optional)\nLangage : Python\nLicence : MIT\nCatégorie : Éducation/Cours\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Base technique solide pour un outil de quiz, mais demande de développer soi-même l'interface.\nBrique pour : Enseignement\nType : Modèle de projet",
+  "synth-flowgen/n8n-flow-genie": "## synth-flowgen/n8n-flow-genie — n8n-flow-genie\nDescription : Générateur de workflows n8n à partir d'une description en langage naturel : un LLM produit le fichier JSON du workflow, vérifié contre la liste des nœuds officiels avant export.\nCas d'usage : • Obtenir le squelette d'un workflow formulaire vers Google Sheets puis e-mail, à importer dans n8n\n• Générer des variantes d'un même workflow pour plusieurs classes\n• Produire des exemples de workflows pour un cours d'automatisation\nInstallation : pip install n8n-flow-genie\nExemple : n8n-flow-genie 'chaque lundi, résumer les flux RSS et envoyer le résumé sur Telegram' -o veille.json\nPrérequis : - Python 3.10+\n- Clé d'API d'un LLM (OpenAI, Anthropic, Mistral) ou Ollama en local\n- Une instance n8n seulement pour importer le résultat\nLangage : Python\nLicence : MIT\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Produit des workflows n8n importables à partir d'une consigne écrite ; la qualité dépend du LLM utilisé.\nBrique pour : Automatisations n8n, IA et agents",
+  "synth-flowkit/n8n-workflow-templates": "## synth-flowkit/n8n-workflow-templates — n8n-workflow-templates\nDescription : Collection de plus de 300 modèles de workflows n8n prêts à importer (fichiers JSON), classés par thème : CRM, e-mail, réseaux sociaux, IA et gestion d'erreurs.\nCas d'usage : • Importer dans son instance n8n un workflow de veille RSS vers Telegram\n• Partir d'un modèle de gestion d'erreurs (Error Trigger vers e-mail ou Telegram) pour être prévenu des exécutions en échec\n• Récupérer des exemples d'agents IA (OpenAI, Ollama) déjà câblés dans n8n\nInstallation : git clone https://github.com/synth-flowkit/n8n-workflow-templates.git\nPuis, dans l'éditeur n8n : Import from File\nExemple : workflows/veille/rss-vers-telegram.json\nPrérequis : - Une instance n8n 1.x\n- Les identifiants des services utilisés par chaque workflow\nLangage : Autres langages\nLicence : MIT\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U3·P3·T2·I2·C2·M2·L2 = 10 — Modèles de workflows n8n importables (veille, e-mail, IA, gestion d'erreurs) ; point de départ direct pour le projet actif Automatisations n8n.\nBrique pour : Automatisations n8n",
+  "synth-flowless/cronpipe": "## synth-flowless/cronpipe — cronpipe\nDescription : Moteur d'automatisation minimaliste : les tâches sont décrites en YAML (déclencheur, étapes, conditions) et exécutées par un seul binaire planifié, sans interface web ni base de données. Présenté comme une alternative légère à n8n et Zapier.\nCas d'usage : • Remplacer un petit workflow n8n de veille RSS par un fichier YAML versionné\n• Lancer chaque nuit une sauvegarde puis envoyer un message Telegram\n• Automatiser des tâches sur un Raspberry Pi peu puissant\nInstallation : curl -sSL https://github.com/synth-flowless/cronpipe/releases/latest/download/cronpipe-linux-amd64 -o /usr/local/bin/cronpipe && chmod +x /usr/local/bin/cronpipe\nExemple : cronpipe run veille.yaml --dry-run\nPrérequis : - Single static binary for Linux, macOS and Windows\n- No Docker, no Node.js, no database required\nLangage : Go\nLicence : Apache-2.0\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Alternative sans serveur à n8n pour des automatisations simples, mais sans éditeur visuel ni catalogue d'intégrations comparable.\nBrique pour : Automatisations n8n\nType : CLI",
+  "synth-flowops/n8n-operator": "## synth-flowops/n8n-operator — n8n-operator\nDescription : Opérateur Kubernetes qui déploie n8n en mode file d'attente (queue mode) : instance principale, workers et récepteurs de webhooks séparés, mis à l'échelle automatiquement selon la charge.\nCas d'usage : • Faire tourner n8n en production sur un cluster Kubernetes avec plusieurs workers\n• Mettre à jour la version de n8n sans interruption\n• Augmenter le nombre de workers quand la file d'exécutions s'allonge\nInstallation : helm repo add synth-flowops https://synth-flowops.github.io/charts\nhelm install n8n-operator synth-flowops/n8n-operator\nExemple : kubectl apply -f n8n-instance.yaml\nPrérequis : - Cluster Kubernetes 1.27+\n- Helm 3\n- PostgreSQL et Redis accessibles depuis le cluster\nLangage : Go\nLicence : Apache-2.0\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Déploiement de n8n à grande échelle sur Kubernetes ; surdimensionné pour un VPS unique sous Docker.\nBrique pour : Automatisations n8n",
+  "synth-flowport/make2n8n": "## synth-flowport/make2n8n — make2n8n\nDescription : Convertit les scénarios Make (ex-Integromat) exportés en JSON en workflows n8n importables, en faisant correspondre les modules courants (HTTP, Google Sheets, Gmail, routeurs) aux nœuds équivalents.\nCas d'usage : • Migrer une dizaine de scénarios Make vers une instance n8n auto-hébergée\n• Repérer les modules Make sans équivalent n8n avant une migration\nInstallation : npx make2n8n --help\nExemple : npx make2n8n scenario_factures.blueprint.json -o workflow_factures.json --report\nPrérequis : - Node.js 18+\n- Make scenario blueprints exported as JSON\nLangage : TypeScript\nLicence : MIT\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Outil de migration de Make vers n8n avec rapport des modules non convertis ; utile seulement si des scénarios Make existent déjà.\nBrique pour : Automatisations n8n",
+  "synth-harbor/dockpanel": "## synth-harbor/dockpanel — dockpanel\nDescription : Interface web légère pour gérer Docker sur un serveur : conteneurs, images, volumes, réseaux, journaux en direct et stacks Docker Compose.\nCas d'usage : • Redémarrer un conteneur et lire ses journaux depuis le navigateur\n• Déployer ou mettre à jour une stack Docker Compose sur un VPS\n• Nettoyer les images et volumes inutilisés\nInstallation : docker run -d -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/synth-harbor/dockpanel\nExemple : Ouvrir http://mon-vps:9000 puis Stacks > Ajouter > coller le docker-compose.yml\nPrérequis : - Docker Engine 24+\n- Accès au socket Docker de l'hôte\nLangage : Go\nLicence : MIT\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Tableau de bord web de gestion de Docker (conteneurs, stacks Compose, journaux) pour un serveur unique ; ne gère pas Kubernetes.",
+  "synth-hooksmith/cc-notify": "## synth-hooksmith/cc-notify — cc-notify\nDescription : Hooks pour Claude Code qui envoient une notification (ntfy, Telegram, Pushover ou bureau) quand une session termine sa tâche ou attend une autorisation.\nCas d'usage : • Recevoir une notification sur son téléphone quand Claude Code a fini une longue refactorisation\n• Être prévenu quand l'agent attend la validation d'une commande\nInstallation : npx cc-notify install\nExemple : npx cc-notify install --channel ntfy --topic mes-sessions (ajoute les hooks Stop et Notification dans ~/.claude/settings.json)\nPrérequis : - Claude Code\n- Node.js 18+\n- Un sujet ntfy, un bot Telegram ou un compte Pushover\nLangage : TypeScript\nLicence : MIT\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T2·I2·C2·M2·L2 = 8 — Notifications de fin de tâche pour Claude Code, branchées sur ses hooks ; petit outil pratique pour les longues sessions d'agent.\nBrique pour : IA et agents",
+  "synth-hyperui/htmx-kit": "## synth-hyperui/htmx-kit — htmx-kit\nDescription : Composants d'interface rendus côté serveur avec htmx et Alpine.js (tableaux, formulaires, onglets, modales) : de l'interactivité sans React ni étape de build JavaScript.\nCas d'usage : • Ajouter une interface d'administration à une application FastAPI ou Flask avec des gabarits Jinja\n• Construire un petit back-office interactif sans framework JavaScript lourd\nInstallation : pip install htmx-kit\nExemple : {{ htmx_kit.table(rows=factures, sortable=True) }}\nPrérequis : - Python 3.9+ avec Jinja2 (pour les gabarits fournis)\nLangage : Autres langages\nLicence : MIT\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P2·T2·I2·C2·M2·L2 = 8 — Composants web htmx et Alpine.js rendus côté serveur, sans React ; adaptés à un back-end Python (FastAPI, Flask) pour des interfaces simples.",
+  "synth-ifcconv/ifc2gltf-batch": "## synth-ifcconv/ifc2gltf-batch — ifc2gltf-batch\nDescription : Convertit par lots des maquettes IFC en glTF, OBJ ou XKT pour l'affichage web, en conservant les identifiants GlobalId et un fichier de propriétés JSON associé.\nCas d'usage : • Alléger des maquettes pour les afficher dans une page web de cours\n• Préparer des modèles 3D pour une présentation ou de la réalité virtuelle\nInstallation : docker pull ghcr.io/synth-ifcconv/ifc2gltf-batch:latest\nou : pip install ifc2gltf-batch\nExemple : docker run --rm -v $(pwd):/data ghcr.io/synth-ifcconv/ifc2gltf-batch /data/maquettes --to glb\nPrérequis : - Docker (recommended), or Python 3.10+ with IfcOpenShell and IfcConvert\n- 4 GB RAM for large models\nLangage : Python\nLicence : LGPL-3.0\nCatégorie : Données/Analyse\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Conversion IFC vers formats web en une commande, avec image Docker prête ou installation Python classique.\nBrique pour : Outils pédagogiques BTS MEC",
+  "synth-inkread/handwrite-ocr": "## synth-inkread/handwrite-ocr — handwrite-ocr\nDescription : Reconnaissance d'écriture manuscrite par modèle transformeur : copies d'élèves, carnets de chantier et formulaires remplis à la main, avec export en texte ou JSON.\nCas d'usage : • Numériser des copies manuscrites pour les archiver en texte\n• Transcrire les notes manuscrites d'un carnet de chantier\nInstallation : pip install handwrite-ocr[cuda]\nExemple : handwrite-ocr copies/*.jpg --format json\nPrérequis : - GPU NVIDIA avec au moins 8 Go de VRAM (le README indique que l'exécution sur CPU n'est pas prise en charge)\n- CUDA 12+\n- Python 3.10+\nLangage : Python\nLicence : Apache-2.0\nCatégorie : OCR/Documents\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — OCR de l'écriture manuscrite, rare parmi les outils libres ; exige un GPU NVIDIA, donc pas sur le VPS.\nBrique pour : Documents et OCR",
+  "synth-invoicer/n8n-nodes-facture-ocr": "## synth-invoicer/n8n-nodes-facture-ocr — n8n-nodes-facture-ocr\nDescription : Nœud communautaire n8n qui lit les factures PDF ou photographiées, en extrait le fournisseur, les dates, les montants HT, TVA et TTC, et renvoie un objet JSON exploitable dans la suite du workflow.\nCas d'usage : • Classer automatiquement les factures reçues par e-mail dans un tableur\n• Alimenter un suivi de dépenses personnelles depuis un dossier Google Drive\n• Détecter les factures dont le total ne correspond pas à la somme des lignes\nInstallation : Dans n8n : Settings > Community Nodes > Install, puis saisir n8n-nodes-facture-ocr\nExemple : Workflow : Gmail Trigger > Facture OCR (mode: auto) > Google Sheets (Append Row)\nPrérequis : - n8n 1.30+ (self-hosted, community nodes enabled)\n- Tesseract 5 with the fra language pack on the n8n host\n- Docker image n8nio/n8n requires a custom Dockerfile to add Tesseract\nLangage : TypeScript\nLicence : MIT\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Ajoute l'OCR de factures directement dans n8n, ce qui évite un service externe pour le projet de suivi des dépenses.\nBrique pour : Automatisations n8n, Documents et OCR\nType : Nœud n8n",
+  "synth-k8sjobs/whisper-k8s-batch": "## synth-k8sjobs/whisper-k8s-batch — whisper-k8s-batch\nDescription : Chart Helm qui déploie une file de transcription Whisper sur un cluster Kubernetes : les fichiers déposés dans un bucket S3 sont répartis en jobs sur des nœuds GPU et les transcriptions sont écrites à côté des originaux.\nCas d'usage : • Transcrire des centaines d'heures d'enregistrements pour un établissement\n• Mutualiser des serveurs GPU entre plusieurs équipes\nInstallation : helm repo add whisper-batch https://synth-k8sjobs.github.io/whisper-k8s-batch\nhelm install transcription whisper-batch/whisper-k8s-batch -f values.yaml\nExemple : kubectl logs -l app=whisper-worker -f\nPrérequis : - Kubernetes 1.27+\n- Helm 3\n- Nodes with NVIDIA GPUs and the NVIDIA device plugin\n- S3-compatible object storage\nLangage : Python\nLicence : Apache-2.0\nCatégorie : Audio/Vidéo\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Pensé pour la transcription à grande échelle sur infrastructure Kubernetes avec GPU, bien au-delà d'un usage personnel.\nBrique pour : Création audiovisuelle",
+  "synth-localcoder/ollama-coder": "## synth-localcoder/ollama-coder — ollama-coder\nDescription : Agent de programmation en terminal qui lit le projet, propose des modifications et lance les tests, en s'appuyant uniquement sur des modèles locaux servis par Ollama. Se présente comme une alternative à Claude Code sans abonnement ni envoi de code vers le cloud.\nCas d'usage : • Faire écrire des scripts Python de traitement de données sans connexion Internet\n• Expérimenter les agents de code avec les étudiants sans compte payant\nInstallation : pip install ollama-coder\nollama pull qwen2.5-coder:14b\nExemple : ollama-coder 'ajoute un export CSV au script metre.py'\nPrérequis : - Python 3.10+\n- Ollama 0.4+\n- GPU with 12 GB VRAM recommended for 14B models; small models run on CPU\nLangage : Python\nLicence : Apache-2.0\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Agent de code local et gratuit, moins performant que les agents hébergés mais intéressant pour la confidentialité.\nBrique pour : IA et agents",
+  "synth-mailroom/inbox-parser": "## synth-mailroom/inbox-parser — inbox-parser\nDescription : Service qui relève une boîte e-mail (IMAP), extrait les données des factures et bons de commande reçus (corps du message et pièces jointes PDF) et les publie en JSON vers un webhook ou un fichier.\nCas d'usage : • Transformer chaque facture fournisseur reçue par e-mail en enregistrement JSON (fournisseur, montant, date)\n• Déclencher un workflow n8n, Make ou Zapier par webhook à chaque nouveau bon de commande\n• Archiver les pièces jointes PDF dans des dossiers classés par fournisseur\nInstallation : pip install inbox-parser\ninbox-parser --config config.yaml\nExemple : inbox-parser --config config.yaml --output webhook --url https://exemple.org/hook\nPrérequis : - Python 3.10+\n- Accès IMAP à la boîte e-mail\n- Clé d'API d'un LLM (OpenAI, Mistral) ou Ollama en local pour l'extraction\nLangage : Python\nLicence : MIT\nCatégorie : OCR/Documents\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U3·P3·T2·I2·C2·M2·L2 = 10 — Extraction des données d'e-mails et de factures PDF vers JSON ; fonctionne seul, et reste compatible avec n8n via un webhook pour enchaîner les traitements.\nBrique pour : Automatisations n8n, Documents et OCR",
+  "synth-markslides/md2reveal-cours": "## synth-markslides/md2reveal-cours — md2reveal-cours\nDescription : Convertit des fichiers Markdown en diaporamas Reveal.js autonomes, avec des modèles adaptés aux cours techniques : formules, schémas, tableaux de quantités et diapositives d'exercices.\nCas d'usage : • Rédiger un cours en Markdown et le projeter en classe sans PowerPoint\n• Publier les diaporamas sur l'ENT sous forme de pages HTML\nInstallation : npm install -g md2reveal-cours\nExemple : md2reveal-cours cours_beton.md --theme bts -o cours_beton.html\nPrérequis : - Node.js 18+\n- Based on Reveal.js 5\nLangage : JavaScript\nLicence : MIT\nCatégorie : Éducation/Cours\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Production rapide de diaporamas de cours versionnables, sans dépendance à un logiciel de présentation.\nBrique pour : Enseignement",
+  "synth-metrelab/dpgf-from-ifc": "## synth-metrelab/dpgf-from-ifc — dpgf-from-ifc\nDescription : Génère une DPGF (décomposition du prix global et forfaitaire) au format Excel à partir d'une maquette IFC, en regroupant les quantités par lot et par ouvrage élémentaire. Les prix unitaires peuvent être importés depuis une bibliothèque CSV.\nCas d'usage : • Produire une DPGF de gros œuvre à partir de la maquette IFC d'un petit collectif\n• Comparer les quantités d'une DPGF d'entreprise avec celles calculées depuis la maquette\n• Préparer un TD de chiffrage en BTS en partant d'une maquette fournie aux étudiants\nInstallation : pip install dpgf-from-ifc\nExemple : dpgf-from-ifc projet_R+2.ifc --prix bibliotheque_prix.csv -o DPGF_GO.xlsx\nPrérequis : - Python 3.10+\n- IfcOpenShell 0.7+\n- IFC2x3 or IFC4 model with quantity sets (Qto_*) recommended\nLangage : Python\nLicence : LGPL-3.0\nCatégorie : Données/Analyse\nNotes : À tester avec la maquette du TD R+2 et la bibliothèque de prix de l'an dernier.\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Passe directement de la maquette IFC à une DPGF chiffrée, ce qui correspond au cœur des TD de métré et d'économie de la construction.\nBrique pour : Outils pédagogiques BTS MEC, Données\nType : CLI, Bibliothèque",
+  "synth-migratekit/zap2n8n": "## synth-migratekit/zap2n8n — zap2n8n\nDescription : Convertisseur qui transforme des Zaps exportés depuis Zapier en workflows n8n importables, en signalant les étapes sans équivalent.\nCas d'usage : • Migrer une vingtaine de Zaps existants vers une instance n8n auto-hébergée\n• Obtenir la liste des étapes Zapier à reconstruire à la main\nInstallation : npm install -g zap2n8n\nExemple : zap2n8n export-zapier.json -o workflows/\nPrérequis : - Node.js 18+\n- Export JSON des Zaps depuis le compte Zapier\nLangage : TypeScript\nLicence : MIT\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P2·T2·I2·C2·M2·L2 = 8 — Migration de Zaps vers des workflows n8n ; utile pour quitter un abonnement Zapier, couverture des connecteurs partielle.\nBrique pour : Automatisations n8n",
+  "synth-n8nbridge/n8n-mcp-bridge": "## synth-n8nbridge/n8n-mcp-bridge — n8n-mcp-bridge\nDescription : Serveur MCP qui donne à un assistant IA (Claude Code, Claude Desktop, Cursor) l'accès à une instance n8n : lister, créer, modifier et lancer des workflows, et lire le détail des exécutions en échec.\nCas d'usage : • Demander à Claude Code de corriger le workflow n8n qui échoue depuis ce matin\n• Créer un workflow de veille dans n8n en le décrivant en langage naturel\n• Lister les workflows inactifs d'une instance de production\nInstallation : npx -y n8n-mcp-bridge\nExemple : claude mcp add n8n -- npx -y n8n-mcp-bridge --url https://n8n.example.org\nPrérequis : - Instance n8n 1.x avec l'API publique activée et une clé d'API\n- Node.js 20+\n- Un client compatible MCP (Claude Code, Claude Desktop, Cursor)\nLangage : TypeScript\nLicence : MIT\nCatégorie : MCP/Intégrations\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Pont MCP entre un assistant IA et une instance n8n existante ; inutile sans n8n.\nBrique pour : Automatisations n8n, IA et agents",
+  "synth-nodeforge/n8n-nodes-pdfgen": "## synth-nodeforge/n8n-nodes-pdfgen — n8n-nodes-pdfgen\nDescription : Nœud communautaire n8n qui génère des PDF à partir de modèles HTML ou Handlebars (devis, factures, attestations), sans service externe.\nCas d'usage : • Produire un devis PDF à partir des lignes d'un Google Sheets dans un workflow n8n\n• Générer en lot les attestations de stage d'une classe\n• Joindre automatiquement une facture PDF à un e-mail\nInstallation : Dans n8n : Settings > Community Nodes > Install, puis saisir n8n-nodes-pdfgen\nExemple : Nœud « PDF Generator » : modèle HTML + données JSON → fichier PDF binaire\nPrérequis : - n8n 1.x auto-hébergé avec les nœuds communautaires activés\n- Chromium sur l'hôte (moteur de rendu)\nLangage : TypeScript\nLicence : MIT\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U3·P2·T2·I2·C2·M2·L2 = 9 — Nœud communautaire de génération de PDF depuis des modèles HTML, à utiliser dans les workflows n8n ; utile pour les devis et documents administratifs.\nBrique pour : Automatisations n8n, Documents et OCR",
+  "synth-nok8s/compose-lite": "## synth-nok8s/compose-lite — compose-lite\nDescription : Petit outil de déploiement pour un ou deux serveurs : il met à jour des piles Docker Compose depuis un dépôt Git, gère les redémarrages et les certificats, sans recourir à Kubernetes.\nCas d'usage : • Déployer n8n, une base de données et un reverse proxy sur un VPS\n• Mettre à jour automatiquement les services après un git push\nInstallation : curl -fsSL https://raw.githubusercontent.com/synth-nok8s/compose-lite/main/install.sh | sh\nExemple : compose-lite deploy --repo git@github.com:moi/infra.git --stack n8n\nPrérequis : - Linux server (Debian, Ubuntu)\n- Docker Engine 24+ with the Compose plugin\n- Kubernetes is not required\nLangage : Go\nLicence : MIT\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Alternative simple à Kubernetes pour héberger quelques services auto-hébergés sur un VPS.\nBrique pour : Automatisations n8n\nType : CLI",
+  "synth-notesearch/semantic-drive": "## synth-notesearch/semantic-drive — semantic-drive\nDescription : Recherche sémantique auto-hébergée dans des documents bureautiques (PDF, Word, Markdown, exports Notion) stockés dans un dossier ou sur Google Drive, avec une interface web.\nCas d'usage : • Interroger par le sens l'ensemble des documents d'un dossier partagé\n• Retrouver une note Notion exportée sans se souvenir des mots exacts\nInstallation : docker compose up -d\nExemple : docker compose up -d (lance l'application et la base vectorielle Qdrant), puis ouvrir http://localhost:3000\nPrérequis : - Docker et Docker Compose\n- 4 Go de RAM\nLangage : TypeScript\nLicence : AGPL-3.0\nCatégorie : RAG/Recherche\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L1 = 9 — Moteur de recherche sémantique sur documents (PDF, Word, Notion) avec base vectorielle Qdrant, déployé avec Docker Compose.\nBrique pour : Documents et OCR",
+  "synth-notion2sheet/notion-to-xlsx": "## synth-notion2sheet/notion-to-xlsx — notion-to-xlsx\nDescription : Exporte une base de données Notion vers un classeur Excel en conservant les types de propriétés (sélections, dates, relations, formules calculées) et peut planifier des exports réguliers.\nCas d'usage : • Sauvegarder chaque semaine la base Notion des fiches de dépôts\n• Analyser dans Excel le suivi des notes saisi dans Notion\nInstallation : pip install notion-to-xlsx\nExemple : notion-to-xlsx --database 1a2b3c4d5e --token $NOTION_TOKEN -o export.xlsx\nPrérequis : - Python 3.9+\n- Notion integration token with access to the database\nLangage : Python\nLicence : MIT\nCatégorie : Données/Analyse\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Export fidèle d'une base Notion vers Excel, pratique pour sauvegarder ou analyser la base de fiches.\nBrique pour : Données",
+  "synth-openflow/flowpilot": "## synth-openflow/flowpilot — flowpilot\nDescription : Plateforme d'automatisation no-code open source et auto-hébergeable, présentée comme une alternative à Zapier et à n8n : éditeur visuel de scénarios, plus de 200 connecteurs et une bibliothèque de modèles.\nCas d'usage : • Remplacer des Zaps payants par des scénarios auto-hébergés\n• Construire sans code un flux formulaire web → Google Sheets → e-mail\n• Partir d'un des 150 modèles de scénarios fournis\nInstallation : docker compose up -d (fichier fourni)\nEssai local sans Docker : npx flowpilot start (SQLite)\nChart Helm disponible pour Kubernetes\nExemple : npx flowpilot start --port 8090\nPrérequis : - Node.js 20+ ou Docker\n- PostgreSQL en production (SQLite pour les essais)\nLangage : TypeScript\nLicence : AGPL-3.0\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L1 = 9 — Plateforme no-code auto-hébergeable, alternative directe à Zapier et à n8n ; à comparer avec n8n avant toute migration, licence AGPL.\nBrique pour : Automatisations n8n",
+  "synth-opswatch/n8n-watchtower": "## synth-opswatch/n8n-watchtower — n8n-watchtower\nDescription : Tableau de bord de supervision des exécutions n8n : historique, taux d'échec par workflow, durées, et alertes Slack, Telegram ou e-mail quand une exécution échoue.\nCas d'usage : • Recevoir une alerte Telegram dès qu'un workflow de production échoue\n• Repérer les workflows les plus lents ou les plus souvent en erreur\n• Suivre sur un même écran les instances n8n de test et de production\nInstallation : docker run -d -p 8080:8080 -e N8N_API_URL=https://n8n.example.org/api/v1 -e N8N_API_KEY=... ghcr.io/synth-opswatch/n8n-watchtower\nou : npm install -g n8n-watchtower\nExemple : n8n-watchtower --alert telegram --failed-only\nPrérequis : - Instance n8n avec l'API publique activée et une clé d'API\n- Docker ou Node.js 20+\nLangage : TypeScript\nLicence : Apache-2.0\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U3·P3·T2·I2·C2·M2·L2 = 10 — Supervision des exécutions n8n par son API (échecs, durées, alertes) ; complète les automatisations n8n en production sur le VPS.\nBrique pour : Automatisations n8n",
+  "synth-pdfcraft/pdfcraft": "## synth-pdfcraft/pdfcraft — pdfcraft\nDescription : Boîte à outils PDF en ligne de commande : fusion, découpe, compression, réorganisation des pages et ajout d'une couche texte OCR via Tesseract.\nCas d'usage : • Fusionner les PDF d'un dossier de consultation en un seul fichier\n• Compresser des plans scannés avant de les envoyer par e-mail\n• Rendre un PDF scanné cherchable en ajoutant une couche texte\nInstallation : pip install pdfcraft\nExemple : pdfcraft merge *.pdf -o dossier.pdf && pdfcraft compress dossier.pdf --quality ebook\nPrérequis : - Python 3.9+\n- Tesseract (facultatif, uniquement pour l'OCR)\nLangage : Python\nLicence : MIT\nCatégorie : OCR/Documents\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Outil PDF en ligne de commande installé avec pip ; le README précise qu'il fonctionne sans Docker ni serveur, sous Linux, macOS et Windows.\nBrique pour : Documents et OCR",
+  "synth-pdfstack/pdf-toolbox-server": "## synth-pdfstack/pdf-toolbox-server — pdf-toolbox-server\nDescription : Application web auto-hébergée de manipulation de PDF : fusion, découpe, compression, rotation, filigrane et conversion en images, avec une API REST.\nCas d'usage : • Fusionner et compresser des dossiers de plans PDF depuis le navigateur\n• Appeler l'API REST de découpe depuis un script ou un workflow\n• Proposer aux collègues un outil PDF interne, sans envoyer les fichiers en ligne\nInstallation : docker run -d -p 8080:8080 synthpdfstack/pdf-toolbox-server:latest\nExemple : curl -F file=@plans.pdf http://localhost:8080/api/v1/compress -o plans-compresses.pdf\nPrérequis : - Docker : seul mode de distribution, aucun paquet natif fourni\n- 2 Go de RAM\nLangage : Autres langages\nLicence : GPL-3.0\nCatégorie : OCR/Documents\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T1·I2·C2·M2·L2 = 9 — Boîte à outils PDF web (fusion, découpe, compression) avec API ; distribuée uniquement en image Docker.\nBrique pour : Documents et OCR",
+  "synth-pealog/pea-tracker": "## synth-pealog/pea-tracker — pea-tracker\nDescription : Tableau de bord de suivi d'un PEA et d'un compte-titres : saisie des ordres, valorisation quotidienne, dividendes, plus-values latentes et répartition par secteur.\nCas d'usage : • Suivre la performance réelle de son portefeuille, frais inclus\n• Préparer les montants utiles à la déclaration de revenus\nInstallation : pip install pea-tracker\npea-tracker init\nExemple : pea-tracker serve --port 8050\nPrérequis : - Python 3.10+\nLangage : Python\nLicence : GPL-3.0\nCatégorie : Finance/Trading\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Suivi de portefeuille personnel simple et local, adapté aux enveloppes fiscales françaises.\nBrique pour : Données\nType : Application web",
+  "synth-planread/plan-cotes": "## synth-planread/plan-cotes — plan-cotes\nDescription : Application de bureau qui repère les cotes et les annotations sur des plans PDF scannés, les associe aux murs et aux ouvertures, puis exporte un tableau de longueurs et de surfaces pour l'avant-métré.\nCas d'usage : • Relever les dimensions d'un plan de rez-de-chaussée scanné sans le redessiner\n• Préparer un exercice de métré de cloisons à partir d'anciens plans papier\n• Vérifier les surfaces d'un plan de vente\nInstallation : Télécharger l'installateur plan-cotes-setup.exe depuis la page Releases\nExemple : plan-cotes.exe plan_RDC.pdf --echelle 1:100 --export metre_RDC.xlsx\nPrérequis : - Windows 10 or 11 (64-bit) only\n- .NET 8 Desktop Runtime\n- Scans at 300 dpi or higher\nLangage : C#\nLicence : GPL-3.0\nCatégorie : OCR/Documents\nNotes : Essayer sur les plans scannés du lycée (dossier Archives).\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Rare outil d'OCR orienté plans et métré ; limité à Windows et à des scans de bonne qualité.\nBrique pour : Documents et OCR, Outils pédagogiques BTS MEC",
+  "synth-podcastify/notes2podcast": "## synth-podcastify/notes2podcast — notes2podcast\nDescription : Transforme des notes de cours ou un article en épisode de podcast à deux voix : un LLM écrit le dialogue, puis une synthèse vocale locale optimisée pour les puces Apple Silicon (MLX) produit le fichier audio.\nCas d'usage : • Créer un épisode audio de révision sur les règles de métré\n• Proposer une version audio d'un chapitre pour les étudiants en alternance\nInstallation : brew install ffmpeg\npip install notes2podcast\nExemple : notes2podcast chapitre3.md --voices fr-femme,fr-homme --duree 10 -o episode3.mp3\nPrérequis : - macOS 13+ on Apple Silicon (M1 or later)\n- Python 3.11+\n- FFmpeg\n- Not supported on Windows or Linux\nLangage : Python\nLicence : Apache-2.0\nCatégorie : Audio/Vidéo\nNotes : Mon PC est sous Windows : à garder pour le Mac du CDI.\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Génération de podcasts pédagogiques entièrement locale, mais réservée aux Mac à puce Apple.\nBrique pour : Création audiovisuelle, Enseignement",
+  "synth-preprocess/scanclean": "## synth-preprocess/scanclean — scanclean\nDescription : Prétraitement d'images scannées avant OCR : redressement, suppression des bords et du bruit, binarisation adaptative et découpe des pages doubles.\nCas d'usage : • Améliorer la reconnaissance de Tesseract sur des scans de mauvaise qualité\n• Préparer en lot des photos de documents prises au téléphone\nInstallation : pip install scanclean\nExemple : scanclean entree/ sortie/ --deskew --denoise --binarize\nPrérequis : - Python 3.9+\n- OpenCV\nLangage : Python\nLicence : MIT\nCatégorie : OCR/Documents\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T2·I2·C2·M2·L2 = 8 — Nettoyage et redressement d'images avant OCR ; améliore nettement les résultats de Tesseract sur les scans anciens, sans faire l'OCR lui-même.\nBrique pour : Documents et OCR",
+  "synth-projectbrain/codedoc-search": "## synth-projectbrain/codedoc-search — codedoc-search\nDescription : Recherche sémantique unifiée dans le code source et la documentation technique d'un projet (Markdown, PDF, wiki) : une seule question renvoie à la fois les fonctions et les pages de documentation pertinentes.\nCas d'usage : • Retrouver à la fois la spécification PDF d'une fonctionnalité et le code qui l'implémente\n• Aider un nouvel arrivant à explorer un projet et sa documentation\nInstallation : pip install codedoc-search\nExemple : cds index . --docs docs/ && cds ask 'calcul de la remise'\nPrérequis : - Python 3.10+\n- Clé d'API OpenAI ou modèle d'embeddings local\nLangage : Python\nLicence : MIT\nCatégorie : RAG/Recherche\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Recherche sémantique couvrant le code et la documentation d'un même projet ; moins précise que des outils spécialisés sur l'un ou l'autre.\nBrique pour : IA et agents",
+  "synth-quizforge/moodle-quizgen": "## synth-quizforge/moodle-quizgen — moodle-quizgen\nDescription : Génère des questions de QCM au format Moodle XML ou GIFT à partir d'un cours en PDF ou Markdown, avec un LLM local ou distant, et propose une relecture avant export.\nCas d'usage : • Créer une banque de questions Moodle à partir d'un cours de métré\n• Produire des QCM d'entraînement pour chaque chapitre de résistance des matériaux\nInstallation : pip install moodle-quizgen\nExemple : quizgen cours_metre.pdf --nb 20 --format gift -o metre.gift\nPrérequis : - Python 3.10+\n- Ollama en local ou clé d'API OpenAI ou Mistral\nLangage : Python\nLicence : MIT\nCatégorie : Éducation/Cours\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Génération de QCM importables dans Moodle depuis des supports de cours ; questions à relire avant usage.\nBrique pour : Enseignement, Outils pédagogiques BTS MEC",
+  "synth-quizmint/quiz-from-slides": "## synth-quizmint/quiz-from-slides — quiz-from-slides\nDescription : Crée des questionnaires à choix multiples à partir de diaporamas PowerPoint ou de PDF de cours, puis les exporte au format Moodle GIFT, Moodle XML ou en CSV pour Kahoot.\nCas d'usage : • Transformer le diaporama d'un cours de RDM en QCM d'auto-évaluation sur Moodle\n• Produire rapidement un quiz de révision avant un contrôle\n• Générer une banque de questions par chapitre\nInstallation : pip install quiz-from-slides\nExemple : quiz-from-slides cours_rdm.pptx --questions 20 --format gift -o rdm.gift\nPrérequis : - Python 3.9+\n- Ollama with a local model, or an OpenAI-compatible API key\n- GPU optional: runs on CPU with small models (slower)\nLangage : Python\nLicence : Apache-2.0\nCatégorie : Éducation/Cours\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Génère des QCM importables dans Moodle depuis les supports existants, avec un modèle local possible sans carte graphique.\nBrique pour : Enseignement, Outils pédagogiques BTS MEC",
+  "synth-reactifc/react-ifc-viewer": "## synth-reactifc/react-ifc-viewer — react-ifc-viewer\nDescription : Composant React qui affiche une maquette IFC dans le navigateur (web-ifc et Three.js), avec sélection d'objets, affichage des propriétés et filtrage par niveau ou par classe IFC.\nCas d'usage : • Intégrer une visionneuse de maquette dans un site de cours\n• Permettre aux étudiants d'interroger les propriétés des éléments sans logiciel BIM\nInstallation : npm install react-ifc-viewer\nExemple : <IfcViewer src=\"/maquettes/r2.ifc\" showProperties filterBy=\"storey\" />\nPrérequis : - React 18+\n- A browser with WebGL 2 support\nLangage : TypeScript\nLicence : MPL-2.0\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Visionneuse IFC prête à intégrer dans une application React ; nécessite de savoir monter un petit projet web.\nBrique pour : Outils pédagogiques BTS MEC",
+  "synth-reactpdf/react-pdf-annotator": "## synth-reactpdf/react-pdf-annotator — react-pdf-annotator\nDescription : Composants React pour afficher des PDF dans une application web et y ajouter surlignages, commentaires et zones rectangulaires, exportables en JSON.\nCas d'usage : • Annoter des plans PDF dans un portail de suivi de chantier\n• Laisser les étudiants commenter un sujet d'examen en ligne\n• Intégrer une visionneuse de PDF dans un back-office React\nInstallation : npm install @synth-reactpdf/react-pdf-annotator\nExemple : <PdfAnnotator url='/plans/r1.pdf' onChange={save} />\nPrérequis : - React 18+\n- Un bundler (Vite ou Next.js)\nLangage : TypeScript\nLicence : MIT\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Visionneuse et annotation de PDF en composants React ; ne fait ni OCR ni extraction de texte.\nBrique pour : Documents et OCR",
+  "synth-relayhq/relaymesh": "## synth-relayhq/relaymesh — relaymesh\nDescription : Plateforme d'automatisation auto-hébergée qui se présente comme une alternative open source à Zapier : éditeur visuel de flux, déclencheurs par webhook, formulaire ou planification, et plus de 120 connecteurs.\nCas d'usage : • Remplacer des Zaps d'envoi de formulaires vers Google Sheets sans payer d'abonnement\n• Recevoir sur Telegram une alerte à chaque nouvelle inscription sur un formulaire\n• Reprendre des Zaps existants avec l'assistant d'import fourni\nInstallation : git clone https://github.com/synth-relayhq/relaymesh.git\ncd relaymesh\ndocker compose up -d\nExemple : Ouvrir http://localhost:7300 puis créer un flux Webhook vers Google Sheets\nPrérequis : - Docker et Docker Compose (seule méthode d'installation prise en charge)\n- PostgreSQL 14+ (fourni dans le fichier Compose)\n- 2 Go de RAM\nLangage : TypeScript\nLicence : Apache-2.0\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Alternative auto-hébergée à Zapier, plus simple que n8n mais avec moins de connecteurs ; ne s'installe qu'avec Docker Compose.\nBrique pour : Automatisations n8n",
+  "synth-scanflow/receipt-extractor": "## synth-scanflow/receipt-extractor — receipt-extractor\nDescription : Extraction des données de tickets de caisse et de factures photographiés ou scannés (fournisseur, date, montants HT, TVA et TTC) vers CSV ou JSON.\nCas d'usage : • Saisir automatiquement des notes de frais à partir de photos de tickets\n• Préparer un export CSV des factures pour la comptabilité\nInstallation : pip install receipt-extractor\nExemple : receipt-extractor tickets/*.jpg --csv notes-de-frais.csv\nPrérequis : Non vérifié\nLangage : Python\nLicence : MIT\nCatégorie : OCR/Documents\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P2·T2·I2·C2·M2·L? = 8 — Extraction structurée de tickets et de factures (montants, TVA) vers CSV ; README succinct, prérequis non précisés.\nBrique pour : Documents et OCR",
+  "synth-sheetsumm/xlsx-explainer": "## synth-sheetsumm/xlsx-explainer — xlsx-explainer\nDescription : Analyse un classeur Excel et rédige une explication en langage courant de sa structure : feuilles, plages nommées, formules principales et dépendances entre cellules.\nCas d'usage : • Documenter un ancien tableur de métré hérité d'un collègue\n• Expliquer aux étudiants la logique d'un tableau de calcul de quantités\nInstallation : pip install xlsx-explainer\nExemple : xlsx-explainer metre_lot02.xlsx --langue fr -o explication.md\nPrérequis : Non vérifié\nLangage : Python\nLicence : MIT\nCatégorie : Données/Analyse\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Aide à comprendre et documenter des tableurs complexes ; le README ne précise pas les dépendances ni le modèle utilisé.\nBrique pour : Données, Enseignement",
+  "synth-subtitle/srt-forge": "## synth-subtitle/srt-forge — srt-forge\nDescription : Produit des sous-titres SRT ou VTT depuis un fichier vidéo ou audio grâce à faster-whisper, avec découpage des lignes, traduction facultative et incrustation dans la vidéo via FFmpeg.\nCas d'usage : • Sous-titrer en français une vidéo de démonstration de chantier\n• Traduire les sous-titres d'une vidéo YouTube anglaise pour la classe\n• Incruster les sous-titres avant diffusion sur l'ENT\nInstallation : pip install srt-forge\nExemple : srt-forge visite_chantier.mp4 --lang fr --burn -o visite_chantier_st.mp4\nPrérequis : - Python 3.9+\n- FFmpeg in PATH\n- NVIDIA GPU with CUDA 12 recommended; CPU mode supported\nLangage : Python\nLicence : MIT\nCatégorie : Audio/Vidéo\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Sous-titrage local complet, de la transcription à l'incrustation, utilisable sur CPU pour des vidéos courtes.\nBrique pour : Création audiovisuelle\nType : CLI",
+  "synth-swiftapi/velora": "## synth-swiftapi/velora — velora\nDescription : Framework web Python asynchrone (ASGI) axé sur la performance, présenté comme une alternative à FastAPI : validation avec msgspec, injection de dépendances et documentation OpenAPI générée.\nCas d'usage : • Écrire une API REST à forte charge avec une latence plus faible qu'avec FastAPI\n• Migrer progressivement des routes FastAPI grâce à une couche de compatibilité\nInstallation : pip install velora\nExemple : from velora import App, get\n\n@get(\"/ping\")\nasync def ping() -> dict:\n    return {\"ok\": True}\n\napp = App([ping])\nPrérequis : - Python 3.10+\nLangage : Python\nLicence : MIT\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T2·I2·C2·M2·L2 = 8 — Framework ASGI concurrent de FastAPI, plus rapide d'après ses propres bancs d'essai ; écosystème encore réduit.",
+  "synth-symbolic/code-index-mcp": "## synth-symbolic/code-index-mcp — code-index-mcp\nDescription : Serveur MCP qui indexe une base de code et offre aux agents de développement (Claude Code, Cursor, opencode) une recherche sémantique et par symboles dans le projet.\nCas d'usage : • Permettre à Claude Code de retrouver les fonctions utiles d'un gros dépôt sans tout relire\n• Rechercher par le sens (validation des formulaires, gestion des droits) plutôt que par nom de fichier\nInstallation : uvx code-index-mcp --root .\nExemple : claude mcp add code-index -- uvx code-index-mcp --root .\nPrérequis : - Python 3.11+ avec uv\n- Un client compatible MCP\nLangage : Python\nLicence : MIT\nCatégorie : MCP/Intégrations\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Serveur MCP de recherche sémantique dans le code pour les agents de développement ; utile avec Claude Code sur de gros projets.\nBrique pour : IA et agents",
+  "synth-tabclean/csv-cleaner": "## synth-tabclean/csv-cleaner — csv-cleaner\nDescription : Nettoyage de fichiers CSV et Excel : détection des doublons, normalisation des dates et des nombres au format français, rapport des lignes en anomalie.\nCas d'usage : • Fusionner les listes d'élèves de plusieurs classes en supprimant les doublons\n• Corriger les séparateurs décimaux d'un export comptable avant import\n• Produire un rapport des lignes incomplètes d'un fichier fournisseurs\nInstallation : pip install csv-cleaner\nExemple : csv-cleaner clean eleves.xlsx --dedupe nom,prenom --out eleves_propres.csv\nPrérequis : - Python 3.9+\nLangage : Python\nLicence : MIT\nCatégorie : Données/Analyse\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Outil en ligne de commande de nettoyage de tableurs ; s'appelle aussi depuis un nœud Execute Command de n8n, sans en dépendre.\nBrique pour : Données",
+  "synth-tablevision/tablereader": "## synth-tablevision/tablereader — tablereader\nDescription : OCR de tableaux par modèle vision-langage : extrait les tableaux de PDF scannés et de photos de documents vers CSV, Excel ou Markdown.\nCas d'usage : • Récupérer dans Excel les tableaux de quantités de DPGF scannés\n• Convertir en CSV des tableaux de relevés photographiés\nInstallation : pip install tablereader[cuda]\nExemple : tablereader dpgf-scanne.pdf --format xlsx -o dpgf.xlsx\nPrérequis : - GPU NVIDIA avec au moins 12 Go de VRAM\n- CUDA 12.1+\n- Python 3.10+\nLangage : Python\nLicence : Apache-2.0\nCatégorie : OCR/Documents\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U1·P3·T2·I1·C2·M2·L2 = 8 — Extraction de tableaux de documents scannés par modèle vision-langage ; précise, mais le README exige un GPU NVIDIA de 12 Go de VRAM, donc pas sur le VPS.\nBrique pour : Documents et OCR",
+  "synth-uikit/react-blocks": "## synth-uikit/react-blocks — react-blocks\nDescription : Bibliothèque de composants React accessibles, stylés avec Tailwind CSS : tableaux de données triables, formulaires, modales, graphiques et mises en page de tableau de bord.\nCas d'usage : • Monter rapidement l'interface d'un back-office en React\n• Afficher un tableau de données filtrable et paginé\n• Construire des formulaires validés et accessibles (ARIA)\nInstallation : npm install @synth-uikit/react-blocks\nExemple : <DataTable columns={colonnes} data={lignes} sortable paginate={20} />\nPrérequis : - React 18+\n- Tailwind CSS 3\nLangage : TypeScript\nLicence : MIT\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Composants d'interface React (tableaux, formulaires, graphiques) pour accélérer le développement web ; dépend de React et de Tailwind.",
+  "synth-videoscript/script2video": "## synth-videoscript/script2video — script2video\nDescription : Assemble une vidéo explicative en partant d'un script Markdown : chaque section devient une diapositive illustrée, la narration est générée par synthèse vocale et le tout est monté avec FFmpeg.\nCas d'usage : • Produire une capsule vidéo de cours inversé sur le calcul des volumes de terrassement\n• Créer des tutoriels courts pour les réseaux de l'établissement\n• Mettre à jour une vidéo en modifiant seulement le texte du script\nInstallation : pip install script2video\nscript2video init mon_projet\nExemple : script2video build terrassement.md --voix fr_FR-siwis --format 1080p\nPrérequis : - Python 3.10+\n- FFmpeg\n- Piper TTS voices (downloaded on first run)\n- Works on Windows, macOS and Linux; no GPU needed\nLangage : Python\nLicence : MIT\nCatégorie : Audio/Vidéo\nNotes : Idée : capsules pour le chapitre terrassements.\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Permet de produire des capsules pédagogiques reproductibles depuis un simple texte, sans logiciel de montage.\nBrique pour : Création audiovisuelle, Enseignement",
+  "synth-voxscribe/whisper-batch": "## synth-voxscribe/whisper-batch — whisper-batch\nDescription : Transcription en lot de fichiers audio et vidéo avec Whisper : sous-titres SRT ou VTT, texte horodaté et détection automatique de la langue.\nCas d'usage : • Transcrire les enregistrements de cours pour en tirer des supports écrits\n• Générer automatiquement les sous-titres de vidéos pédagogiques\nInstallation : pip install whisper-batch\nExemple : whisper-batch cours/*.mp4 --model medium --format srt\nPrérequis : - Python 3.9+\n- FFmpeg\n- GPU NVIDIA facultatif (CUDA) : fonctionne aussi sur CPU, plus lentement\nLangage : Python\nLicence : MIT\nCatégorie : Audio/Vidéo\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — [LLM mistral-small-2603 · profil 2026-10-11/8c41d2] U2·P3·T2·I2·C2·M2·L2 = 9 — Transcription et sous-titrage en lot avec Whisper ; le GPU accélère le traitement mais n'est pas obligatoire.\nBrique pour : Création audiovisuelle, Enseignement",
+  "synth-vpsguard/vps-backup": "## synth-vpsguard/vps-backup — vps-backup\nDescription : Sauvegardes chiffrées et planifiées d'un serveur Linux (dossiers, bases PostgreSQL et MySQL, volumes Docker) vers un stockage S3 ou un autre serveur SSH, avec rotation et alertes en cas d'échec.\nCas d'usage : • Sauvegarder chaque nuit la base PostgreSQL et les volumes d'un VPS\n• Recevoir un e-mail quand une sauvegarde échoue\n• Restaurer un dossier à une date donnée\nInstallation : curl -fsSL https://raw.githubusercontent.com/synth-vpsguard/vps-backup/main/install.sh | sudo bash\nExemple : vps-backup run --profil nuit\nPrérequis : - Linux avec systemd (Windows et macOS non pris en charge)\n- restic\nLangage : Autres langages\nLicence : MIT\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Sauvegarde simple d'un VPS Linux, volumes Docker compris, sans Kubernetes ni orchestrateur.",
+  "synth-vuekit/vue-dash-components": "## synth-vuekit/vue-dash-components — vue-dash-components\nDescription : Composants Vue 3 pour tableaux de bord : graphiques, tableaux paginés et filtrables, cartes d'indicateurs et sélecteurs de dates.\nCas d'usage : • Construire le tableau de bord d'une application de suivi en Vue 3\n• Afficher des indicateurs financiers avec des graphiques interactifs\nInstallation : npm install @synth-vuekit/vue-dash-components\nExemple : <KpiCard titre='CA mensuel' :valeur='ca' />\nPrérequis : - Vue 3.3+\nLangage : TypeScript\nLicence : MIT\nCatégorie : Autre\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Bibliothèque de composants de tableau de bord pour Vue 3 ; non utilisable dans une application React.",
+  "synth-yamlops/hookrunner": "## synth-yamlops/hookrunner — hookrunner\nDescription : Moteur d'automatisation léger piloté par des fichiers YAML : chaque flux associe un déclencheur (cron, webhook, dossier surveillé) à des actions (requête HTTP, e-mail, script). Aucune interface graphique.\nCas d'usage : • Lancer chaque matin un script de collecte puis envoyer le résultat par e-mail\n• Déclencher un traitement dès qu'un PDF arrive dans un dossier\n• Versionner ses automatisations dans Git plutôt que dans une base de données\nInstallation : curl -fsSL https://github.com/synth-yamlops/hookrunner/releases/latest/download/install.sh | sh\nExemple : hookrunner run flows/\nPrérequis : - Linux, macOS ou Windows (binaire unique)\n- Aucune dépendance : ni Docker, ni base de données\nLangage : Go\nLicence : MIT\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Automatisations décrites en YAML et exécutées par un binaire unique ; peut remplacer de petits workflows n8n ou Zapier pour qui préfère des fichiers versionnés, mais sans éditeur visuel ni connecteurs prêts à l'emploi.\nBrique pour : Automatisations n8n",
+  "synth-zapbridge/zapier-invoice-to-sheets": "## synth-zapbridge/zapier-invoice-to-sheets — zapier-invoice-to-sheets\nDescription : Application Zapier privée qui ajoute un déclencheur « Nouvelle facture détectée » et une action d'extraction des montants, pour envoyer les factures reçues dans Gmail vers Google Sheets.\nCas d'usage : • Créer un Zap qui recopie chaque facture reçue dans un tableau de dépenses\n• Notifier sur Slack les factures dépassant un montant donné\nInstallation : npm install -g zapier-platform-cli\nzapier login\nzapier push\nExemple : zapier invoke trigger new_invoice --inputData '{\"label\": \"Factures\"}'\nPrérequis : - Node.js 18+\n- A Zapier account (paid plan for multi-step Zaps)\n- Gmail and Google Sheets accounts\nLangage : JavaScript\nLicence : MIT\nCatégorie : Automatisation/No-code\nJustification : [LLM mistral-small-2603 · profil 2026-10-20/8c41d2] U1·P2·T1·I1·C1·M1·L0 = 7 — Solution prête pour qui reste sur Zapier ; moins intéressante si l'automatisation est faite dans n8n.\nBrique pour : Automatisations n8n, Documents et OCR"
+ }
+}
