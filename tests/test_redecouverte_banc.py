@@ -37,7 +37,11 @@ MESURES = {
 # Versions mesurées (§ 6, tableau du banc), commits d'une branche d'essai non publiée : patchs enchaînés depuis
 # f68b656 (versions/), empreinte du code obtenu ; la dernière est le code de cette branche
 VERSIONS = (('1_fe9fdeb', 'dba417ef5c615e10'), ('2_de04315', '392a52be81aa256c'), ('3_d4ffc83', '6fecb28fd86c551c'),
-            ('4_f8ae513', '8f26f81fea7e68ba'), ('5_eb8106f', '923d79cd8a75a4a8'), ('6_c3f4747', '18b9cf152f2ed425'))
+            ('4_f8ae513', '8f26f81fea7e68ba'), ('5_eb8106f', '923d79cd8a75a4a8'), ('6_c3f4747', '18b9cf152f2ed425'),
+            # 7 : étape POST-BANC, NON MESURÉE (A1, transparence seule) : prolonge la chaîne jusqu'au code de cette
+            # branche pour en attester l'identité ; ce n'est ni une version du tableau du banc, ni une nouvelle mesure
+            # (MESURES inchangé), ni une expérience de qualification
+            ('7_a1_transparence_postbanc', '9ee94dad25e8406a'))
 
 
 @pytest.fixture

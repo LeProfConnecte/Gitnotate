@@ -54,3 +54,14 @@ Remesurer une version : dans une copie de travail de cette branche (`git -c core
 `f68b656`, par exemple avec `appliquer_patch` de `tests/redecouverte_outils.py`), puis lancer
 `python -m pytest tests/test_redecouverte_banc.py -k mesures` : l'assertion qui échoue affiche, à gauche, les
 mesures de la version (exacts, faux « requis », « requis » justes, « requis » trouvés ; rôles justes, rôles).
+
+## Étape 7, post-banc, non mesurée
+
+`versions/7_a1_transparence_postbanc.patch` est **postérieure** au banc et **non mesurée** : elle ne figure pas dans le
+tableau des versions mesurées ci-dessus et ce n'est pas une nouvelle expérience de qualification. Elle est ajoutée
+seulement pour attester l'identité du code de cette branche après l'avertissement A1 (transparence seule, code
+`preuve_objet_etiquette_seule` dans « À vérifier ») : appliquée au code de `c3f4747`, elle ajoute 50 lignes à
+`redecouverte.py`, n'en retire aucune et laisse `redecouverte_lexique.py` inchangé ; empreinte `9ee94dad25e8406a`.
+Les cinq jeux du banc, leurs empreintes et les mesures figées (`MESURES`) sont inchangés. Depuis cet ajout, c'est cette
+étape, et non plus `6_c3f4747.patch`, qui donne le code de cette branche ; les versions 1 à 6 restent les versions
+historiques mesurées.

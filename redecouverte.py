@@ -5156,6 +5156,52 @@ def _limites(ctx: _Contexte, concepts: List[Concept]) -> None:
     r.a_verifier = limites
 
 
+# Transparence A1 (P3) : colonnes qui prouvent directement l'objet du besoin, et étiquettes de classification
+# (Catégorie, Brique pour, Type), qui classent la fiche sans décrire ce que fait le dépôt. La Justification (avis du
+# LLM) n'est jamais une preuve directe. Information seulement : niveau, score, couverture et rang restent ceux de
+# rechercher.
+COLONNES_ETIQUETTES = ('categorie', 'brique_pour', 'type')
+COLONNES_TEXTE_OBJET = ('nom', 'description', 'cas_usage', 'installation', 'exemple', 'prerequis', 'langage',
+                        'licence', 'notes')
+
+
+def preuve_objet_etiquette_seule(r: Resultat, objets: List[Concept]) -> Optional[Dict[str, Any]]:
+    """Entrée « À vérifier » d'une correspondance « forte » dont aucune notion objet du besoin (objets_du_besoin)
+    n'a de preuve directe dans une colonne de texte, sur aucune fiche du dépôt, alors qu'au moins une en a une dans
+    une étiquette ; None sinon. Une preuve voisine, la Justification ou une notion hors de l'objet n'évitent pas
+    l'entrée ; une occurrence niée n'est déjà plus dans Preuve.colonnes. Lit les seules preuves déjà calculées."""
+    if r.niveau != 'forte':
+        return None
+    concepts: List[Concept] = []
+    trouvees: Set[str] = set()
+    for c in objets:
+        etiquettes: Set[str] = set()
+        for p in r.preuves.get(c.cle, {}).values():
+            if p.mode != 'direct':
+                continue
+            if any(colonne in COLONNES_TEXTE_OBJET for colonne in p.colonnes):
+                return None
+            etiquettes.update(colonne for colonne in p.colonnes if colonne in COLONNES_ETIQUETTES)
+        if etiquettes:
+            concepts.append(c)
+            trouvees |= etiquettes
+    if not concepts:
+        return None
+    colonnes = [colonne for colonne in COLONNES_ETIQUETTES if colonne in trouvees]
+    noms = [f"« {c.nom} »" for c in concepts]
+    objet = f"de l'objet {noms[0]}" if len(noms) == 1 else f"des objets {', '.join(noms[:-1])} et {noms[-1]}"
+    une = len(colonnes) == 1
+    etiquettes_texte = 'une étiquette' if une else 'des étiquettes'
+    suffit = 'cette étiquette ne suffit' if une else 'ces étiquettes ne suffisent'
+    fonction = 'du dépôt' if est_depot(r.cle) else 'de la ressource'
+    texte = (f"Preuve directe {objet} limitée à {etiquettes_texte} "
+             f"({' / '.join(CHAMP_DE_COLONNE[colonne] for colonne in colonnes)}) : la correspondance reste forte "
+             f"selon le calcul lexical ; {suffit} pas à attester la fonction {fonction}. Vérifiez la description "
+             f"et les cas d'usage.")
+    return {'code': 'preuve_objet_etiquette_seule', 'texte': texte, 'concepts': [c.cle for c in concepts],
+            'colonnes': colonnes}
+
+
 def _limite_non_notee(f: Dict[str, Any]) -> str:
     """Phrase fixe choisie d'après le corps de la Justification « [NON NOTÉ] … » écrite par gitnotate.py."""
     corps = (f['champs'].get('Justification') or {}).get('texte', '')
@@ -5277,6 +5323,7 @@ def expliquer(con: sqlite3.Connection, reponse: Reponse) -> None:
     """Remplit, pour chaque résultat affiché : Répond à, extraits, Établi, À vérifier, statuts, Voir aussi."""
     concepts = [c for c in reponse.requete.concepts if not c.retire]
     essentiels = ensembles_niveau(concepts)[0]
+    objets = objets_du_besoin(concepts, essentiels)       # mêmes notions objet que le niveau calculé par rechercher
     for r in reponse.affiches:
         ctx = _Contexte(r, _charger_resultat(con, r))
         r.statuts = statuts_du_depot(r.fiches)
@@ -5286,6 +5333,9 @@ def expliquer(con: sqlite3.Connection, reponse: Reponse) -> None:
             _extraits(ctx, concepts)
             _etabli(ctx)
         _limites(ctx, concepts)
+        etiquette_seule = preuve_objet_etiquette_seule(r, objets)        # transparence A1, après le classement
+        if etiquette_seule is not None:
+            r.a_verifier.append(etiquette_seule)
         _exclusions(ctx)
 
 # =============================================================================
