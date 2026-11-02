@@ -477,3 +477,49 @@ def test_justification_avis_du_llm_ou_saisie_par_vous(banc):
     assert llm.niveau == saisi.niveau == 'forte'
     assert [a['colonnes'] for a in _alertes(llm)] == [['categorie']]
     assert _alertes(saisi) == []
+
+# =============================================================================
+# X2b : repli des notions objet sur le rôle contexte (objets_du_besoin, deuxième repli)
+# =============================================================================
+def test_repli_des_notions_objet_role_contexte(banc, monkeypatch):
+    """X2b : « en Python pour mes vidéos ». Le seul essentiel est une contrainte (Python) : aucun essentiel n'est une
+    notion essentielle du lexique, l'objet du besoin est donc la notion essentielle de rôle contexte « vidéos »
+    (deuxième repli d'objets_du_besoin), et non le repli final sur les essentiels (Python). Prouvée par le seul Type
+    d'une des deux fiches du dépôt, alors que Python est écrit dans le Langage des deux : exactement une alerte, objet
+    « video », colonne type, en dernier ; elle ne change ni le niveau, ni le score, ni la couverture, ni le rang, ni
+    les preuves, ni les autres lignes. Un avertissement qui sauterait ce repli (mutant X2b) retomberait sur Python,
+    prouvé par du texte, et n'en produirait aucune. Pages fictives ; valeurs mesurées sur le moteur."""
+    rd = banc.rd
+    url = 'https://github.com/test/monteur'
+    index_du_corpus(rd, [_fiche('monteur', url, Type=p_multi('Vidéo'), Langage=p_select('Python')),
+                         _fiche('monteur', url, '2026-10-12T08:00:00.000Z', Langage=p_select('Python')),
+                         _fiche('temoin')])
+    reponse = _chercher(rd, 'en Python pour mes vidéos')
+    actifs = [c for c in reponse.requete.concepts if not c.retire]
+    assert [(c.cle, c.classe, c.role) for c in actifs] == [('python', 'contrainte', 'normal'),
+                                                          ('video', 'essentiel', 'contexte')]
+    # premier repli inapplicable : l'unique essentiel est une contrainte, pas une notion essentielle du lexique
+    assert [(c.cle, c.classe) for c in rd.ensembles_niveau(actifs)[0]] == [('python', 'contrainte')]
+    assert _objets(rd, reponse) == ['video']               # deuxième repli (rôle contexte), pas ['python']
+    r = _resultat(reponse, 'test/monteur')
+    assert r.niveau == 'forte' and r.rang == 1 and len(r.fiches) == 2
+    # l'objet n'est prouvé directement que par le Type d'une fiche : aucune colonne de texte, sur aucune des deux
+    assert [(p.mode, p.colonnes) for p in r.preuves['video'].values()] == [('direct', ['type'])]
+    assert [(p.mode, p.colonnes) for p in r.preuves['python'].values()] == [('direct', ['langage'])] * 2
+    alertes = _alertes(r)
+    assert len(alertes) == 1, "objet du repli « rôle contexte » ignoré par l'avertissement (mutant X2b)"
+    assert alertes[0]['concepts'] == ['video'] and alertes[0]['colonnes'] == ['type']
+    assert alertes[0]['texte'].startswith("Preuve directe de l'objet « vidéos » limitée à une étiquette (Type) : ")
+    assert r.a_verifier[-1] is alertes[0]
+
+    def preuves(x):
+        return {c: {i: (p.mode, p.colonnes, p.niees, p.m) for i, p in par.items()} for c, par in x.preuves.items()}
+
+    monkeypatch.setattr(rd, 'preuve_objet_etiquette_seule', lambda r, objets: None)
+    neutre = _chercher(rd, 'en Python pour mes vidéos')
+    sans = _resultat(neutre, 'test/monteur')
+    assert [x.cle for x in neutre.affiches] == [x.cle for x in reponse.affiches]
+    assert (sans.niveau, sans.score, sans.couverture, sans.rang) == (r.niveau, r.score, r.couverture, r.rang)
+    assert preuves(sans) == preuves(r)
+    assert sans.a_verifier == r.a_verifier[:-1] and _alertes(sans) == []
+    assert [a['code'] for a in sans.a_verifier] == ['non_verifie', 'licence_inconnue']

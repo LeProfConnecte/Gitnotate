@@ -581,7 +581,14 @@ modifié dans Notion. Sinon : `rien de vérifié mot pour mot dans le README` (s
 `(Installation modifiée dans Notion : voir À vérifier)` quand c'est la raison). Un extrait déjà cité
 dans `D'après la fiche` n'est pas répété : `extrait cité ci-dessus`.
 
-**À vérifier** (liste fermée) :
+**À vérifier** (motifs documentés ; codes extensibles) :
+
+Dans le JSON `gitnotate-redecouverte/1`, `a_verifier[].code` peut recevoir de nouvelles valeurs sans
+changement de `FORMAT_EXPORT` ni de `__version__`. Les consommateurs doivent pouvoir afficher le champ
+`texte` d'un code inconnu, ou ignorer cette entrée sans rejeter l'ensemble de la réponse. Les propriétés
+complémentaires (`concepts`, `colonnes`, etc.) dépendent du code ; le nombre, l'ordre et le dernier élément
+de `a_verifier` ne constituent pas des invariants. Cette clarification ne prouve pas la compatibilité des
+consommateurs externes déjà déployés, qui n'ont pas été vérifiés.
 
 - version de la fiche non reconnue ;
 - fiches produites par une première version de Gitnotate (jusqu'à la v7.2) : la liste des champs
