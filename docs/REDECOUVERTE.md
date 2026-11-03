@@ -581,7 +581,14 @@ modifié dans Notion. Sinon : `rien de vérifié mot pour mot dans le README` (s
 `(Installation modifiée dans Notion : voir À vérifier)` quand c'est la raison). Un extrait déjà cité
 dans `D'après la fiche` n'est pas répété : `extrait cité ci-dessus`.
 
-**À vérifier** (liste fermée) :
+**À vérifier** (motifs documentés ; codes extensibles) :
+
+Dans le JSON `gitnotate-redecouverte/1`, `a_verifier[].code` peut recevoir de nouvelles valeurs sans
+changement de `FORMAT_EXPORT` ni de `__version__`. Les consommateurs doivent pouvoir afficher le champ
+`texte` d'un code inconnu, ou ignorer cette entrée sans rejeter l'ensemble de la réponse. Les propriétés
+complémentaires (`concepts`, `colonnes`, etc.) dépendent du code ; le nombre, l'ordre et le dernier élément
+de `a_verifier` ne constituent pas des invariants. Cette clarification ne prouve pas la compatibilité des
+consommateurs externes déjà déployés, qui n'ont pas été vérifiés.
 
 - version de la fiche non reconnue ;
 - fiches produites par une première version de Gitnotate (jusqu'à la v7.2) : la liste des champs
@@ -609,7 +616,17 @@ dans `D'après la fiche` n'est pas répété : `extrait cité ci-dessus`.
 - champ modifié dans Notion (mise en forme, plusieurs segments, mention) : une partie du texte peut
   venir de vous ; un tel champ README n'est plus présenté comme établi ni « mot pour mot » ;
 - Pertinence différente de la note écrite dans la Justification, ou posée sur une fiche non notée ;
-- texte ressemblant à un jeton, masqué.
+- texte ressemblant à un jeton, masqué ;
+- preuve directe de l'objet limitée à une étiquette (transparence A1) : pour une correspondance
+  « forte », aucune notion objet du besoin n'est trouvée directement dans une colonne de texte (titre ou
+  `propriétaire/dépôt`, Description, Cas d'usage, Installation, Exemple, Prérequis, Langage, Licence,
+  colonnes personnelles) d'aucune fiche du dépôt, mais au moins une l'est dans Catégorie, Brique pour
+  ou Type. Une preuve par concept voisin ou une Justification reconnue comme avis du LLM (préfixe
+  Gitnotate) n'évite pas cet avertissement ; en revanche, une Justification saisie par vous, sans
+  préfixe Gitnotate, est indexée avec les colonnes personnelles et compte comme du texte : elle peut
+  donc l'éviter. C'est une observation sur la preuve, pas un jugement de pertinence : la
+  correspondance reste « forte », son score, sa couverture et son rang ne changent pas. En JSON : code
+  `preuve_objet_etiquette_seule` dans `a_verifier`, avec `concepts` et `colonnes`.
 
 **Lignes suivantes** : `Statut` (tous les statuts des fiches du dépôt, ceux que vous avez posés
 d'abord) ; `Licence`, `Langage`, `Étoiles` (à la date d'analyse) ; `Projets` (`Brique pour`) ;
@@ -1098,6 +1115,11 @@ valeur attendue dans le `LISEZMOI.md` du dossier.
   description et l'avis du LLM (qui compte peu) ; elle ressort moins qu'une v7.3+. Signalé, non
   compensé : seule une nouvelle analyse l'enrichirait, ce que le moteur ne fait pas (aucune écriture
   dans Notion).
+- **Preuve par étiquette** (transparence A1) : l'avertissement ne repère que l'objet trouvé
+  seulement dans Catégorie, Brique pour ou Type. Il ne voit ni un thème ou un public écrit dans la
+  Description, ni un objet retiré de la requête, et ne déclasse rien : une « forte » sans
+  avertissement n'est pas pour autant pertinente. Une colonne personnelle compte comme du texte, même
+  quand elle sert d'étiquette.
 - **Heuristiques de la phrase** : la négation porte sur les 4 mots de contenu qui suivent et s'arrête
   à une ponctuation ou à un mot de liaison, même placé juste après le déclencheur (« pas pour X »,
   « not for X » : X reste cherché, défaut connu), sauf devant une technologie nommée (« pas avec
