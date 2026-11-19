@@ -203,7 +203,7 @@ def _env_choice(name: str, default: str, choices: Tuple[str, ...]) -> str:
     return value
 
 
-LLM_PROVIDERS_KNOWN = ('mistral', 'openrouter')
+LLM_PROVIDERS_KNOWN = ('mistral', 'openrouter', 'openai', 'anthropic')
 
 
 def _env_providers(name: str, default: str) -> List[str]:
@@ -234,6 +234,8 @@ NOTION_TOKEN       = _env_str('NOTION_TOKEN')
 GITHUB_TOKEN       = _env_str('GITHUB_TOKEN')
 OPENROUTER_API_KEY = _env_str('OPENROUTER_API_KEY')
 MISTRAL_API_KEY    = _env_str('MISTRAL_API_KEY')
+OPENAI_API_KEY     = _env_str('OPENAI_API_KEY')
+ANTHROPIC_API_KEY  = _env_str('ANTHROPIC_API_KEY')
 DATABASE_ID        = _env_str('DATABASE_ID')
 PARENT_PAGE_ID     = _env_str('PARENT_PAGE_ID')   # vérifié dans main()
 CREATE_DATABASE    = _env_bool('CREATE_DATABASE', 'false')
@@ -257,6 +259,10 @@ if MISTRAL_MODEL.lower() in _MISTRAL_MODELS_V71:
 # OPENROUTER_MODEL, sinon l'ancienne variable TRANSLATION_MODEL (compatibilité), sinon le routeur gratuit
 OPENROUTER_MODEL_DEFAULT = 'openrouter/free'
 OPENROUTER_MODEL = _env_str('OPENROUTER_MODEL') or _env_str('TRANSLATION_MODEL') or OPENROUTER_MODEL_DEFAULT
+OPENAI_MODEL_DEFAULT = 'gpt-6-luna'
+OPENAI_MODEL = _env_str('OPENAI_MODEL', OPENAI_MODEL_DEFAULT)
+ANTHROPIC_MODEL_DEFAULT = 'claude-sonnet-4-6'
+ANTHROPIC_MODEL = _env_str('ANTHROPIC_MODEL', ANTHROPIC_MODEL_DEFAULT)
 _OPENROUTER_MODEL_V71 = 'openai/gpt-oss-20b:free'      # ancien défaut de la v7.1
 if not _env_str('OPENROUTER_MODEL') and _env_str('TRANSLATION_MODEL'):
     CONFIG_WARNINGS.append("TRANSLATION_MODEL (v7.1) est obsolète : supprimez la ligne pour utiliser "
@@ -271,6 +277,8 @@ LLM_BREAKER_THRESHOLD = _env_int('LLM_BREAKER_THRESHOLD', 3, 1)  # échecs cons�
 LLM_RETRY_WAIT_MAX    = 60                                       # attente max avant la nouvelle tentative
 OPENROUTER_RPM        = _env_int('OPENROUTER_RPM', 18, 0)        # requêtes/minute côté client (0 = sans limite)
 MISTRAL_RPM           = _env_int('MISTRAL_RPM', 60, 0)
+OPENAI_RPM            = _env_int('OPENAI_RPM', 30, 0)
+ANTHROPIC_RPM         = _env_int('ANTHROPIC_RPM', 30, 0)
 MAX_NEW_PER_RUN       = _env_int('MAX_NEW_PER_RUN', 0, 0)        # 0 = illimité
 
 # Mode reprise : seule la valeur explicite 'false' revient au comportement historique (fiche lexicale)
@@ -322,6 +330,7 @@ if LOG_LEVEL not in _LOG_LEVELS:
 
 TRANSLATION_PROVIDER: Optional[str] = None
 TRANSLATION_FALLBACK: Optional[str] = None
+ACTIVE_LLM_PROVIDERS: List[str] = []  # tous les fournisseurs actifs, dans l'ordre
 
 # Prompt traduction seule (utilisé si LLM_SCORING_ENABLED=false)
 SYSTEM_PROMPT_TRANSLATE = (
@@ -932,6 +941,15 @@ MISTRAL_HEADERS = {
     'Authorization': f'Bearer {MISTRAL_API_KEY}',
     'Content-Type':  'application/json',
 }
+OPENAI_HEADERS = {
+    'Authorization': f'Bearer {OPENAI_API_KEY}',
+    'Content-Type':  'application/json',
+}
+ANTHROPIC_HEADERS = {
+    'x-api-key':         ANTHROPIC_API_KEY,
+    'anthropic-version': '2023-06-01',
+    'Content-Type':      'application/json',
+}
 
 # =============================================================================
 # SESSION HTTP PAR THREAD
@@ -1424,11 +1442,17 @@ def validate_all_tokens() -> bool:
 LLM_ENDPOINTS = {
     'mistral':    'https://api.mistral.ai/v1/chat/completions',
     'openrouter': 'https://openrouter.ai/api/v1/chat/completions',
+    'openai':     'https://api.openai.com/v1/responses',
+    'anthropic':  'https://api.anthropic.com/v1/messages',
 }
 OPENROUTER_KEY_URL    = 'https://openrouter.ai/api/v1/key'      # lecture de la clé : ne consomme aucun quota
 OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models'   # liste publique des modèles : aucun quota
-_PROVIDER_NAMES    = {'mistral': 'Mistral AI', 'openrouter': 'OpenRouter'}
-_PROVIDER_KEY_VARS = {'mistral': 'MISTRAL_API_KEY', 'openrouter': 'OPENROUTER_API_KEY'}
+OPENAI_MODELS_URL     = 'https://api.openai.com/v1/models'       # vérification sans génération
+ANTHROPIC_MODELS_URL  = 'https://api.anthropic.com/v1/models'   # vérification sans génération
+_PROVIDER_NAMES    = {'mistral': 'Mistral AI', 'openrouter': 'OpenRouter',
+                      'openai': 'OpenAI', 'anthropic': 'Anthropic'}
+_PROVIDER_KEY_VARS = {'mistral': 'MISTRAL_API_KEY', 'openrouter': 'OPENROUTER_API_KEY',
+                      'openai': 'OPENAI_API_KEY', 'anthropic': 'ANTHROPIC_API_KEY'}
 _OPENROUTER_DAILY_QUOTA_MARKERS = ('per-day', 'per day', 'daily')
 _BUDGET_EXHAUSTED = "quota gratuit du jour épuisé (budget lu au démarrage)"
 
@@ -1566,7 +1590,9 @@ class NewRepoBudget:
 
 def _new_llm_states() -> Dict[str, LLMProviderState]:
     return {'mistral':    LLMProviderState('mistral', MISTRAL_RPM),
-            'openrouter': LLMProviderState('openrouter', OPENROUTER_RPM)}
+            'openrouter': LLMProviderState('openrouter', OPENROUTER_RPM),
+            'openai':     LLMProviderState('openai', OPENAI_RPM),
+            'anthropic':  LLMProviderState('anthropic', ANTHROPIC_RPM)}
 
 
 LLM_STATES: Dict[str, LLMProviderState] = _new_llm_states()
@@ -1577,9 +1603,10 @@ _announce_lock = Lock()
 
 def reset_llm_runtime() -> None:
     """État neuf pour un run (appelé par _run)."""
-    global LLM_STATES, NEW_REPO_BUDGET
-    LLM_STATES      = _new_llm_states()
-    NEW_REPO_BUDGET = NewRepoBudget(MAX_NEW_PER_RUN)
+    global LLM_STATES, NEW_REPO_BUDGET, ACTIVE_LLM_PROVIDERS
+    LLM_STATES           = _new_llm_states()
+    NEW_REPO_BUDGET      = NewRepoBudget(MAX_NEW_PER_RUN)
+    ACTIVE_LLM_PROVIDERS = []
     with _announce_lock:
         _ANNOUNCED.clear()
 
@@ -1602,7 +1629,8 @@ def _provider_state(provider: str) -> LLMProviderState:
 
 
 def _provider_model(provider: str) -> str:
-    return MISTRAL_MODEL if provider == 'mistral' else OPENROUTER_MODEL
+    return {'mistral': MISTRAL_MODEL, 'openrouter': OPENROUTER_MODEL,
+            'openai': OPENAI_MODEL, 'anthropic': ANTHROPIC_MODEL}[provider]
 
 
 def _provider_label(provider: str) -> str:
@@ -1610,16 +1638,18 @@ def _provider_label(provider: str) -> str:
 
 
 def _provider_key(provider: str) -> str:
-    return {'mistral': MISTRAL_API_KEY, 'openrouter': OPENROUTER_API_KEY}.get(provider, '')
+    return {'mistral': MISTRAL_API_KEY, 'openrouter': OPENROUTER_API_KEY,
+            'openai': OPENAI_API_KEY, 'anthropic': ANTHROPIC_API_KEY}.get(provider, '')
 
 
 def _provider_headers(provider: str) -> Dict[str, str]:
-    return MISTRAL_HEADERS if provider == 'mistral' else OPENROUTER_HEADERS
+    return {'mistral': MISTRAL_HEADERS, 'openrouter': OPENROUTER_HEADERS,
+            'openai': OPENAI_HEADERS, 'anthropic': ANTHROPIC_HEADERS}[provider]
 
 
 def configured_providers() -> List[str]:
     """Fournisseurs retenus au démarrage, dans l'ordre d'essai."""
-    return [p for p in (TRANSLATION_PROVIDER, TRANSLATION_FALLBACK) if p]
+    return list(ACTIVE_LLM_PROVIDERS) if ACTIVE_LLM_PROVIDERS else [p for p in (TRANSLATION_PROVIDER, TRANSLATION_FALLBACK) if p]
 
 
 def llm_required() -> bool:
@@ -1687,6 +1717,18 @@ def _llm_json_schema() -> Dict:
 
 
 def build_llm_body(provider: str, messages: List[Dict], temperature: float, max_tokens: int) -> Dict:
+    if provider == 'openai':
+        # Responses API : ne pas conserver les réponses côté fournisseur.
+        # Aucun paramètre temperature : compatible aussi avec les modèles de raisonnement.
+        return {'model': OPENAI_MODEL, 'input': messages, 'max_output_tokens': max_tokens,
+                'store': False}
+    if provider == 'anthropic':
+        # Messages API : le rôle system est un champ séparé.
+        system = '\n'.join(str(m.get('content', '')) for m in messages if m.get('role') == 'system')
+        conversation = [{'role': m['role'], 'content': m['content']} for m in messages
+                        if m.get('role') in ('user', 'assistant')]
+        return {'model': ANTHROPIC_MODEL, 'max_tokens': max_tokens,
+                'system': system, 'messages': conversation}
     body: Dict[str, Any] = {
         'model':       _provider_model(provider),
         'messages':    messages,
@@ -1880,6 +1922,38 @@ def _probe_mistral() -> Tuple[bool, str]:
     return False, f"❌ {name} — requête refusée même sans les paramètres optionnels"
 
 
+def _probe_direct_provider(provider: str) -> Tuple[bool, str]:
+    """Vérifie une clé OpenAI/Anthropic via GET /models : aucune génération facturée."""
+    name = _provider_label(provider)
+    state = _provider_state(provider)
+    endpoint = OPENAI_MODELS_URL if provider == 'openai' else ANTHROPIC_MODELS_URL
+    try:
+        response = _probe_send(name, lambda: get_session().get(
+            endpoint, headers=_provider_headers(provider), timeout=15))
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
+        state.startup_issue = 'network'
+        return False, f"⚠️  {name} — injoignable : ignoré pour ce run"
+    except Exception as e:
+        state.startup_issue = 'network'
+        return False, f"⚠️  {name} — injoignable ({type(e).__name__}) : ignoré pour ce run"
+    status = response.status_code
+    detail = _api_error_text(response)
+    suffix = f" — {detail}" if detail else ""
+    if status in (401, 403):
+        state.startup_issue = 'key'
+        return False, f"❌ {name} — accès refusé (HTTP {status}{suffix}) : ignoré"
+    if status != 200:
+        state.startup_issue = 'other'
+        return False, f"❌ {name} — contrôle des modèles impossible (HTTP {status}{suffix}) : ignoré"
+    data = (_json_dict(response) or {}).get('data')
+    ids = {m['id'] for m in data if isinstance(m, dict) and isinstance(m.get('id'), str)} if isinstance(data, list) else set()
+    if _provider_model(provider) not in ids:
+        state.startup_issue = 'model'
+        return False, (f"❌ {name} — modèle indisponible dans la liste API : "
+                       f"corrigez {_PROVIDER_NAMES[provider].upper()}_MODEL dans .env")
+    return True, f"✅ {name} — clé et modèle vérifiés (aucune génération)"
+
+
 def startup_hints() -> List[str]:
     """Pistes du message d'arrêt « aucun fournisseur LLM disponible », selon la cause relevée au
     test de démarrage de chaque fournisseur (jamais REQUIRE_LLM=false : aucune fiche dégradée)."""
@@ -1897,7 +1971,8 @@ def startup_hints() -> List[str]:
             hints.append(f"{label} : quota gratuit du jour épuisé — relancez après minuit UTC")
         elif issue == 'model':
             fix = (f"OPENROUTER_MODEL={OPENROUTER_MODEL_DEFAULT}" if provider == 'openrouter'
-                   else f"supprimez la ligne MISTRAL_MODEL pour utiliser {MISTRAL_MODEL_DEFAULT}")
+                   else f"supprimez la ligne MISTRAL_MODEL pour utiliser {MISTRAL_MODEL_DEFAULT}" if provider == 'mistral'
+                   else f"corrigez {provider.upper()}_MODEL")
             hints.append(f"{label} : modèle introuvable — corrigez le modèle dans .env ({fix})")
         elif issue in ('network', 'other'):
             hints.append(f"{label} : injoignable ou indisponible — vérifiez la connexion et relancez plus "
@@ -1912,6 +1987,7 @@ def init_translation_providers() -> Tuple[Optional[str], Optional[str]]:
         log("   ℹ️  Traduction désactivée (TRANSLATION_ENABLED=false) — scoring lexical, REQUIRE_LLM sans effet")
         return None, None
 
+    global ACTIVE_LLM_PROVIDERS
     log(f"🔍 Détection des fournisseurs LLM (ordre : {' → '.join(LLM_PROVIDERS)})...")
     active: List[str] = []
     for provider in LLM_PROVIDERS:
@@ -1919,16 +1995,22 @@ def init_translation_providers() -> Tuple[Optional[str], Optional[str]]:
             _provider_state(provider).startup_issue = 'nokey'
             log(f"   ℹ️  {_provider_label(provider)} ignoré : {_PROVIDER_KEY_VARS[provider]} absente")
             continue
-        ok, msg = _probe_mistral() if provider == 'mistral' else _probe_openrouter()
+        if provider == 'mistral':
+            ok, msg = _probe_mistral()
+        elif provider == 'openrouter':
+            ok, msg = _probe_openrouter()
+        else:
+            ok, msg = _probe_direct_provider(provider)
         # Fournisseur écarté : cause toujours affichée (même avec LOG_LEVEL=quiet)
         log(f"   {msg}", 'normal' if ok else 'error')
         if ok:
             active.append(provider)
 
+    ACTIVE_LLM_PROVIDERS = list(active)
     primary  = active[0] if active else None
     fallback = active[1] if len(active) > 1 else None
-    if primary and fallback:
-        log(f"   💡 Stratégie: {_provider_label(primary)} (primaire) → {_provider_label(fallback)} (secours)")
+    if len(active) > 1:
+        log(f"   💡 Stratégie: {' → '.join(_provider_label(p) for p in active)}")
     elif primary:
         log(f"   💡 Stratégie: {_provider_label(primary)} uniquement")
     elif llm_required():
@@ -2039,18 +2121,36 @@ def _call_translation_api(provider: str, messages: List[Dict],
             return None
 
         payload = _json_dict(response)
-        choices = payload.get('choices') if payload else None
-        if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
-            log(f"   ⚠️  {provider} : réponse sans 'choices' exploitable", 'verbose')
-            state.record_failure("réponse sans 'choices'")
-            return None
-        choice = choices[0]
-        if choice.get('finish_reason') == 'length':
-            log(f"   ⚠️  {provider} : réponse tronquée (finish_reason=length)", 'verbose')
-            state.record_failure("réponse tronquée (finish_reason=length)")
-            return None
-        message = choice.get('message') if isinstance(choice.get('message'), dict) else {}
-        text = _normalize_llm_content(message.get('content'))
+        if provider == 'openai':
+            # Responses API : ne jamais confondre raisonnement et texte final.
+            if not payload or payload.get('status') == 'incomplete':
+                state.record_failure("réponse OpenAI incomplète")
+                return None
+            parts = []
+            for item in payload.get('output', []):
+                if isinstance(item, dict) and item.get('type') == 'message':
+                    for block in item.get('content', []):
+                        if isinstance(block, dict) and block.get('type') == 'output_text' and isinstance(block.get('text'), str):
+                            parts.append(block['text'])
+            text = ''.join(parts).strip()
+        elif provider == 'anthropic':
+            if not payload or payload.get('stop_reason') == 'max_tokens':
+                state.record_failure("réponse Anthropic tronquée")
+                return None
+            text = _normalize_llm_content(payload.get('content'))
+        else:
+            choices = payload.get('choices') if payload else None
+            if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
+                log(f"   ⚠️  {provider} : réponse sans 'choices' exploitable", 'verbose')
+                state.record_failure("réponse sans 'choices'")
+                return None
+            choice = choices[0]
+            if choice.get('finish_reason') == 'length':
+                log(f"   ⚠️  {provider} : réponse tronquée (finish_reason=length)", 'verbose')
+                state.record_failure("réponse tronquée (finish_reason=length)")
+                return None
+            message = choice.get('message') if isinstance(choice.get('message'), dict) else {}
+            text = _normalize_llm_content(message.get('content'))
         if not text:
             log(f"   ⚠️  {provider} : réponse vide", 'verbose')
             state.record_failure("réponse vide")
@@ -4733,9 +4833,7 @@ def print_summary(elapsed: float, total: int, interrupted: bool) -> None:
     log(f"   • Reportés:        {stats.deferred}  (aucune fiche écrite, repris au prochain run)")
 
     if stats.translation_total > 0:
-        provider_label = TRANSLATION_PROVIDER or 'none'
-        if TRANSLATION_FALLBACK:
-            provider_label += f" + {TRANSLATION_FALLBACK}"
+        provider_label = ' + '.join(configured_providers()) or 'none'
         log(f"   • Traductions:     {stats.translation_success}/{stats.translation_total} "
             f"({stats.translation_rate:.1f}%) — {provider_label}")
 

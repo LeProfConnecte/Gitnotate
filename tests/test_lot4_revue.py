@@ -518,7 +518,7 @@ def test_m9_uri_sans_autorite(banc):
 
 
 def test_m9_index_dans_un_dossier_au_nom_difficile(load_gn, monkeypatch, tmp_path, capsys):
-    dossier = tmp_path / 'Données #1 ?'
+    dossier = tmp_path / 'Données #1 +'  # caractères difficiles valides sur Windows et Linux (le ? est testé via PureWindowsPath)
     dossier.mkdir()
     banc = preparer(load_gn, monkeypatch, GITNOTATE_DATA_DIR=str(dossier))
     index_du_corpus(banc.rd)

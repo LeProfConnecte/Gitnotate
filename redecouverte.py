@@ -512,7 +512,7 @@ def lire_pages(cfg: Config) -> Lecture:
 # JETONS : MASQUAGE ET ANALYSE DES OCTETS
 # =============================================================================
 _NOMS_SECRETS = ('NOTION_TOKEN', 'NOTION_READONLY_TOKEN', 'NOTION_CLEANER_TOKEN', 'GITHUB_TOKEN',
-                 'MISTRAL_API_KEY', 'OPENROUTER_API_KEY')
+                 'MISTRAL_API_KEY', 'OPENROUTER_API_KEY', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY')
 _MOTIFS_JETONS = re.compile(r'ntn_[A-Za-z0-9]{20,}|secret_[A-Za-z0-9]{20,}|gh[pousr]_[A-Za-z0-9]{20,}'
                             r'|github_pat_[A-Za-z0-9_]{20,}|sk-or-v1-[0-9a-f]{20,}')
 
@@ -6021,6 +6021,10 @@ def texte_apercu(envoi: Envoi) -> str:
         reglage = gn.OPENROUTER_DATA_COLLECTION
         confidentialite.append(f"OpenRouter : OPENROUTER_DATA_COLLECTION={reglage}" if reglage else
                                "OpenRouter : OPENROUTER_DATA_COLLECTION non défini (réglage du compte OpenRouter)")
+    if 'openai' in envoi.fournisseurs:
+        confidentialite.append("OpenAI : données envoyées à l'API OpenAI (voir politique du compte API)")
+    if 'anthropic' in envoi.fournisseurs:
+        confidentialite.append("Anthropic : données envoyées à l'API Anthropic (voir politique du compte API)")
     if confidentialite:
         lignes += _envelopper('   Confidentialité : ', ' ; '.join(confidentialite), 21)
     lignes += [f"   Remarque    : {r}" for r in envoi.remarques]

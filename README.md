@@ -26,7 +26,9 @@ Avant la première utilisation réelle de la v7.4, suivez [docs/VALIDATION.md](d
   Trois autres colonnes facultatives sont lues depuis la v7.3 : `Licence`, `Catégorie` et
   `Brique pour` (voir [Colonnes facultatives](#colonnes-facultatives)). Une base de la v7.1 ou de
   la v7.2 reste utilisable telle quelle.
-- Une clé API Mistral (fournisseur principal). Une clé OpenRouter est facultative (secours).
+- Une clé API d'un fournisseur configuré : Mistral (principal par défaut), OpenRouter (secours),
+  ou, en option explicite, OpenAI ou Anthropic en direct. Les abonnements ChatGPT/Claude Code ne
+  remplacent pas des crédits API.
 - Facultatif : un jeton GitHub en lecture seule (sans jeton : 60 requêtes GitHub par heure).
 - Pour `redecouverte.py` seulement : SQLite avec le module FTS5 (inclus dans le Python de
   python.org) ; recommandé, une seconde intégration Notion limitée à « Read content »
@@ -57,7 +59,7 @@ Python ne trouve pas les dépendances (`ModuleNotFoundError: No module named 're
 
 Copiez le modèle en `.env` **dans le dossier du script** (`Copy-Item env.example .env` sous
 PowerShell, `cp env.example .env` sous Linux) et renseignez au minimum `NOTION_TOKEN`,
-`PARENT_PAGE_ID`, `DATABASE_ID` et `MISTRAL_API_KEY` ; chaque variable y est commentée avec sa valeur
+`PARENT_PAGE_ID`, `DATABASE_ID` et une clé du fournisseur retenu (Mistral par défaut) ; chaque variable y est commentée avec sa valeur
 par défaut. Le profil qui sert à noter les dépôts se règle dans `user_profile.json` (ou
 `USER_PROFILE_JSON`) : voir [Profil de pertinence](#profil-de-pertinence-user_profilejson). Le
 `.env` contient vos secrets : ne le partagez jamais (il est exclu de git).
@@ -65,9 +67,10 @@ par défaut. Le profil qui sert à noter les dépôts se règle dans `user_profi
 ## Premier lancement
 
 1. `python scripts/check_llm.py` vérifie les clés LLM sans consommer de quota de génération
-   (code 0 : au moins une clé, et toutes les clés présentes sont valides ; le modèle Mistral est
-   vérifié si `MISTRAL_API_KEY` est renseignée, le modèle OpenRouter si `OPENROUTER_API_KEY` l'est ;
-   le quota gratuit OpenRouter est affiché).
+   (code 0 : au moins une clé, et toutes les clés présentes sont valides ;
+   le modèle Mistral est vérifié si `MISTRAL_API_KEY` est renseignée ; les modèles OpenRouter,
+   OpenAI et Anthropic sont vérifiés pour les clés renseignées ; les deux fournisseurs directs
+   supplémentaires sont testés sans génération ; le quota gratuit OpenRouter est affiché).
 2. Pas encore de base ? Avec `CREATE_DATABASE=true`, `python gitnotate.py` crée « Ressources GitHub »
    (avec toutes les colonnes, y compris `Justification` et les trois colonnes facultatives de la
    v7.3) dans la page source, affiche son ID (noté aussi dans `.gitnotate_state.json`)
@@ -459,12 +462,20 @@ avec leur type.
 
 ## Fournisseurs LLM et mode reprise
 
-- Ordre par défaut (`LLM_PROVIDERS=mistral,openrouter`) : **Mistral** en direct avec
-  `mistral-small-2603` (Mistral Small 4), puis **OpenRouter** `openrouter/free` en secours. Un
-  fournisseur sans clé est ignoré ; une réponse vide, tronquée ou invalide fait passer au suivant.
+- Ordre par défaut inchangé (`LLM_PROVIDERS=mistral,openrouter`) : **Mistral** en direct avec
+  `mistral-small-2603`, puis **OpenRouter** `openrouter/free`. On peut désormais choisir une chaîne
+  de quatre fournisseurs, par exemple `LLM_PROVIDERS=openai,anthropic,mistral,openrouter`.
+  OpenAI utilise l'API **Responses** (`OPENAI_MODEL`, défaut `gpt-6-luna`, `store=false`) ; Anthropic
+  utilise l'API **Messages** (`ANTHROPIC_MODEL`, défaut `claude-sonnet-4-6`). Le modèle est
+  personnalisable : vérifier sa présence et son prix sur le compte API avant tout import.
+  Les nouveaux fournisseurs ne sont jamais activés simplement parce qu'une clé existe : ils doivent
+  être présents dans `LLM_PROVIDERS`. Un fournisseur sans clé est ignoré ; réponse invalide,
+  tronquée ou indisponible → fournisseur suivant. Tous les fournisseurs disponibles peuvent servir
+  de repli, dans l'ordre configuré.
 - Chaque fournisseur est testé au démarrage : OpenRouter sans consommer de quota (clé, quota gratuit
   du jour, et existence du modèle dans la liste publique des modèles : un modèle introuvable écarte
-  OpenRouter avec la piste `OPENROUTER_MODEL=openrouter/free`), Mistral par une très courte requête.
+  OpenRouter avec la piste `OPENROUTER_MODEL=openrouter/free`), Mistral par une très courte requête,
+  OpenAI et Anthropic par GET /v1/models (sans génération facturée).
   En cours de run, il est désactivé si sa clé est refusée, si ses crédits ou son quota sont épuisés,
   ou après `LLM_BREAKER_THRESHOLD` échecs consécutifs (3).
 - `openrouter/free` tire au hasard un modèle gratuit à chaque requête ; le modèle réellement servi
@@ -539,6 +550,9 @@ avec leur type.
   requêtes par les modèles gratuits). `OPENROUTER_DATA_COLLECTION=deny` exclut les fournisseurs qui
   collectent les données (moins de modèles gratuits). Les en-têtes d'attribution, qui rendent
   l'application visible publiquement, ne partent qu'avec `OPENROUTER_ATTRIBUTION=true`.
+- OpenAI et Anthropic : l'analyse des nouveaux dépôts envoie des informations extraites des READMEs
+  aux API directes sélectionnées. L'option de recherche `--llm` affiche le contenu avant confirmation.
+  Vérifiez confidentialité, quotas et plafonds de dépenses sur chacun des deux comptes.
 - Jetons et clés ne sont jamais affichés en clair (au plus leurs 4 premiers et 4 derniers caractères).
 - `redecouverte.py` n'envoie rien à un LLM, sauf avec `cherche --llm` : votre recherche et, pour les
   premiers dépôts trouvés (8 par défaut), leur nom, `propriétaire/dépôt`, leur description et, pour les
