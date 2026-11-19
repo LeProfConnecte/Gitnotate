@@ -2,8 +2,6 @@
 
 Les clés sont factices ; tests sans Notion, sans génération facturée ni secrets réels.
 """
-import importlib.util
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -91,7 +89,7 @@ def test_api_parsing_reponses_valides(load_gn, monkeypatch, provider, data):
 def test_reponses_tronquees_refusees(load_gn, monkeypatch, provider, data):
     gn = load_gn()
     monkeypatch.setattr(gn, 'get_session', lambda: SimpleNamespace(
-        post=lambda **kwargs: FakeResponse(data)))
+        post=lambda *args, **kwargs: FakeResponse(data)))
     assert gn._call_translation_api(provider, MESSAGES) is None
 
 
