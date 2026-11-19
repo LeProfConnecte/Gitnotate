@@ -67,9 +67,10 @@ par défaut. Le profil qui sert à noter les dépôts se règle dans `user_profi
 ## Premier lancement
 
 1. `python scripts/check_llm.py` vérifie les clés LLM sans consommer de quota de génération
-   (code 0 : au moins une clé, et toutes les clés présentes sont valides ; les modèles Mistral,
-   OpenRouter, OpenAI et Anthropic sont vérifiés pour les clés renseignées ; les deux fournisseurs
-   directs supplémentaires sont testés sans génération ; le quota gratuit OpenRouter est affiché).
+   (code 0 : au moins une clé, et toutes les clés présentes sont valides ;
+   le modèle Mistral est vérifié si `MISTRAL_API_KEY` est renseignée ; les modèles OpenRouter,
+   OpenAI et Anthropic sont vérifiés pour les clés renseignées ; les deux fournisseurs directs
+   supplémentaires sont testés sans génération ; le quota gratuit OpenRouter est affiché).
 2. Pas encore de base ? Avec `CREATE_DATABASE=true`, `python gitnotate.py` crée « Ressources GitHub »
    (avec toutes les colonnes, y compris `Justification` et les trois colonnes facultatives de la
    v7.3) dans la page source, affiche son ID (noté aussi dans `.gitnotate_state.json`)
