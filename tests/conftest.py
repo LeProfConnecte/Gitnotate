@@ -22,7 +22,7 @@ os.environ['GITNOTATE_NO_DOTENV'] = '1'
 # Variables lues par les scripts : purgées avant chaque test pour qu'un
 # environnement de développement ne fuie jamais dans les tests.
 _GITNOTATE_ENV_PREFIXES = (
-    'NOTION_', 'GITHUB_', 'OPENROUTER_', 'MISTRAL_', 'TRANSLATION_', 'LLM_',
+    'NOTION_', 'GITHUB_', 'OPENROUTER_', 'MISTRAL_', 'OPENAI_', 'ANTHROPIC_', 'TRANSLATION_', 'LLM_',
     'DATABASE_ID', 'PARENT_PAGE_ID', 'MAX_', 'DRY_RUN', 'MIN_UPDATE_DAYS',
     'CACHE_', 'HTTP_TIMEOUT', 'README_', 'SCORE_MIN_THRESHOLD', 'LOG_LEVEL',
     'USER_PROFILE_JSON', 'CREATE_DATABASE', 'REQUIRE_LLM', 'CLEANER_', 'REDECOUVERTE_',
