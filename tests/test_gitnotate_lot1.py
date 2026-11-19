@@ -482,7 +482,7 @@ def test_progress_bar_only_on_tty(world, capsys, monkeypatch):
 def test_configure_console_replaces_unencodable_chars(load_gn, monkeypatch):
     gn = load_gn()
     buf = io.BytesIO()
-    stream = io.TextIOWrapper(buf, encoding='cp1252')
+    stream = io.TextIOWrapper(buf, encoding='cp1252', newline='\n')
     monkeypatch.setattr(sys, 'stdout', stream)
     gn._configure_console()
     print('🚀 ok')
