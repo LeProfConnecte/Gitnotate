@@ -1971,7 +1971,7 @@ def startup_hints() -> List[str]:
             hints.append(f"{label} : quota gratuit du jour épuisé — relancez après minuit UTC")
         elif issue == 'model':
             fix = (f"OPENROUTER_MODEL={OPENROUTER_MODEL_DEFAULT}" if provider == 'openrouter'
-                   else f"supprimez MISTRAL_MODEL pour {MISTRAL_MODEL_DEFAULT}" if provider == 'mistral'
+                   else f"supprimez la ligne MISTRAL_MODEL pour utiliser {MISTRAL_MODEL_DEFAULT}" if provider == 'mistral'
                    else f"corrigez {provider.upper()}_MODEL")
             hints.append(f"{label} : modèle introuvable — corrigez le modèle dans .env ({fix})")
         elif issue in ('network', 'other'):
