@@ -1649,7 +1649,7 @@ def _provider_headers(provider: str) -> Dict[str, str]:
 
 def configured_providers() -> List[str]:
     """Fournisseurs retenus au démarrage, dans l'ordre d'essai."""
-    return list(ACTIVE_LLM_PROVIDERS)
+    return list(ACTIVE_LLM_PROVIDERS) if ACTIVE_LLM_PROVIDERS else [p for p in (TRANSLATION_PROVIDER, TRANSLATION_FALLBACK) if p]
 
 
 def llm_required() -> bool:
