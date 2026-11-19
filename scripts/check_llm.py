@@ -9,6 +9,8 @@ Diagnostic des clés LLM de Gitnotate — sans consommer de quota de génératio
                  présence de OPENROUTER_MODEL (openrouter/free est toujours accepté)
   • Mistral    : GET https://api.mistral.ai/v1/models
                  validité de la clé + présence de MISTRAL_MODEL dans la liste
+  • OpenAI     : GET https://api.openai.com/v1/models, sans génération
+  • Anthropic  : GET https://api.anthropic.com/v1/models, sans génération
 
 Les clés ne sont jamais affichées en clair (4 premiers et 4 derniers caractères au plus).
 Le fichier .env est lu au même endroit que gitnotate.py (dossier du projet, ou GITNOTATE_DATA_DIR).
@@ -36,8 +38,12 @@ BASE_DIR = Path(_DATA_DIR).expanduser() if _DATA_DIR else Path(__file__).resolve
 OPENROUTER_KEY_URL    = 'https://openrouter.ai/api/v1/key'
 OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models'
 MISTRAL_MODELS_URL    = 'https://api.mistral.ai/v1/models'
+OPENAI_MODELS_URL     = 'https://api.openai.com/v1/models'
+ANTHROPIC_MODELS_URL  = 'https://api.anthropic.com/v1/models'
 DEFAULT_MISTRAL       = 'mistral-small-2603'
 DEFAULT_OPENROUTER    = 'openrouter/free'
+DEFAULT_OPENAI        = 'gpt-6-luna'
+DEFAULT_ANTHROPIC     = 'claude-sonnet-4-6'
 TIMEOUT               = 15
 
 
@@ -183,6 +189,30 @@ def check_mistral(key: str, model: str) -> Tuple[bool, List[str]]:
     return False, lines
 
 
+def check_direct(provider: str, key: str, model: str) -> Tuple[bool, List[str]]:
+    """Vérification des clés et modèles OpenAI/Anthropic, sans appels de génération."""
+    name = 'OpenAI' if provider == 'openai' else 'Anthropic'
+    url = OPENAI_MODELS_URL if provider == 'openai' else ANTHROPIC_MODELS_URL
+    headers = ({'Authorization': f'Bearer {key}'} if provider == 'openai' else
+               {'x-api-key': key, 'anthropic-version': '2023-06-01'})
+    lines = [f"{name} — clé {mask(key)} — modèle {model}"]
+    try:
+        response = _http_get(url, headers)
+    except requests.exceptions.Timeout:
+        return False, lines + ["   ❌ injoignable (timeout)"]
+    except requests.exceptions.RequestException as e:
+        return False, lines + [f"   ❌ injoignable ({type(e).__name__})"]
+    if response.status_code in (401, 403):
+        return False, lines + [f"   ❌ accès refusé (HTTP {response.status_code})"]
+    if response.status_code != 200:
+        return False, lines + [f"   ❌ HTTP {response.status_code} — {_api_message(response)}"]
+    items = _json(response).get('data')
+    ids = {item['id'] for item in items if isinstance(item, dict) and isinstance(item.get('id'), str)} if isinstance(items, list) else set()
+    if model not in ids:
+        return False, lines + [f"   ❌ modèle non listé par l'API — corrigez {provider.upper()}_MODEL"]
+    return True, lines + ["   ✅ clé et modèle disponibles (sans génération)"]
+
+
 def main() -> int:
     load_env()
     for stream in (sys.stdout, sys.stderr):
@@ -193,13 +223,17 @@ def main() -> int:
 
     openrouter_key = os.environ.get('OPENROUTER_API_KEY', '').strip()
     mistral_key    = os.environ.get('MISTRAL_API_KEY', '').strip()
+    openai_key     = os.environ.get('OPENAI_API_KEY', '').strip()
+    anthropic_key  = os.environ.get('ANTHROPIC_API_KEY', '').strip()
     mistral_model  = os.environ.get('MISTRAL_MODEL', '').strip() or DEFAULT_MISTRAL
+    openai_model   = os.environ.get('OPENAI_MODEL', '').strip() or DEFAULT_OPENAI
+    anthropic_model = os.environ.get('ANTHROPIC_MODEL', '').strip() or DEFAULT_ANTHROPIC
     openrouter_model = (os.environ.get('OPENROUTER_MODEL', '').strip()
                         or os.environ.get('TRANSLATION_MODEL', '').strip() or DEFAULT_OPENROUTER)
 
     print("🔐 Diagnostic des clés LLM (aucun quota de génération consommé)\n")
-    if not openrouter_key and not mistral_key:
-        print("❌ Aucune clé trouvée : renseignez MISTRAL_API_KEY et/ou OPENROUTER_API_KEY "
+    if not any((openrouter_key, mistral_key, openai_key, anthropic_key)):
+        print("❌ Aucune clé trouvée : renseignez une clé MISTRAL_API_KEY, OPENROUTER_API_KEY, OPENAI_API_KEY ou ANTHROPIC_API_KEY "
               f"dans {BASE_DIR / '.env'}")
         return 1
 
@@ -207,6 +241,8 @@ def main() -> int:
     for key, name, check, model in (
         (mistral_key, 'MISTRAL_API_KEY', check_mistral, mistral_model),
         (openrouter_key, 'OPENROUTER_API_KEY', check_openrouter, openrouter_model),
+        (openai_key, 'OPENAI_API_KEY', lambda k, m: check_direct('openai', k, m), openai_model),
+        (anthropic_key, 'ANTHROPIC_API_KEY', lambda k, m: check_direct('anthropic', k, m), anthropic_model),
     ):
         if not key:
             print(f"ℹ️  {name} absente : fournisseur ignoré\n")
