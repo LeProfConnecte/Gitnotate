@@ -1,8 +1,6 @@
 name: Validation Gitnotate (PR #3)
 
 on:
-  push:
-    branches: [feat/openai-anthropic-direct-20261119]
   pull_request:
     branches: [claude/amazing-dijkstra-w25nu2]
 
