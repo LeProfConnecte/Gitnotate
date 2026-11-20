@@ -3,6 +3,9 @@
 Réseau réel interdit par tests/conftest.py. Pas de données Notion ni de clés réelles.
 """
 import re
+import os
+import socket
+import traceback
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -11,12 +14,39 @@ from fastapi.testclient import TestClient
 
 import web_v3 as ui
 
+# Capturé à la collecte des tests, AVANT le garde réseau autouse.
+_NATIVE_SOCKET_CONNECT = socket.socket.connect
+
+
+def _allow_windows_socketpair_only(monkeypatch):
+    """AnyIO doit ouvrir un socketpair de réveil sous Windows.
+    
+    Exception stricte pour le mécanisme interne de la boucle asyncio :
+    toute connexion réseau classique reste interdite par conftest.py.
+    """
+    if os.name != "nt":
+        return
+
+    def connect_only_internal_socketpair(sock, address):
+        allowed = (
+            isinstance(address, tuple) and address[0] in ("127.0.0.1", "::1")
+            and any(frame.name == "socketpair" and frame.filename.endswith("socket.py")
+                    for frame in traceback.extract_stack())
+        )
+        if not allowed:
+            raise RuntimeError("Accès réseau interdit pendant les tests")
+        return _NATIVE_SOCKET_CONNECT(sock, address)
+
+    monkeypatch.setattr(socket.socket, "connect", connect_only_internal_socketpair)
+
+
 FAKE_URL = "https://app.notion.com/p/Exemple-0123456789abcdef0123456789abcdef"
 FAKE_SOURCE = "0123456789abcdef0123456789abcdef"
 
 
 @pytest.fixture
 def app_client(monkeypatch, tmp_path):
+    _allow_windows_socketpair_only(monkeypatch)
     filename = tmp_path / ".env"
     filename.write_text(
         'NOTION_READONLY_TOKEN="fake-notion-token-private"\n'
