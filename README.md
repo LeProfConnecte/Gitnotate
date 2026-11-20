@@ -131,6 +131,16 @@ Voir [docs/V3_CATALOGUE_SIGNETS.md](docs/V3_CATALOGUE_SIGNETS.md) pour les comma
 Windows et les limites du lot expérimental. Le classement V3 reste exploratoire ;
 le rapprochement avec les fiches historiques et l'interface Web sont à venir.
 
+## Interface Web locale V3-C (pilote)
+
+Une nouvelle interface Web pour le catalogue de signets est disponible dans
+une branche expérimentale séparée : recherche sous forme de cartes, sélection
+des sources, badges de fiabilité et enrichissement GitHub ciblé.
+Elle fonctionne uniquement sur 127.0.0.1, sans appel LLM ni écriture Notion.
+
+Voir [docs/V3_WEB_LOCAL.md](docs/V3_WEB_LOCAL.md). Installer la V3 sur un
+worktree isolé, pas en remplacement du checkout stable.
+
 ## Retrouver un dépôt déjà enregistré
 
 `redecouverte.py` cherche, **hors ligne**, parmi les fiches déjà créées dans votre base Notion, les
