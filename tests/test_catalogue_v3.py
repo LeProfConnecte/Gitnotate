@@ -14,10 +14,10 @@ import pytest
 
 import catalogue_v3 as cat
 
-PAGE_A = "https://app.notion.com/p/Github-ou-similaire-d-couvrir-1cab36ca5523800292cad5f59ab1fc0c"
-PAGE_B = "https://app.notion.com/p/Autres-signets-2cab36ca5523800292cad5f59ab1fc0c"
-ID_A = "1cab36ca5523800292cad5f59ab1fc0c"
-ID_B = "2cab36ca5523800292cad5f59ab1fc0c"
+PAGE_A = "https://app.notion.com/p/Github-ou-similaire-d-couvrir-0123456789abcdef0123456789abcdef"
+PAGE_B = "https://app.notion.com/p/Autres-signets-fedcba9876543210fedcba9876543210"
+ID_A = "0123456789abcdef0123456789abcdef"
+ID_B = "fedcba9876543210fedcba9876543210"
 
 
 class Response:
@@ -98,11 +98,11 @@ def local(monkeypatch, tmp_path):
 
 def test_page_url_validation():
     assert cat.source_id(PAGE_A) == ID_A
-    assert cat.source_id("1cab36ca-5523-8002-92ca-d5f59ab1fc0c") == ID_A
+    assert cat.source_id("01234567-89ab-cdef-0123-456789abcdef") == ID_A
     with pytest.raises(cat.CatalogueError):
-        cat.source_id("https://evil.example/p/1cab36ca5523800292cad5f59ab1fc0c")
+        cat.source_id("https://evil.example/p/0123456789abcdef0123456789abcdef")
     with pytest.raises(cat.CatalogueError):
-        cat.source_id("http://app.notion.com/p/1cab36ca5523800292cad5f59ab1fc0c")
+        cat.source_id("http://app.notion.com/p/0123456789abcdef0123456789abcdef")
 
 
 def test_pagination_no_writes_multi_sources_and_duplicates(local):
@@ -193,7 +193,7 @@ def test_search_only_selected_sources(local):
     b = cat.search("finance", only_sources=[PAGE_B], path=local)
     assert [x["repo"] for x in b["results"]] == ["demo/finance-two"]
     with pytest.raises(cat.CatalogueError):
-        cat.search("finance", only_sources=["https://app.notion.com/p/No-9cab36ca5523800292cad5f59ab1fc0c"],
+        cat.search("finance", only_sources=["https://app.notion.com/p/No-11111111222222223333333344444444"],
                    path=local)
 
 
