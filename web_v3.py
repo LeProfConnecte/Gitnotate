@@ -299,6 +299,12 @@ def verifier_fournisseurs():
         env = os.environ.copy()
         env["GITNOTATE_DATA_DIR"] = str(gn.BASE_DIR)
         env.pop("GITNOTATE_NO_DOTENV", None)
+        # Ne pas conserver dans le sous-processus les anciennes clés chargées
+        # au démarrage : check_llm doit lire le fichier .env récemment enregistré.
+        for _label, api_key, model_key, _default in PROVIDERS.values():
+            env.pop(api_key, None)
+            env.pop(model_key, None)
+        env.pop("TRANSLATION_MODEL", None)
         try:
             process = subprocess.run(
                 [sys.executable, str(ROOT / "scripts" / "check_llm.py")],
