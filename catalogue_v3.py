@@ -278,7 +278,7 @@ def inventory(pages: list[str], allow_drop: bool = False,
     if not token:
         raise CatalogueError("NOTION_READONLY_TOKEN manquant ; aucune requête effectuée")
     if not pages:
-        with open_db(path, readonly=True) as con:
+        with contextlib.closing(open_db(path, readonly=True)) as con:
             pages = [row["url"] for row in con.execute("SELECT url FROM sources ORDER BY label")]
     if not pages:
         raise CatalogueError("Aucune page : passez --page URL_NOTION (répétable)")
@@ -390,7 +390,7 @@ def enrich(limit: int = 20, cache_days: int = 14,
     session = session or requests.Session()
     token = gn._env_str("GITHUB_TOKEN")
     threshold = (datetime.now(timezone.utc) - timedelta(days=cache_days)).isoformat()
-    with open_db(path, readonly=True) as con:
+    with contextlib.closing(open_db(path, readonly=True)) as con:
         queue = [row["repo_key"] for row in con.execute(
             "SELECT r.repo_key FROM repos r WHERE EXISTS "
             "(SELECT 1 FROM links l WHERE l.repo_key = r.repo_key) "
@@ -451,7 +451,7 @@ def search(need: str, limit: int = 10, only_sources: list[str] | None = None,
         raise CatalogueError("Recherche vide : indiquez un besoin plus précis")
     expression = " OR ".join('"' + token + '"' for group in groups for token in group)
     filtered = [source_id(s) for s in only_sources] if only_sources else []
-    with open_db(path, readonly=True) as con:
+    with contextlib.closing(open_db(path, readonly=True)) as con:
         source_names = {row["source_id"]: row["label"] for row in
                         con.execute("SELECT source_id,label FROM sources")}
         if filtered and any(s not in source_names for s in filtered):
@@ -504,7 +504,7 @@ def search(need: str, limit: int = 10, only_sources: list[str] | None = None,
 
 
 def state(path: Path = DB_PATH) -> dict:
-    with open_db(path, readonly=True) as con:
+    with contextlib.closing(open_db(path, readonly=True)) as con:
         sources = [dict(row) for row in con.execute(
             "SELECT source_id,url,label,scanned_at,links_total,excluded "
             "FROM sources ORDER BY label")]
