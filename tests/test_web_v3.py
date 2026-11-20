@@ -127,6 +127,33 @@ def test_provider_settings_do_not_return_key_or_overwrite_notion(app_client):
     assert "fake-openai-new-private" not in str(client.get("/api/fournisseurs").json())
 
 
+def test_github_key_is_private_and_used_for_bounded_enrichment(app_client, monkeypatch):
+    client, filename = app_client
+    headers = authenticated(client)
+    assert client.get("/api/github").json() == {"cle_presente": False}
+    seen = []
+
+    def fake_enrich(limit):
+        import os
+        seen.append((limit, os.environ.get("GITHUB_TOKEN")))
+        return {"updated": limit, "errors": [], "stopped": ""}
+
+    monkeypatch.setattr(ui.catalogue, "enrich", fake_enrich)
+    response = client.post("/api/github/enregistrer", headers=headers,
+                           json={"cle": "github_pat_fake_secret_12345"})
+    assert response.status_code == 200
+    assert "github_pat_fake_secret_12345" not in response.text
+    assert client.get("/api/github").json() == {"cle_presente": True}
+    assert "fake-notion-token-private" in filename.read_text(encoding="utf-8")
+    assert "github_pat_fake_secret_12345" in filename.read_text(encoding="utf-8")
+    import os
+    before = os.environ.get("GITHUB_TOKEN")
+    assert client.post("/api/depot/enrichir", headers=headers,
+                       json={"limite": 2}).status_code == 200
+    assert seen == [(2, "github_pat_fake_secret_12345")]
+    assert os.environ.get("GITHUB_TOKEN") == before
+
+
 def test_provider_rejects_invalid_model_and_missing_priority_key(app_client):
     client, filename=app_client
     before=filename.read_bytes()
