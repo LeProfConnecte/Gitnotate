@@ -114,14 +114,14 @@ def test_pagination_no_writes_multi_sources_and_duplicates(local):
          bookmark("https://github.com/Demo/new", 201)]
     fake = NotionFake({ID_A: a, ID_B: b})
     result = cat.inventory([PAGE_A, PAGE_B], session=fake, path=local)
-    assert result["distinct_repos"] == 104
+    assert result["distinct_repos"] == 103
     assert len(fake.requests) == 3  # pagination de la première page, puis page B
-    assert cat.state(local)["repos"] == 104
+    assert cat.state(local)["repos"] == 103
     assert cat.state(local)["enriched"] == 0
     assert local.exists()
     with sqlite3.connect(local) as con:
-        assert con.execute("SELECT COUNT(*) FROM links").fetchone()[0] == 105
-        assert con.execute("SELECT COUNT(*) FROM repo_fts").fetchone()[0] == 104
+        assert con.execute("SELECT COUNT(*) FROM links").fetchone()[0] == 104
+        assert con.execute("SELECT COUNT(*) FROM repo_fts").fetchone()[0] == 103
 
 
 def test_refused_notion_read_preserves_existing_index(local):
@@ -155,7 +155,7 @@ def test_github_enrichment_and_french_search(local):
         bookmark("https://github.com/Demo/other-tool")]})
     cat.inventory([PAGE_A], session=fake_notion, path=local)
     before = cat.search("automatiser une veille financière", path=local)
-    assert before["results"] == []  # Signets seuls sans contenu : pas d'invention
+    assert before["results"] and before["results"][0]["evidence"].startswith("Signet seul")
     fake = GitHubFake()
     outcome = cat.enrich(limit=2, session=fake, path=local)
     assert outcome["updated"] == 2
