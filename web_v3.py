@@ -147,8 +147,6 @@ def save_env_values(updates: dict[str, str]) -> None:
         if os.name != "nt":
             os.chmod(tempname, 0o600)
         os.replace(tempname, ENV_PATH)
-        # Le même processus utilise immédiatement les clés mises à jour.
-        os.environ.update(updates)
     finally:
         if os.path.exists(tempname):
             os.unlink(tempname)
@@ -209,7 +207,21 @@ def actualiser():
 def enrichir(body: EnrichBody):
     try:
         with exclusive_operation():
-            return catalogue.enrich(limit=body.limite)
+            # Le token Github modifié dans l'interface est chargé pour ce seul lot.
+            # Aucune modification permanente des variables d'environnement du serveur.
+            previous = os.environ.get("GITHUB_TOKEN")
+            configured = load_env_values().get("GITHUB_TOKEN", "")
+            try:
+                if configured:
+                    os.environ["GITHUB_TOKEN"] = configured
+                else:
+                    os.environ.pop("GITHUB_TOKEN", None)
+                return catalogue.enrich(limit=body.limite)
+            finally:
+                if previous is None:
+                    os.environ.pop("GITHUB_TOKEN", None)
+                else:
+                    os.environ["GITHUB_TOKEN"] = previous
     except (catalogue.CatalogueError, ValueError) as exc:
         raise api_error(exc) from None
 
