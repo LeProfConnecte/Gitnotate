@@ -176,6 +176,20 @@ async function onEnrich() {
     await loadState();
   });
 }
+async function loadGithubStatus() {
+  const result=await request("/api/github");
+  el("github-token-state").textContent=result.cle_presente?"Clé configurée":"Accès sans jeton";
+}
+async function saveGithub(event) {
+  event.preventDefault();
+  await runAction(el("btn-github-save"),async()=>{
+    const value=el("github-token").value;
+    await request("/api/github/enregistrer",{method:"POST",data:{cle:value}});
+    el("github-token").value="";
+    notice("Jeton GitHub enregistré. Les prochains enrichissements utiliseront ce quota.");
+    await loadGithubStatus();
+  });
+}
 async function loadProviders() {
   const data=await request("/api/fournisseurs");
   state.providers=data.providers;
@@ -220,12 +234,13 @@ async function start() {
   el("btn-sync").addEventListener("click",onSync);
   el("btn-enrich").addEventListener("click",onEnrich);
   el("btn-refresh").addEventListener("click",()=>runAction(el("btn-refresh"),loadState));
+  el("github-form").addEventListener("submit",saveGithub);
   el("provider-form").addEventListener("submit",saveProvider);
   el("btn-provider-check").addEventListener("click",checkProviders);
   el("provider-select").addEventListener("change",syncProviderForm);
   try {
     const boot=await request("/api/bootstrap"); state.csrf=boot.csrf;
-    await Promise.all([loadState(),loadProviders()]);
+    await Promise.all([loadState(),loadProviders(),loadGithubStatus()]);
   } catch (err) { notice("Impossible d'initialiser Gitnotate : "+err.message,true); }
 }
 document.addEventListener("DOMContentLoaded",start);
