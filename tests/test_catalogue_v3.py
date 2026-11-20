@@ -197,6 +197,26 @@ def test_search_only_selected_sources(local):
                    path=local)
 
 
+def test_historical_overlap_is_read_only(local, monkeypatch, tmp_path):
+    legacy = tmp_path / "ancien_index.sqlite"
+    with sqlite3.connect(legacy) as con:
+        con.execute("CREATE TABLE fiches (cle_depot TEXT NOT NULL)")
+        con.execute("INSERT INTO fiches VALUES ('demo/finance-one')")
+    original = legacy.read_bytes()
+    monkeypatch.setattr(cat, "LEGACY_DB", legacy)
+    cat.inventory([PAGE_A, PAGE_B], session=NotionFake({
+        ID_A: [bookmark("https://github.com/Demo/finance-one")],
+        ID_B: [bookmark("https://github.com/Demo/finance-two")]}), path=local)
+    status = cat.state(local)
+    assert status["comparison_available"] is True
+    assert status["already_in_historical"] == 1
+    assert status["not_in_historical"] == 1
+    result = cat.search("finance", path=local)
+    mapping = {x["repo"]: x["already_in_historical"] for x in result["results"]}
+    assert mapping == {"demo/finance-one": True, "demo/finance-two": False}
+    assert legacy.read_bytes() == original
+
+
 def test_no_readonly_token_stops_before_network(local, monkeypatch):
     monkeypatch.delenv("NOTION_READONLY_TOKEN", raising=False)
     class BlockedSession:
