@@ -20,7 +20,7 @@ Les cles LLM ne sont pas utilisees par ces commandes.
 
 ### V3-A : lire les signets sans modifier Notion
 
-    .\.venv\Scripts\python.exe .\catalogue_v3.py inventaire --page 'https://app.notion.com/p/Github-ou-similaire-d-couvrir-1cab36ca5523800292cad5f59ab1fc0c'
+    .\.venv\Scripts\python.exe .\catalogue_v3.py inventaire --page 'https://app.notion.com/p/Github-ou-similaire-d-couvrir-0123456789abcdef0123456789abcdef'
 
     .\.venv\Scripts\python.exe .\catalogue_v3.py etat
 
