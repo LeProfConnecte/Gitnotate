@@ -35,6 +35,7 @@ MAX_DEPTH = 30
 README_LIMIT = 12000
 CATALOG_DIR = Path(gn.BASE_DIR) / ".gitnotate_catalogue"
 DB_PATH = CATALOG_DIR / "catalogue.sqlite"
+LEGACY_DB = Path(gn.BASE_DIR) / ".gitnotate_index" / "redecouverte.sqlite"
 ID_RE = re.compile(r"^[0-9a-f]{32}$", re.I)
 TOKEN_RE = re.compile(r"[^\W_]+", re.UNICODE)
 STOP = frozenset(("je", "cherche", "un", "une", "des", "les", "le", "la", "de", "du", "d", "en",
@@ -493,14 +494,38 @@ def search(need: str, limit: int = 10, only_sources: list[str] | None = None,
                 "license": repo["license"],
                 "stars": repo["stars"],
                 "archived": bool(repo["archived"]),
+                "already_in_historical": False,
                 "_rank": float(repo["rank"]),
             })
+    historical = historic_keys()
+    if historical is not None:
+        for candidate in candidates:
+            candidate["already_in_historical"] = candidate["repo"] in historical
+    else:
+        for candidate in candidates:
+            candidate["already_in_historical"] = None
     candidates.sort(key=lambda c: (-c["coverage"], c["_rank"], c["repo"]))
     for result in candidates:
         del result["_rank"]
     return {"need": need, "concepts": [g[0] for g in groups],
             "results": candidates[:limit],
             "notice": "Classement lexical exploratoire ; vérifiez les fiches et README GitHub."}
+
+
+def historic_keys(path: Path | None = None) -> set[str] | None:
+    """Lit uniquement les clés de dépôts de l'ancien index (jamais de mutation).
+
+    None signifie que le rapprochement historique n'a pas pu être effectué.
+    """
+    index = path if path is not None else LEGACY_DB
+    if not index.is_file():
+        return None
+    try:
+        with contextlib.closing(open_db(index, readonly=True)) as con:
+            return {str(row[0]).lower() for row in con.execute(
+                "SELECT DISTINCT cle_depot FROM fiches WHERE cle_depot != ''")}
+    except sqlite3.Error:
+        return None
 
 
 def state(path: Path = DB_PATH) -> dict:
@@ -512,8 +537,13 @@ def state(path: Path = DB_PATH) -> dict:
             "SELECT COUNT(*) AS repos, "
             "SUM(CASE WHEN fetch_status='ok' THEN 1 ELSE 0 END) AS enriched "
             "FROM repos WHERE repo_key IN (SELECT repo_key FROM links)").fetchone()
-        return {"sources": sources, "repos": counts["repos"],
-                "enriched": counts["enriched"] or 0, "index": str(path)}
+        keys = {row[0].lower() for row in con.execute("SELECT DISTINCT repo_key FROM links")}
+    historical = historic_keys()
+    return {"sources": sources, "repos": counts["repos"],
+            "enriched": counts["enriched"] or 0, "index": str(path),
+            "comparison_available": historical is not None,
+            "already_in_historical": len(keys & historical) if historical is not None else None,
+            "not_in_historical": len(keys - historical) if historical is not None else None}
 
 
 def run(argv: list[str] | None = None) -> int:
