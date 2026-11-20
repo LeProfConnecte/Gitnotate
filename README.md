@@ -119,6 +119,18 @@ inférieure au seuil. Il n'écarte jamais une fiche non notée. Comme un dépôt
 plafonné à 8 (voir [Notation](#notation)), un seuil de 9 ou 10 écarte tous ces dépôts, y compris en
 repli lexical.
 
+## V3 expérimentale — recherche depuis les signets Notion
+
+La nouvelle commande catalogue_v3.py construit un inventaire des liens GitHub
+directement depuis les pages de signets Notion, enrichit progressivement les dépôts
+par lecture des métadonnées GitHub et les recherche hors ligne dans un index SQLite
+séparé. Aucune analyse IA ni écriture dans Notion n'est déclenchée dans ce parcours.
+L'ancien index de 443 fiches est préservé.
+
+Voir [docs/V3_CATALOGUE_SIGNETS.md](docs/V3_CATALOGUE_SIGNETS.md) pour les commandes
+Windows et les limites du lot expérimental. Le classement V3 reste exploratoire ;
+le rapprochement avec les fiches historiques et l'interface Web sont à venir.
+
 ## Retrouver un dépôt déjà enregistré
 
 `redecouverte.py` cherche, **hors ligne**, parmi les fiches déjà créées dans votre base Notion, les
