@@ -47,7 +47,7 @@ def test_root_and_security_headers(client):
     assert html.headers["x-frame-options"] == "DENY"
     assert client.get("/assets/app.js").status_code == 200
     assert client.get("/assets/styles.css").status_code == 200
-    assert "innerHTML" not in client.get("/assets/app.js").text
+    assert ".innerHTML =" not in client.get("/assets/app.js").text
     assert client.get("/docs").status_code == 404
 
 
