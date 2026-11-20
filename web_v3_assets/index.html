@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Gitnotate — Mes dépôts</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script defer src="/assets/app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">G<span>↗</span></span><div><strong>Gitnotate</strong><small>Version 3 · Pilote local</small></div></div>
+      <div class="sidebar-label">ESPACE DE TRAVAIL</div>
+      <nav class="navigation" aria-label="Navigation principale">
+        <button class="nav-button is-active" data-view="recherche" type="button"><span class="nav-icon">⌕</span>Recherche</button>
+        <button class="nav-button" data-view="sources" type="button"><span class="nav-icon">▤</span>Sources Notion</button>
+        <button class="nav-button" data-view="fournisseurs" type="button"><span class="nav-icon">⚙</span>Fournisseurs IA</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="security-row"><span class="security-dot"></span><strong>Mode local sécurisé</strong></div>
+        <p>Les recherches utilisent SQLite. Les données Notion sont lues avec un accès limité. Aucune écriture Notion depuis cette interface.</p>
+        <span class="version-text">Gitnotate V3-C · 127.0.0.1</span>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div class="breadcrumb">Bibliothèque <span>/</span> <strong id="breadcrumb">Recherche</strong></div>
+        <div class="topbar-right"><span class="connection-pill"><span class="security-dot"></span>Hors ligne par défaut</span><button type="button" class="ghost-button" id="btn-refresh">Actualiser les compteurs</button></div>
+      </header>
+      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+
+      <section id="view-recherche" class="view">
+        <div class="page-heading"><div class="eyebrow">VOTRE BIBLIOTHÈQUE DE PROJETS</div><h1>Retrouvez la bonne brique.</h1><p>Explorez vos signets GitHub enrichis, avec la provenance et la qualité des informations. Aucun appel à un modèle IA pour chercher.</p></div>
+
+        <div class="stats-grid">
+          <article class="stat-card"><span>Dépôts inventoriés</span><strong id="stat-repos">—</strong><small>Sources de signets Notion</small></article>
+          <article class="stat-card"><span>Enrichis depuis GitHub</span><strong id="stat-enrichis">—</strong><small>Descriptions, topics et README</small></article>
+          <article class="stat-card accent-stat"><span>Absents de l'historique</span><strong id="stat-nouveaux">—</strong><small>Par rapport aux fiches existantes</small></article>
+        </div>
+
+        <form class="search-panel" id="search-form">
+          <label for="search-query">Quel besoin souhaitez-vous couvrir ?</label>
+          <div class="search-row">
+            <input id="search-query" name="besoin" type="search" placeholder="Ex. automatiser une veille financière et analyser des données boursières" required minlength="2" maxlength="1000" autocomplete="off">
+            <button type="submit" class="primary-button" id="btn-search">Rechercher</button>
+          </div>
+          <div class="search-meta">
+            <div><span class="meta-label">SOURCES</span><div class="source-checks" id="source-filters"><span class="muted">Chargement…</span></div></div>
+            <label class="small-select">Résultats <select id="search-limit"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select></label>
+          </div>
+        </form>
+
+        <div class="section-heading"><div><h2>Résultats de recherche</h2><p id="search-description">Lancez une recherche pour explorer votre catalogue.</p></div><span class="soft-badge" id="result-count">—</span></div>
+        <div id="results" class="results"><div class="empty-state"><span class="empty-symbol">⌕</span><h3>Votre catalogue, vos découvertes</h3><p>Les dépôts n'ayant pas encore été enrichis sont distingués de ceux dont les informations GitHub ont été récupérées.</p></div></div>
+        <p class="footnote">La couverture des termes n'est pas une probabilité. Vérifiez le README avant toute réutilisation technique ou commerciale.</p>
+      </section>
+
+      <section id="view-sources" class="view" hidden>
+        <div class="page-heading"><div class="eyebrow">SOURCES DE CONNAISSANCE</div><h1>Vos pages de signets.</h1><p>Ajoutez plusieurs pages Notion et choisissez celles à inclure dans vos recherches. Les opérations restent en lecture seule côté Notion.</p></div>
+        <div class="section-heading"><div><h2>Sources connectées</h2><p>Chaque source conserve sa provenance et la date du dernier inventaire.</p></div><button class="secondary-button" type="button" id="btn-sync">Actualiser les pages</button></div>
+        <div id="source-list" class="source-list"></div>
+        <form id="source-form" class="panel padded">
+          <h2>Ajouter une page Notion</h2><p class="muted">La page doit être partagée avec l'intégration Gitnotate-ReadOnly. Coller l'URL de la page, jamais son jeton API.</p>
+          <label for="source-url">URL HTTPS de la page</label>
+          <div class="search-row"><input id="source-url" type="url" placeholder="https://app.notion.com/p/..." required maxlength="500"><button type="submit" class="primary-button" id="btn-source-add">Indexer la page</button></div>
+        </form>
+        <form class="panel padded" id="github-form">
+          <div class="section-heading tight"><div><h2>Accès API GitHub</h2><p>Un jeton GitHub en lecture seule augmente le quota disponible pour enrichir plusieurs centaines de dépôts.</p></div><span id="github-token-state" class="soft-badge">Vérification…</span></div>
+          <label for="github-token">Jeton GitHub (facultatif)</label>
+          <div class="search-row"><input id="github-token" type="password" autocomplete="new-password" spellcheck="false" placeholder="Coller un jeton GitHub en lecture seule" minlength="8" maxlength="1024" required><button type="submit" class="secondary-button" id="btn-github-save">Enregistrer le jeton</button></div>
+          <p class="footnote">Ne partagez pas de jeton ici dans la conversation. Il sera enregistré uniquement dans votre dossier de données privé.</p>
+        </form>
+        <div class="panel padded">
+          <div class="section-heading tight"><div><h2>Enrichir le catalogue depuis GitHub</h2><p>Métadonnées, description, topics et extraits de README. Aucune IA, aucune écriture Notion.</p></div></div>
+          <div class="action-row"><label class="small-select">Nombre de dépôts <select id="enrich-limit"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select></label><button class="secondary-button" type="button" id="btn-enrich">Enrichir ce lot</button></div>
+          <p class="footnote">Sans jeton GitHub, le quota API public peut arrêter le traitement. Les résultats déjà enregistrés sont conservés.</p>
+        </div>
+      </section>
+
+      <section id="view-fournisseurs" class="view" hidden>
+        <div class="page-heading"><div class="eyebrow">CONFIGURATION IA</div><h1>Vos modèles, à la carte.</h1><p>Configurez vos fournisseurs et leurs modèles. Les clés restent dans votre fichier <code>.env</code> privé ; elles ne sont jamais renvoyées au navigateur.</p></div>
+        <div class="panel padded">
+          <div class="section-heading tight"><div><h2>Fournisseur et modèle</h2><p>La recherche du catalogue V3 reste locale. Ces paramètres sont destinés aux analyses IA facultatives et à l'import futur.</p></div></div>
+          <form id="provider-form">
+            <div class="form-grid">
+              <div class="form-field"><label for="provider-select">Fournisseur</label><select id="provider-select"><option value="mistral">Mistral AI</option><option value="openrouter">OpenRouter</option><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select></div>
+              <div class="form-field"><label for="provider-model">Identifiant du modèle</label><input id="provider-model" type="text" spellcheck="false" autocomplete="off" required maxlength="128" placeholder="ex. mistral-small-2603"></div>
+            </div>
+            <div class="form-field"><label for="provider-key">Clé API <span class="muted" id="key-presence">(non configurée)</span></label><input id="provider-key" type="password" spellcheck="false" autocomplete="new-password" placeholder="Coller une nouvelle clé ou laisser vide pour conserver"></div>
+            <label class="checkbox-line"><input type="checkbox" id="provider-primary"><span>Utiliser ce fournisseur en priorité pour les futures analyses IA</span></label>
+            <div class="action-row"><button type="submit" class="primary-button" id="btn-provider-save">Enregistrer le fournisseur</button><button type="button" class="secondary-button" id="btn-provider-check">Tester les clés et modèles</button></div>
+          </form>
+          <pre id="provider-diagnostic" class="diagnostic" hidden></pre>
+          <p class="footnote">La vérification utilise les API de contrôle des fournisseurs, sans demander de génération. Aucun import Notion n'est disponible ici.</p>
+        </div>
+        <div class="panel padded detail-panel"><h2>Confidentialité</h2><p>Les clés sont sauvegardées dans le fichier <code>.env</code> du dossier de données local. Elles y sont stockées en clair : protégez l'accès Windows à ce dossier. L'interface ne transmet ces clés qu'au fournisseur sélectionné lors de l'utilisation explicite de ses API.</p></div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

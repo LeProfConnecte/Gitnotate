@@ -119,6 +119,16 @@ inférieure au seuil. Il n'écarte jamais une fiche non notée. Comme un dépôt
 plafonné à 8 (voir [Notation](#notation)), un seuil de 9 ou 10 écarte tous ces dépôts, y compris en
 repli lexical.
 
+## V3-C expérimentale — interface Web locale
+
+L'interface Web V3-C permet de rechercher les signets depuis le navigateur local,
+filtrer les sources Notion, enrichir par petits lots et gérer les fournisseurs API.
+Elle n'effectue **aucune écriture Notion** et n'active aucun LLM pour la recherche.
+Elle écoute uniquement sur 127.0.0.1 et conserve le moteur historique indépendant.
+
+Voir [docs/V3_INTERFACE_WEB_LOCALE.md](docs/V3_INTERFACE_WEB_LOCALE.md) pour
+l'installation Windows dans un worktree de test distinct et les vérifications.
+
 ## V3 expérimentale — recherche depuis les signets Notion
 
 La nouvelle commande catalogue_v3.py construit un inventaire des liens GitHub
