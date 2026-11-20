@@ -3,12 +3,29 @@
 Toutes les APIs externes sont simulées ou interdites par tests/conftest.py.
 """
 from pathlib import Path
+import socket
 
 import pytest
 from fastapi.testclient import TestClient
 
 import catalogue_v3 as cat
 import web_v3
+
+# Pendant la collecte pytest, la primitive native n'est pas encore remplacée par
+# tests/conftest.py. Sous Windows, asyncio utilise un socketpair TCP en loopback.
+_NATIVE_CONNECT = socket.socket.connect
+
+
+@pytest.fixture(autouse=True)
+def allow_asyncio_loopback(monkeypatch, _no_network):
+    """Garde l'interdiction réseau externe, mais permet le réveil interne asyncio."""
+    def guarded_connect(sock, address):
+        if (isinstance(address, tuple) and address
+                and address[0] in ("127.0.0.1", "::1")):
+            return _NATIVE_CONNECT(sock, address)
+        raise RuntimeError("Accès réseau externe interdit pendant les tests")
+    monkeypatch.setattr(socket.socket, "connect", guarded_connect)
+
 
 HOST = "http://127.0.0.1:8765"
 SOURCE = "0123456789abcdef0123456789abcdef"
