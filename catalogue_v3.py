@@ -385,19 +385,42 @@ def github_details(session: requests.Session, key: str, token: str) -> dict:
 
 
 def enrich(limit: int = 20, cache_days: int = 14,
-           session: requests.Session | None = None, path: Path = DB_PATH) -> dict:
+           session: requests.Session | None = None, path: Path = DB_PATH,
+           selected_repos: list[str] | None = None) -> dict:
+    """Enrichissement volontaire : par défaut en lot, ou précisément les candidats choisis."""
     if not 1 <= limit <= 100 or not 0 <= cache_days <= 3650:
         raise CatalogueError("Limite (1–100) ou durée de cache (0–3650) invalide")
+    requested = None
+    if selected_repos is not None:
+        requested = list(dict.fromkeys(selected_repos))
+        if not requested or len(requested) > min(limit, 10):
+            raise CatalogueError("Sélection invalide : 1 à 10 dépôts, dans la limite demandée")
+        for key in requested:
+            if not isinstance(key, str) or not re.fullmatch(
+                    r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", key):
+                raise CatalogueError("Identifiant de dépôt invalide")
     session = session or requests.Session()
     token = gn._env_str("GITHUB_TOKEN")
     threshold = (datetime.now(timezone.utc) - timedelta(days=cache_days)).isoformat()
     with contextlib.closing(open_db(path, readonly=True)) as con:
-        queue = [row["repo_key"] for row in con.execute(
-            "SELECT r.repo_key FROM repos r WHERE EXISTS "
-            "(SELECT 1 FROM links l WHERE l.repo_key = r.repo_key) "
-            "AND (r.fetched_at = '' OR r.fetched_at < ?) "
-            "ORDER BY CASE WHEN r.fetched_at='' THEN 0 ELSE 1 END, r.repo_key LIMIT ?",
-            (threshold, limit))]
+        if requested is None:
+            queue = [row["repo_key"] for row in con.execute(
+                "SELECT r.repo_key FROM repos r WHERE EXISTS "
+                "(SELECT 1 FROM links l WHERE l.repo_key = r.repo_key) "
+                "AND (r.fetched_at = '' OR r.fetched_at < ?) "
+                "ORDER BY CASE WHEN r.fetched_at='' THEN 0 ELSE 1 END, r.repo_key LIMIT ?",
+                (threshold, limit))]
+        else:
+            # Repos inconnus ou hors des pages autorisées : rejet avant tout appel GitHub.
+            rows = con.execute(
+                "SELECT r.repo_key,r.fetched_at FROM repos r WHERE r.repo_key IN ("
+                + ",".join("?" for _ in requested) + ") AND EXISTS "
+                "(SELECT 1 FROM links l WHERE l.repo_key=r.repo_key)",
+                requested).fetchall()
+            known = {row["repo_key"]: row["fetched_at"] for row in rows}
+            if any(key not in known for key in requested):
+                raise CatalogueError("Dépôt absent des signets indexés")
+            queue = [key for key in requested if not known[key] or known[key] < threshold]
     updates = []
     errors: list[str] = []
     stopped = ""
