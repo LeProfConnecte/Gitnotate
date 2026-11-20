@@ -67,6 +67,12 @@
           <label for="source-url">URL HTTPS de la page</label>
           <div class="search-row"><input id="source-url" type="url" placeholder="https://app.notion.com/p/..." required maxlength="500"><button type="submit" class="primary-button" id="btn-source-add">Indexer la page</button></div>
         </form>
+        <form class="panel padded" id="github-form">
+          <div class="section-heading tight"><div><h2>Accès API GitHub</h2><p>Un jeton GitHub en lecture seule augmente le quota disponible pour enrichir plusieurs centaines de dépôts.</p></div><span id="github-token-state" class="soft-badge">Vérification…</span></div>
+          <label for="github-token">Jeton GitHub (facultatif)</label>
+          <div class="search-row"><input id="github-token" type="password" autocomplete="new-password" spellcheck="false" placeholder="Coller un jeton GitHub en lecture seule" minlength="8" maxlength="1024" required><button type="submit" class="secondary-button" id="btn-github-save">Enregistrer le jeton</button></div>
+          <p class="footnote">Ne partagez pas de jeton ici dans la conversation. Il sera enregistré uniquement dans votre dossier de données privé.</p>
+        </form>
         <div class="panel padded">
           <div class="section-heading tight"><div><h2>Enrichir le catalogue depuis GitHub</h2><p>Métadonnées, description, topics et extraits de README. Aucune IA, aucune écriture Notion.</p></div></div>
           <div class="action-row"><label class="small-select">Nombre de dépôts <select id="enrich-limit"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select></label><button class="secondary-button" type="button" id="btn-enrich">Enrichir ce lot</button></div>
