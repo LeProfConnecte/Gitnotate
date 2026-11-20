@@ -53,9 +53,10 @@ Filtrer la recherche selon les sources :
     .\.venv\Scripts\python.exe .\catalogue_v3.py cherche 'OCR' --source 'URL_NOTION_AUTORISEE'
 
 Le nouveau catalogue est stocke uniquement dans le dossier prive
-.gitnotate_catalogue\catalogue.sqlite. L'ancien index .gitnotate_index
-n'est ni modifie ni relu par ces commandes. Pas de suppression du cache
-historique.
+.gitnotate_catalogue\catalogue.sqlite. L'ancien index .gitnotate_index n'est jamais modifie. La commande
+etat et la recherche peuvent lire ses cles de depots pour indiquer ceux
+qui disposent deja d'une fiche historique, sans modifier leur classement.
+Pas de suppression du cache historique.
 
 ## Protections et validation
 
@@ -77,7 +78,7 @@ historique.
 ## Suite de la feuille de route
 
 V3-C : interface web locale sur 127.0.0.1 (FastAPI + HTML/HTMX).
-V3-D : rapprochement des signets avec les 443 fiches, provenance sans doublons.
+V3-D : enrichissement croise des resultats avec les champs et preuves des 443 fiches historiques.
 V4 : analyse LLM et import de nouveaux depots apres essai sur base de test.
 
 Le present lot sera considere GO seulement apres une lecture Notion reelle,
