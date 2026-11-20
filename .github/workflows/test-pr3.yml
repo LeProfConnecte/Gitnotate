@@ -1,4 +1,4 @@
-name: Validation Gitnotate (PR #3)
+name: Validation Gitnotate (Python Windows/Linux)
 
 on:
   pull_request:
