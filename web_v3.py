@@ -116,7 +116,7 @@ def load_env_values() -> dict[str, str]:
 
 def save_env_values(updates: dict[str, str]) -> None:
     """Écriture atomique, lignes non concernées inchangées, sans backup de secrets."""
-    if any(key not in {"LLM_PROVIDERS", *(v[1] for v in PROVIDERS.values()),
+    if any(key not in {"LLM_PROVIDERS", "GITHUB_TOKEN", *(v[1] for v in PROVIDERS.values()),
                        *(v[2] for v in PROVIDERS.values())} for key in updates):
         raise ValueError("Variable non autorisée")
     ENV_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -147,6 +147,8 @@ def save_env_values(updates: dict[str, str]) -> None:
         if os.name != "nt":
             os.chmod(tempname, 0o600)
         os.replace(tempname, ENV_PATH)
+        # Le même processus utilise immédiatement les clés mises à jour.
+        os.environ.update(updates)
     finally:
         if os.path.exists(tempname):
             os.unlink(tempname)
@@ -210,6 +212,28 @@ def enrichir(body: EnrichBody):
             return catalogue.enrich(limit=body.limite)
     except (catalogue.CatalogueError, ValueError) as exc:
         raise api_error(exc) from None
+
+
+class GithubKeyBody(BaseModel):
+    cle: str = Field(min_length=8, max_length=1024)
+
+
+@app.get("/api/github")
+def github_status():
+    return {"cle_presente": bool(load_env_values().get("GITHUB_TOKEN"))}
+
+
+@app.post("/api/github/enregistrer")
+def github_key(body: GithubKeyBody):
+    key = body.cle.strip()
+    if any(x.isspace() or ord(x) < 32 for x in key):
+        raise HTTPException(400, "Jeton GitHub invalide")
+    try:
+        with exclusive_operation():
+            save_env_values({"GITHUB_TOKEN": key})
+    except OSError:
+        raise HTTPException(500, "Impossible d'enregistrer le jeton GitHub privé") from None
+    return {"ok": True, "cle_presente": True}
 
 
 @app.get("/api/fournisseurs")
