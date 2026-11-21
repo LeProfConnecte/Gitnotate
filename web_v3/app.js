@@ -671,6 +671,11 @@ async function saveSettings(clear = false) {
     "Effacer définitivement la clé de " + provider
     + " dans le fichier .env privé ? L'ancienne clé ne pourra pas être récupérée "
     + "depuis Gitnotate.")) return;
+  if (!clear && pendingKey && settingsSelected()?.key_configured
+      && !window.confirm(
+        "Une clé est déjà enregistrée pour " + provider
+        + ". La remplacer définitivement par la nouvelle clé ? "
+        + "L'ancienne valeur ne pourra pas être réaffichée.")) return;
   if (!model) {
     settingsMessage("Renseigne un identifiant de modèle.", true);
     return;
