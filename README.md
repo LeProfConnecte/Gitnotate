@@ -141,6 +141,20 @@ Elle fonctionne uniquement sur 127.0.0.1, sans appel LLM ni écriture Notion.
 Voir [docs/V3_WEB_LOCAL.md](docs/V3_WEB_LOCAL.md). Installer la V3 sur un
 worktree isolé, pas en remplacement du checkout stable.
 
+## Configuration des fournisseurs IA dans l'interface V3 (pilote)
+
+Un panneau **Réglages IA** permet de choisir OpenAI, Anthropic, Mistral ou
+OpenRouter, de saisir un identifiant de modèle, de remplacer ou retirer une
+clé API masquée, et de vérifier la clé / les modèles via des requêtes GET
+sans génération. Le serveur n'affiche jamais les clés existantes.
+
+Les changements sont enregistrés **uniquement** dans le fichier privé .env
+et nécessitent un **redémarrage de Gitnotate V3** pour être pris en compte
+par l'évaluation IA. L'ordre LLM_PROVIDERS n'est pas modifié.
+
+Voir [docs/V3_REGLAGES_IA.md](docs/V3_REGLAGES_IA.md) pour les limites de
+sécurité, les instructions de test et le retour arrière.
+
 ## Avis IA facultatif dans l'interface Web V3-D (pilote)
 
 L'interface Web locale peut demander un **avis IA sur 1 à 5 dépôts GitHub
