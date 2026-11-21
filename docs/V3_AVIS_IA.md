@@ -18,7 +18,9 @@ des signets, ni les droits Notion.
 7. Lire l'avertissement relatif aux données et coûts, cocher le consentement
    et cliquer sur **Confirmer et envoyer à l'IA**.
 8. Lire le résultat dans un panneau **distinct**, avec adéquation 0 à 3,
-   justification et courte citation vérifiée dans les données transmises.
+   verdict, contraintes explicites satisfaites / non satisfaites / inconnues,
+   constats individuels et extraits littéraux retrouvés. La citation retrouvée
+   ne constitue pas une validation sémantique de l'affirmation.
    Le classement SQLite ne change jamais.
 
 Si aucun candidat n'est convaincant, le panneau l'indique explicitement.
@@ -53,10 +55,23 @@ silencieux** vers un autre fournisseur pouvant être plus cher.
   Ce garde-fou n'annule pas totalement le risque d'injection de prompt.
 - L'avis IA reste **en mémoire de la page ouverte** : aucun enregistrement dans
   l'index ou la base Notion, aucun changement du tri local.
-- Pour les notes 2 ou 3, la réponse doit citer un extrait littéral de 12 à
-  180 caractères présent dans les éléments GitHub du **bon** dépôt. Si le
-  modèle invente une preuve, l'avis est rejeté ; l'appel API peut néanmoins
-  avoir été facturé.
+- Les exigences explicites du besoin (open source, local, gratuit, sans
+  abonnement, autonome) sont signalées dans l'aperçu exact. Pour chaque
+  candidat, le modèle doit les classer comme satisfaites, non satisfaites ou
+  non vérifiées, avec extrait littéral obligatoire si un statut est affirmé.
+- Chaque affirmation factuelle du panneau contient son propre extrait
+  littéral de 12 à 180 caractères présent dans les données du **bon**
+  dépôt. Le serveur valide la présence de cet extrait, pas sa portée
+  sémantique : une affirmation incohérente peut toujours passer.
+- Une exigence obligatoire non satisfaite plafonne l'avis à 1/3, et une
+  exigence non vérifiée empêche un verdict de parfaite adéquation (3/3).
+  Une licence SPDX seule n'établit pas que le moteur principal est ouvert.
+  Si le README indique explicitement un moteur central privé alors que
+  l'utilisateur exige open source ou autonomie, le serveur impose un
+  verdict conservateur de dépendance propriétaire (0-1/3), en affichant
+  la correction. Ce contrôle est limité aux formulations explicites.
+- Si le modèle invente une citation ou omet des contraintes, l'avis est
+  rejeté ; l'appel API peut néanmoins avoir été facturé.
 - Le serveur Web reste lié à 127.0.0.1. Les appels POST exigent la validation
   Origin et le jeton anti-CSRF. Les données dynamiques sont affichées en
   texte brut dans le navigateur.
