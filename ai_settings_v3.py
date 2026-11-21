@@ -235,12 +235,21 @@ def check_connection(path: Path, provider: str, model: str,
         if not key:
             raise SettingsError("Aucune clé pour ce fournisseur ; enregistre-la d'abord.")
         validate_secret(key)
-    session = session or requests.Session()
+    owned_session = session is None
+    if session is None:
+        session = requests.Session()
+        # Les clés API ne doivent pas partir vers un proxy défini implicitement
+        # par l'environnement Windows / PowerShell.
+        session.trust_env = False
     headers = _headers(provider, key)
-    if provider == "openrouter":
-        # /models est public : il ne prouve PAS qu'une clé OpenRouter est valide.
-        _remote_get(session, OPENROUTER_KEY_URL, headers)
-    data = _remote_get(session, ENDPOINTS[provider], headers)
+    try:
+        if provider == "openrouter":
+            # /models est public : il ne prouve PAS qu'une clé OpenRouter est valide.
+            _remote_get(session, OPENROUTER_KEY_URL, headers)
+        data = _remote_get(session, ENDPOINTS[provider], headers)
+    finally:
+        if owned_session:
+            session.close()
     items = data.get("data") if isinstance(data, dict) else None
     if not isinstance(items, list):
         raise SettingsError("Réponse du catalogue de modèles invalide.")
