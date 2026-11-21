@@ -143,7 +143,7 @@ def _quote(value: Any, candidate: Candidate, required: bool = False) -> tuple[st
     quote = safe_text(value, 180)
     if not quote:
         if required:
-            raise AvisError("Une affirmation importante manque de citation littérale.")
+            raise AvisError("Une affirmation importante manque de preuve littérale (citation requise).")
         return "", False
     if len(quote) < 12:
         raise AvisError("Citation IA trop courte : 12 caractères minimum.")
@@ -152,7 +152,7 @@ def _quote(value: Any, candidate: Candidate, required: bool = False) -> tuple[st
         fields.append("Licence SPDX : " + candidate.licence)
     if not any(quote.casefold() in " ".join(source.split()).casefold()
                for source in fields):
-        raise AvisError("Citation IA absente des données du dépôt concerné.")
+        raise AvisError("Citation IA absente : preuve non retrouvée dans les données du dépôt concerné.")
     return quote, True
 
 
