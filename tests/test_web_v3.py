@@ -263,9 +263,12 @@ def test_ai_confirm_exactly_once_and_keeps_catalogue_unchanged(ai_client, monkey
     def fake_completion(provider, messages, temperature):
         called.append((provider, messages, temperature))
         data = {"avis": [{
-            "id": "R1", "adequation": 3,
+            "id": "R1", "adequation": 3, "verdict": "repond_au_besoin",
             "raison": "Présente des signaux de marché et des alertes configurables.",
-            "preuve": "Market signals with alerts and automation webhooks.",
+            "constats": [{
+                "affirmation": "Le dépôt propose des alertes et des webhooks.",
+                "preuve": "Market signals with alerts and automation webhooks."
+            }], "contraintes": [],
         }]}
         return json.dumps(data), "gpt-6.1-terra"
 
@@ -323,12 +326,15 @@ def test_ai_rejects_unsupported_high_score_and_wrong_repo_evidence():
         "R1", "demo/finance-watch",
         "Automated stock alerts with trade signals.", "stocks",
         "Financial dashboard with automated investment reports.", "")
-    bad = '{"avis":[{"id":"R1","adequation":3,"raison":"Ce dépôt répond au besoin.",' \
-          '"preuve":"Provides production-grade algorithmic trading."}]}'
+    bad = '{"avis":[{"id":"R1","adequation":3,"verdict":"repond_au_besoin",' \
+          '"raison":"Ce dépôt répond au besoin.","contraintes":[],' \
+          '"constats":[{"affirmation":"Trading intégral disponible",' \
+          '"preuve":"Provides production-grade algorithmic trading."}]}]}'
     with pytest.raises(avis.AvisError, match="preuve"):
         avis.parse_output(bad, [candidate])
-    no_evidence = '{"avis":[{"id":"R1","adequation":3,"raison":"Candidat excellent.",' \
-                  '"preuve":""}]}'
+    no_evidence = '{"avis":[{"id":"R1","adequation":3,"verdict":"repond_au_besoin",' \
+                  '"raison":"Candidat excellent.","contraintes":[],' \
+                  '"constats":[{"affirmation":"Excellent moteur de marché","preuve":""}]}]}'
     with pytest.raises(avis.AvisError, match="preuve"):
         avis.parse_output(no_evidence, [candidate])
 
@@ -336,8 +342,8 @@ def test_ai_rejects_unsupported_high_score_and_wrong_repo_evidence():
 def test_ai_can_conclude_no_suitable_candidate():
     candidate = avis.Candidate("R1", "demo/other", "A design system.",
                               "", "UI components and color tokens.", "")
-    low = '{"avis":[{"id":"R1","adequation":0,"raison":"Aucun rapport avec la finance.",' \
-          '"preuve":""}]}'
+    low = '{"avis":[{"id":"R1","adequation":0,"verdict":"hors_sujet",' \
+          '"raison":"Aucun rapport avec la finance.","constats":[],"contraintes":[]}]}'
     result = avis.parse_output(low, [candidate])
     assert result[0]["adequation"] == 0
     assert result[0]["ancrage_verifie"] is False
