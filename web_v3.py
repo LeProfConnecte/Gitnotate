@@ -11,9 +11,10 @@ import os
 import re
 import secrets
 import threading
+import time
 import webbrowser
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -31,6 +32,7 @@ if not os.environ.get("GITNOTATE_DATA_DIR"):
         os.environ["GITNOTATE_DATA_DIR"] = str(default_data)
 
 import catalogue_v3 as catalogue  # noqa: E402 - variable d'environnement initialisee avant import
+import avis_v3 as avis  # noqa: E402 - secrets lus uniquement dans le backend local
 
 
 ASSETS = Path(__file__).resolve().parent / "web_v3"
@@ -50,6 +52,17 @@ class EnrichRequest(BaseModel):
     repos: list[str] = Field(min_length=1, max_length=5)
 
 
+class AIPreviewRequest(BaseModel):
+    need: str = Field(min_length=5, max_length=400)
+    repos: list[str] = Field(min_length=1, max_length=5)
+    provider: Literal["mistral", "openrouter", "openai", "anthropic"]
+
+
+class AIConsentRequest(BaseModel):
+    preview_id: str = Field(min_length=20, max_length=120)
+    consent: bool
+
+
 def create_app(path: Optional[Path] = None, csrf_token: Optional[str] = None) -> FastAPI:
     """Fabrique testable : aucune requete reseau avant une action explicite."""
     app = FastAPI(
@@ -59,6 +72,9 @@ def create_app(path: Optional[Path] = None, csrf_token: Optional[str] = None) ->
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=list(_VALID_HOSTS))
     app.state.catalogue_path = path if path is not None else catalogue.DB_PATH
     app.state.csrf_token = csrf_token or secrets.token_urlsafe(32)
+    app.state.ai_previews = {}
+    app.state.ai_lock = threading.Lock()
+    app.state.ai_busy = False
     app.mount("/assets", StaticFiles(directory=ASSETS), name="assets")
 
     @app.middleware("http")
@@ -146,6 +162,54 @@ def create_app(path: Optional[Path] = None, csrf_token: Optional[str] = None) ->
                 path=app.state.catalogue_path)
         except catalogue.CatalogueError as exc:
             raise HTTPException(400, detail=str(exc)) from None
+
+    @app.get("/api/ai/providers")
+    def ai_providers():
+        return {"providers": avis.providers(), "explicit_consent_required": True,
+                "server_stores_keys": False, "notion_writes": False}
+
+    @app.post("/api/ai/preview")
+    def ai_preview(data: AIPreviewRequest):
+        """Prépare le texte exact sans appeler l'API du fournisseur."""
+        try:
+            preview = avis.make_preview(
+                app.state.catalogue_path, data.need, data.repos, data.provider)
+        except avis.AvisError as exc:
+            raise HTTPException(400, detail=str(exc)) from None
+        preview_id = secrets.token_urlsafe(32)
+        now = time.monotonic()
+        with app.state.ai_lock:
+            # Petit registre borné en RAM : rien de sensible n'est persisté.
+            live = {key: value for key, value in app.state.ai_previews.items()
+                    if value["expires"] > now}
+            if len(live) >= 8:
+                live.pop(next(iter(live)))
+            live[preview_id] = {"preview": preview, "expires": now + 300}
+            app.state.ai_previews = live
+        return {"preview_id": preview_id, "expires_in_seconds": 300,
+                "provider": preview["provider"], "repos": preview["repos"],
+                "messages": preview["messages"], "characters": preview["characters"],
+                "fields": preview["fields"], "disclosure": preview["disclosure"]}
+
+    @app.post("/api/ai/evaluate")
+    def ai_evaluate(data: AIConsentRequest):
+        """Un consentement et un aperçu encore valable pour un unique appel IA."""
+        if data.consent is not True:
+            raise HTTPException(403, detail="Consentement explicite requis.")
+        with app.state.ai_lock:
+            if app.state.ai_busy:
+                raise HTTPException(409, detail="Une évaluation IA est déjà en cours.")
+            record = app.state.ai_previews.pop(data.preview_id, None)
+            if record is None or record["expires"] <= time.monotonic():
+                raise HTTPException(410, detail="Aperçu absent ou expiré : préparez un nouvel aperçu.")
+            app.state.ai_busy = True
+        try:
+            return avis.evaluate(record["preview"])
+        except avis.AvisError as exc:
+            raise HTTPException(502, detail=str(exc)) from None
+        finally:
+            with app.state.ai_lock:
+                app.state.ai_busy = False
 
     return app
 
