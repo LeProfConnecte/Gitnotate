@@ -185,7 +185,7 @@ def load_candidates(path: Path, names: list[str]) -> list[Candidate]:
             slots = ",".join("?" for _ in names)
             rows = con.execute(
                 "SELECT r.repo_key, r.description, r.topics, r.readme, r.fetched_at, "
-                "r.fetch_status FROM repos r WHERE r.repo_key IN (" + slots + ") "
+                "r.fetch_status, r.license FROM repos r WHERE r.repo_key IN (" + slots + ") "
                 "AND EXISTS (SELECT 1 FROM links l WHERE l.repo_key=r.repo_key)", names).fetchall()
     except (sqlite3.Error, OSError, cat.CatalogueError):
         raise AvisError("Catalogue local indisponible.") from None
@@ -203,7 +203,7 @@ def load_candidates(path: Path, names: list[str]) -> list[Candidate]:
         if not (desc or topics or readme):
             raise AvisError("Informations GitHub insuffisantes pour " + key + ".")
         records.append(Candidate("R" + str(i), key, desc, topics, readme,
-                                 row["fetched_at"] or ""))
+                                 row["fetched_at"] or "", safe_text(row["license"], 60)))
     return records
 
 
@@ -213,6 +213,7 @@ def make_preview(path: Path, need: str, names: list[str], provider: str) -> dict
     if not 5 <= len(besoin) <= 400:
         raise AvisError("Décrivez un besoin précis en 5 à 400 caractères.")
     candidates = load_candidates(path, names)
+    required = detect_constraints(besoin)
     blocks = []
     for c in candidates:
         blocks.append(
@@ -220,15 +221,25 @@ def make_preview(path: Path, need: str, names: list[str], provider: str) -> dict
             + "Dépôt public : " + c.key + "\n"
             + "Description GitHub : " + c.description + "\n"
             + "Topics : " + c.topics + "\n"
+            + "Licence SPDX : " + (c.licence or "non renseignée") + "\n"
             + "README extrait : " + c.readme + "\n"
             + "</depot>")
-    user = "Besoin : " + besoin + "\n\n" + "\n\n".join(blocks)
+    constraint_summary = (
+        "Contraintes impératives à examiner séparément : "
+        + "; ".join(k + " : " + CONTRAINTES[k] for k in required)
+        if required else "Aucune contrainte impérative explicite détectée."
+    )
+    user = ("Besoin : " + besoin + "\n" + constraint_summary
+            + "\n\n" + "\n\n".join(blocks))
     messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}]
     return {
         "provider": profile, "need": besoin, "repos": names,
         "candidates": candidates, "messages": messages,
+        "required_constraints": required,
+        "constraint_labels": {key: CONTRAINTES[key] for key in required},
         "characters": len(SYSTEM) + len(user),
-        "fields": ["besoin", "nom du dépôt", "description", "topics", "extrait README"],
+        "fields": ["besoin", "contraintes explicites", "nom du dépôt",
+                   "description", "topics", "licence SPDX", "extrait README"],
         "disclosure": (
             "Un seul fournisseur est contacté après confirmation. "
             "Le moteur peut réessayer une requête HTTP 429/5xx une fois. "
