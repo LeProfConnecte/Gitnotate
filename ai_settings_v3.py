@@ -56,7 +56,9 @@ def _validate_provider(provider: str) -> None:
 
 
 def validate_model(model: str) -> str:
-    if not isinstance(model, str) or not _MODEL_FORMAT.fullmatch(model):
+    if (not isinstance(model, str) or not _MODEL_FORMAT.fullmatch(model)
+            or model.startswith("/") or model.endswith("/")
+            or ".." in model.split("/")):
         raise SettingsError("Modèle invalide : utilise uniquement lettres, chiffres, / _ - . : +.")
     return model
 
