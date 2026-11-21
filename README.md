@@ -119,6 +119,40 @@ inférieure au seuil. Il n'écarte jamais une fiche non notée. Comme un dépôt
 plafonné à 8 (voir [Notation](#notation)), un seuil de 9 ou 10 écarte tous ces dépôts, y compris en
 repli lexical.
 
+## V3 expérimentale — recherche depuis les signets Notion
+
+La nouvelle commande catalogue_v3.py construit un inventaire des liens GitHub
+directement depuis les pages de signets Notion, enrichit progressivement les dépôts
+par lecture des métadonnées GitHub et les recherche hors ligne dans un index SQLite
+séparé. Aucune analyse IA ni écriture dans Notion n'est déclenchée dans ce parcours.
+L'ancien index de 443 fiches est préservé.
+
+Voir [docs/V3_CATALOGUE_SIGNETS.md](docs/V3_CATALOGUE_SIGNETS.md) pour les commandes
+Windows et les limites du lot expérimental. Le classement V3 reste exploratoire ;
+le rapprochement avec les fiches historiques et l'interface Web sont à venir.
+
+## Interface Web locale V3-C (pilote)
+
+Une nouvelle interface Web pour le catalogue de signets est disponible dans
+une branche expérimentale séparée : recherche sous forme de cartes, sélection
+des sources, badges de fiabilité et enrichissement GitHub ciblé.
+Elle fonctionne uniquement sur 127.0.0.1, sans appel LLM ni écriture Notion.
+
+Voir [docs/V3_WEB_LOCAL.md](docs/V3_WEB_LOCAL.md). Installer la V3 sur un
+worktree isolé, pas en remplacement du checkout stable.
+
+## Avis IA facultatif dans l'interface Web V3-D (pilote)
+
+L'interface Web locale peut demander un **avis IA sur 1 à 5 dépôts GitHub
+déjà enrichis**, avec choix du fournisseur configuré, aperçu exact du
+prompt et consentement explicite. L'avis reste indépendant du classement
+local et ne modifie aucun index ni aucune fiche Notion.
+
+Ce pilote est disponible sur une branche isolée : voir
+[docs/V3_AVIS_IA.md](docs/V3_AVIS_IA.md) pour les préconditions, la
+confidentialité et les commandes Windows. Aucun appel IA ne se produit
+lors d'une recherche normale ou d'un aperçu.
+
 ## Retrouver un dépôt déjà enregistré
 
 `redecouverte.py` cherche, **hors ligne**, parmi les fiches déjà créées dans votre base Notion, les

@@ -1,0 +1,226 @@
+"""Tests isolés de l'inventaire de signets et du catalogue V3.
+
+Aucun appel réel à Notion ou GitHub, aucun fichier de données personnel touché.
+"""
+from __future__ import annotations
+
+import base64
+import json
+import sqlite3
+from pathlib import Path
+from urllib.parse import urlsplit
+
+import pytest
+
+import catalogue_v3 as cat
+
+PAGE_A = "https://app.notion.com/p/Github-ou-similaire-d-couvrir-0123456789abcdef0123456789abcdef"
+PAGE_B = "https://app.notion.com/p/Autres-signets-fedcba9876543210fedcba9876543210"
+ID_A = "0123456789abcdef0123456789abcdef"
+ID_B = "fedcba9876543210fedcba9876543210"
+
+
+class Response:
+    def __init__(self, payload, status=200):
+        self.payload = payload
+        self.status_code = status
+
+    def json(self):
+        return self.payload
+
+
+def bookmark(url, n=1):
+    return {"type": "bookmark", "bookmark": {"url": url},
+            "id": f"{n:032x}", "has_children": False}
+
+
+def text_block(text, n=1):
+    return {"type": "paragraph", "paragraph": {"rich_text": [
+        {"type": "text", "text": {"content": text}}]},
+        "id": f"{n:032x}", "has_children": False}
+
+
+class NotionFake:
+    def __init__(self, pages):
+        self.pages = pages
+        self.requests = []
+        self.status = 200
+
+    def get(self, url, headers=None, params=None, timeout=None):
+        assert url.startswith("https://api.notion.com/v1/blocks/")
+        assert url.endswith("/children")
+        assert headers["Authorization"] == "Bearer fake-notion-readonly"
+        self.requests.append((url, dict(params or {})))
+        identity = url.split("/")[-2]
+        blocks = self.pages.get(identity, [])
+        if self.status != 200:
+            return Response({}, self.status)
+        offset = int((params or {}).get("start_cursor") or "0")
+        batch = blocks[offset:offset + 100]
+        next_cursor = str(offset + 100) if offset + 100 < len(blocks) else None
+        return Response({"results": batch, "has_more": next_cursor is not None,
+                         "next_cursor": next_cursor})
+
+
+class GitHubFake:
+    def __init__(self, rate_limited=False):
+        self.calls = []
+        self.rate_limited = rate_limited
+
+    def get(self, url, headers=None, timeout=None):
+        assert url.startswith("https://api.github.com/repos/")
+        assert (headers or {}).get("Authorization") is None
+        self.calls.append(url)
+        if self.rate_limited:
+            return Response({}, 429)
+        if url.endswith("/readme"):
+            content = base64.b64encode(
+                b"Portfolio finance financial stocks market monitoring analytics automation"
+            ).decode("ascii")
+            return Response({"content": content, "encoding": "base64"})
+        if "notfound" in url:
+            return Response({}, 404)
+        return Response({
+            "owner": {"login": "Demo"}, "name": urlsplit(url).path.split("/")[-1],
+            "description": "Financial market stock portfolio analytics automation",
+            "topics": ["finance", "stocks", "automation"],
+            "language": "Python", "license": {"spdx_id": "MIT"},
+            "stargazers_count": 10, "archived": False,
+            "pushed_at": "2026-11-01T10:00:00Z"})
+
+
+@pytest.fixture
+def local(monkeypatch, tmp_path):
+    monkeypatch.setenv("NOTION_READONLY_TOKEN", "fake-notion-readonly")
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    return tmp_path / "catalogue.sqlite"
+
+
+def test_page_url_validation():
+    assert cat.source_id(PAGE_A) == ID_A
+    assert cat.source_id("01234567-89ab-cdef-0123-456789abcdef") == ID_A
+    with pytest.raises(cat.CatalogueError):
+        cat.source_id("https://evil.example/p/0123456789abcdef0123456789abcdef")
+    with pytest.raises(cat.CatalogueError):
+        cat.source_id("http://app.notion.com/p/0123456789abcdef0123456789abcdef")
+
+
+def test_pagination_no_writes_multi_sources_and_duplicates(local):
+    a = [bookmark(f"https://github.com/Demo/repo-{i}", i + 1) for i in range(101)]
+    a += [bookmark("https://github.com/Demo/repo-1/tree/main", 150),
+          bookmark("https://github.com/topics/python", 151),
+          text_block("https://github.com/Demo/extra", 152)]
+    b = [bookmark("https://github.com/Demo/extra", 200),
+         bookmark("https://github.com/Demo/new", 201)]
+    fake = NotionFake({ID_A: a, ID_B: b})
+    result = cat.inventory([PAGE_A, PAGE_B], session=fake, path=local)
+    assert result["distinct_repos"] == 103
+    assert len(fake.requests) == 3  # pagination de la première page, puis page B
+    assert cat.state(local)["repos"] == 103
+    assert cat.state(local)["enriched"] == 0
+    assert local.exists()
+    with sqlite3.connect(local) as con:
+        assert con.execute("SELECT COUNT(*) FROM links").fetchone()[0] == 104
+        assert con.execute("SELECT COUNT(*) FROM repo_fts").fetchone()[0] == 103
+
+
+def test_refused_notion_read_preserves_existing_index(local):
+    first = NotionFake({ID_A: [bookmark("https://github.com/Demo/good")]})
+    cat.inventory([PAGE_A], session=first, path=local)
+    initial = local.read_bytes()
+    denied = NotionFake({ID_A: []})
+    denied.status = 403
+    with pytest.raises(cat.CatalogueError, match="HTTP 403"):
+        cat.inventory([PAGE_A], session=denied, path=local)
+    assert local.read_bytes() == initial
+
+
+def test_large_drop_guard_and_optional_explicit_override(local):
+    source = [bookmark(f"https://github.com/Demo/repo-{i}", i+1) for i in range(30)]
+    cat.inventory([PAGE_A], session=NotionFake({ID_A: source}), path=local)
+    assert cat.state(local)["repos"] == 30
+    with pytest.raises(cat.CatalogueError, match="Chute"):
+        cat.inventory([PAGE_A], session=NotionFake({ID_A: source[:2]}), path=local)
+    assert cat.state(local)["repos"] == 30
+    cat.inventory([PAGE_A], allow_drop=True,
+                  session=NotionFake({ID_A: source[:2]}), path=local)
+    # Les métadonnées anciennes restent dans le cache, mais la recherche filtre les liens actifs.
+    with sqlite3.connect(local) as con:
+        assert con.execute("SELECT COUNT(*) FROM links").fetchone()[0] == 2
+
+
+def test_github_enrichment_and_french_search(local):
+    fake_notion = NotionFake({ID_A: [
+        bookmark("https://github.com/Demo/finance-watch"),
+        bookmark("https://github.com/Demo/other-tool")]})
+    cat.inventory([PAGE_A], session=fake_notion, path=local)
+    before = cat.search("automatiser une veille financière", path=local)
+    assert before["results"] and before["results"][0]["evidence"].startswith("Signet seul")
+    fake = GitHubFake()
+    outcome = cat.enrich(limit=2, session=fake, path=local)
+    assert outcome["updated"] == 2
+    assert len(fake.calls) == 4
+    assert cat.state(local)["enriched"] == 2
+    results = cat.search("automatiser une veille financière", path=local)
+    assert results["results"]
+    best = results["results"][0]
+    assert best["repo"] in ("demo/finance-watch", "demo/other-tool")
+    assert best["coverage"] >= 2
+    assert best["source_pages"]
+    assert best["evidence"] == "GitHub actuel"
+    assert best["github"].startswith("https://github.com/demo/")
+    next_call = cat.enrich(limit=2, session=fake, path=local)
+    assert next_call["updated"] == 0
+    assert len(fake.calls) == 4
+
+
+def test_github_limit_keeps_preexisting_catalog(local):
+    cat.inventory([PAGE_A], session=NotionFake({ID_A: [
+        bookmark("https://github.com/Demo/repo-one")]}), path=local)
+    snapshot = local.read_bytes()
+    result = cat.enrich(limit=1, session=GitHubFake(rate_limited=True), path=local)
+    assert "429" in result["stopped"]
+    assert result["updated"] == 0
+    assert local.read_bytes() == snapshot
+
+
+def test_search_only_selected_sources(local):
+    cat.inventory([PAGE_A, PAGE_B], session=NotionFake({
+        ID_A: [bookmark("https://github.com/Demo/finance-one")],
+        ID_B: [bookmark("https://github.com/Demo/finance-two")]}), path=local)
+    a = cat.search("finance", only_sources=[PAGE_A], path=local)
+    assert [x["repo"] for x in a["results"]] == ["demo/finance-one"]
+    b = cat.search("finance", only_sources=[PAGE_B], path=local)
+    assert [x["repo"] for x in b["results"]] == ["demo/finance-two"]
+    with pytest.raises(cat.CatalogueError):
+        cat.search("finance", only_sources=["https://app.notion.com/p/No-11111111222222223333333344444444"],
+                   path=local)
+
+
+def test_historical_overlap_is_read_only(local, monkeypatch, tmp_path):
+    legacy = tmp_path / "ancien_index.sqlite"
+    with sqlite3.connect(legacy) as con:
+        con.execute("CREATE TABLE fiches (cle_depot TEXT NOT NULL)")
+        con.execute("INSERT INTO fiches VALUES ('demo/finance-one')")
+    original = legacy.read_bytes()
+    monkeypatch.setattr(cat, "LEGACY_DB", legacy)
+    cat.inventory([PAGE_A, PAGE_B], session=NotionFake({
+        ID_A: [bookmark("https://github.com/Demo/finance-one")],
+        ID_B: [bookmark("https://github.com/Demo/finance-two")]}), path=local)
+    status = cat.state(local)
+    assert status["comparison_available"] is True
+    assert status["already_in_historical"] == 1
+    assert status["not_in_historical"] == 1
+    result = cat.search("finance", path=local)
+    mapping = {x["repo"]: x["already_in_historical"] for x in result["results"]}
+    assert mapping == {"demo/finance-one": True, "demo/finance-two": False}
+    assert legacy.read_bytes() == original
+
+
+def test_no_readonly_token_stops_before_network(local, monkeypatch):
+    monkeypatch.delenv("NOTION_READONLY_TOKEN", raising=False)
+    class BlockedSession:
+        def get(self, *a, **kw):
+            raise AssertionError("No network request without token")
+    with pytest.raises(cat.CatalogueError, match="NOTION_READONLY_TOKEN"):
+        cat.inventory([PAGE_A], session=BlockedSession(), path=local)
