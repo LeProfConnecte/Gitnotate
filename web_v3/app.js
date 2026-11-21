@@ -812,7 +812,11 @@ async function start() {
     state.csrf = (await api("/api/session")).csrf;
     await loadState();
     await loadAIProviders();
-    await loadSettings();
+    try {
+      await loadSettings();
+    } catch (error) {
+      settingsMessage("Réglages IA indisponibles : " + error.message, true);
+    }
     if (!state.catalogue.missing) await runSearch();
     else {
       state.allResults = [];
