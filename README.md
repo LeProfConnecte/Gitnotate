@@ -141,6 +141,18 @@ Elle fonctionne uniquement sur 127.0.0.1, sans appel LLM ni écriture Notion.
 Voir [docs/V3_WEB_LOCAL.md](docs/V3_WEB_LOCAL.md). Installer la V3 sur un
 worktree isolé, pas en remplacement du checkout stable.
 
+## Avis IA facultatif dans l'interface Web V3-D (pilote)
+
+L'interface Web locale peut demander un **avis IA sur 1 à 5 dépôts GitHub
+déjà enrichis**, avec choix du fournisseur configuré, aperçu exact du
+prompt et consentement explicite. L'avis reste indépendant du classement
+local et ne modifie aucun index ni aucune fiche Notion.
+
+Ce pilote est disponible sur une branche isolée : voir
+[docs/V3_AVIS_IA.md](docs/V3_AVIS_IA.md) pour les préconditions, la
+confidentialité et les commandes Windows. Aucun appel IA ne se produit
+lors d'une recherche normale ou d'un aperçu.
+
 ## Retrouver un dépôt déjà enregistré
 
 `redecouverte.py` cherche, **hors ligne**, parmi les fiches déjà créées dans votre base Notion, les
