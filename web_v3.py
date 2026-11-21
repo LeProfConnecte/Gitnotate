@@ -189,6 +189,8 @@ def create_app(path: Optional[Path] = None, csrf_token: Optional[str] = None) ->
         return {"preview_id": preview_id, "expires_in_seconds": 300,
                 "provider": preview["provider"], "repos": preview["repos"],
                 "messages": preview["messages"], "characters": preview["characters"],
+                "required_constraints": preview["required_constraints"],
+                "constraint_labels": preview["constraint_labels"],
                 "fields": preview["fields"], "disclosure": preview["disclosure"]}
 
     @app.post("/api/ai/evaluate")
