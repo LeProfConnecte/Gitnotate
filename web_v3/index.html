@@ -97,6 +97,43 @@
           <span class="filter-note">Filtre sur les résultats chargés</span>
         </div>
 
+        <section id="ai-panel" class="ai-panel" aria-labelledby="ai-heading">
+          <div class="ai-panel-header">
+            <div>
+              <span class="ai-eyebrow">ÉVALUATION FACULTATIVE</span>
+              <h3 id="ai-heading">Comparer avec une IA</h3>
+              <p>Coche jusqu'à cinq dépôts enrichis sur GitHub. L'avis du modèle restera distinct du classement local.</p>
+            </div>
+            <span id="ai-selected-count" class="ai-count">0 sélectionné</span>
+          </div>
+          <div class="ai-controls">
+            <div class="ai-provider-wrap">
+              <label for="ai-provider">Fournisseur</label>
+              <select id="ai-provider" aria-describedby="ai-model-status">
+                <option value="">Chargement des fournisseurs…</option>
+              </select>
+              <span id="ai-model-status" class="ai-model">Aucune clé n'est envoyée au navigateur</span>
+            </div>
+            <button id="ai-prepare" type="button" class="btn primary ai-prepare" disabled>Préparer l'avis IA</button>
+          </div>
+          <div id="ai-help" class="ai-help">Les clés et modèles sont lus depuis la configuration privée. Pour les modifier, utilise le lanceur V2 puis redémarre ce serveur.</div>
+          <div id="ai-preview" class="ai-preview hidden">
+            <h4>Aperçu exact des données à envoyer</h4>
+            <p id="ai-preview-meta"></p>
+            <p id="ai-preview-warning" class="ai-warning"></p>
+            <details>
+              <summary>Voir le message système et le contenu complet</summary>
+              <pre id="ai-preview-text" aria-label="Contenu exact de la requête IA"></pre>
+            </details>
+            <label class="ai-consent"><input id="ai-consent-check" type="checkbox"> J'autorise explicitement l'envoi de ce contenu au fournisseur choisi. Je comprends qu'une facturation API est possible.</label>
+            <div class="ai-preview-actions">
+              <button id="ai-send" class="btn primary" type="button" disabled>Confirmer et envoyer à l'IA</button>
+              <button id="ai-cancel" class="btn outline" type="button">Annuler</button>
+            </div>
+          </div>
+          <div id="ai-output" class="ai-output hidden" aria-live="polite"></div>
+        </section>
+
         <div id="notice" class="notice hidden" role="status" aria-live="polite"></div>
         <div id="results-list" class="results-list" aria-live="polite">
           <div class="empty-panel">Le catalogue se prépare…</div>
@@ -106,7 +143,7 @@
       <section id="settings-info" class="footer-note">
         <strong>Pourquoi deux niveaux de preuve ?</strong>
         <p><b>Signet seul</b> : le dépôt figure dans Notion, sans consultation de son README. <b>GitHub vérifié</b> : les métadonnées et un extrait du README ont été récupérés à la date indiquée. Dans les deux cas, le score lexical ne prouve pas l'adéquation à ton besoin.</p>
-        <p class="footer-note-last">L'avis IA et l'import Notion ne sont pas activés dans cette première interface V3-C. Les fournisseurs configurés dans ton ancien lanceur V2 ne sont pas modifiés.</p>
+        <p class="footer-note-last">L'avis IA facultatif n'est transmis qu'après aperçu et confirmation. Les clés restent côté Python. L'import et la modification des fiches Notion restent désactivés.</p>
       </section>
     </main>
   </div>
