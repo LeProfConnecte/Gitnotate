@@ -231,3 +231,21 @@ h1 { font-size: clamp(31px,3.15vw,47px); letter-spacing: -.055em; font-weight: 7
   .ai-prepare { margin: 0; }
   .ai-preview { padding: 13px; }
 }
+
+/* V3-D : verdict et exigences explicites, distincts de la note lexicale */
+.ai-verdict { font-weight: 750; font-size: 12px !important; color: #247d72 !important; }
+.ai-adjustment { background: #fff8eb; border-left: 3px solid #e9b66d; padding: 10px 13px; border-radius: 5px; margin: 14px 0; }
+.ai-adjustment strong { font-size: 11px; color: #8c6231; }
+.ai-adjustment p { margin: 5px 0 0 !important; color: #946e42 !important; }
+.ai-constraints, .ai-facts { border-top: 1px solid #eef1f4; padding-top: 14px; margin-top: 17px; }
+.ai-constraints h5, .ai-facts h5 { font-size: 11px; letter-spacing: .02em; color: #344f62; margin: 0 0 9px; }
+.ai-constraint, .ai-fact { padding: 12px; border: 1px solid #e6edf0; border-radius: 8px; margin: 9px 0; }
+.ai-constraint-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 7px; }
+.ai-constraint-header strong { font-size: 11px; color: #405a6b; }
+.ai-condition-status { font-size: 10px; border-radius: 6px; padding: 5px 8px; font-weight: 720; }
+.ai-condition-status.satisfait { color: #168c75; background: #e4f6ee; }
+.ai-condition-status.non_satisfait { color: #aa4b48; background: #fcebea; }
+.ai-condition-status.non_verifie { color: #866528; background: #fff4e0; }
+.ai-constraint p, .ai-fact p { margin: 8px 0 !important; font-size: 11px; color: #526c80; }
+.ai-fact p { font-weight: 640; }
+.ai-evidence-limit { color: #899cac; font-size: 10px; line-height: 1.6; display: block; margin-top: 5px; }
