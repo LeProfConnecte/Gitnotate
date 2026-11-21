@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 
 import catalogue_v3 as cat
 import avis_v3 as avis
+import ai_settings_v3 as ai_config
 import web_v3
 
 # Pendant la collecte pytest, la primitive native n'est pas encore remplacée par
@@ -370,3 +371,132 @@ def test_ai_disallows_second_concurrent_evaluation(ai_client, monkeypatch):
     assert response.status_code == 409
     # Le jeton n'est pas consommé par un appel refusé faute de place.
     assert preview["preview_id"] in app.state.ai_previews
+
+
+# ---------------------------------------------------------------------------
+# V3-E : configuration fournisseurs sans fuite de secrets
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def settings_client(tmp_path):
+    path = tmp_path / "catalogue.sqlite"
+    make_enriched_catalogue(path)
+    secrets_path = tmp_path / ".env"
+    secrets_path.write_text(
+        "# Ne pas modifier les tokens Notion\n"
+        "NOTION_READONLY_TOKEN=ntn_FAKE_NOT_A_SECRET_123456\n"
+        "DATABASE_ID=0123456789abcdef0123456789abcdef\n"
+        "OPENAI_MODEL=gpt-6.1-terra\n"
+        "OPENAI_API_KEY=fake-existing-openai-key-12345\n"
+        "OTHER_CUSTOM_SETTING=preserve\n", encoding="utf-8")
+    app = web_v3.create_app(path, csrf_token="config-csrf",
+                            settings_file=secrets_path)
+    with TestClient(app, base_url=HOST) as client:
+        yield client, app, secrets_path
+
+
+def _settings_headers():
+    return {"x-csrf-token": "config-csrf", "origin": HOST}
+
+
+def test_settings_get_masks_all_secrets(settings_client):
+    client, app, path = settings_client
+    response = client.get("/api/ai/settings")
+    assert response.status_code == 200
+    result = response.json()
+    assert len(result["providers"]) == 4
+    assert result["key_values_returned"] is False
+    assert result["secret_storage_encrypted"] is False
+    assert result["restart_required"] is False
+    assert "ntn_FAKE_NOT_A_SECRET_123456" not in response.text
+    assert "fake-existing-openai-key-12345" not in response.text
+    assert next(p for p in result["providers"] if p["id"] == "openai")[
+        "key_configured"] is True
+
+
+def test_settings_save_cannot_touch_notion_secrets(settings_client):
+    client, _, path = settings_client
+    response = client.post("/api/ai/settings", headers=_settings_headers(), json={
+        "provider": "openai", "model": "gpt-6.2-sol",
+        "key": "sk-proj-NEW-FAKE-ABCDE012345"})
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["restart_required"] is True
+    assert data["applied_to_running_ai"] is False
+    assert "sk-proj-NEW-FAKE-ABCDE012345" not in response.text
+    saved = path.read_text(encoding="utf-8")
+    assert "OPENAI_MODEL=gpt-6.2-sol" in saved
+    assert "OPENAI_API_KEY=sk-proj-NEW-FAKE-ABCDE012345" in saved
+    assert "NOTION_READONLY_TOKEN=ntn_FAKE_NOT_A_SECRET_123456" in saved
+    assert "OTHER_CUSTOM_SETTING=preserve" in saved
+    assert client.get("/api/ai/settings").json()["restart_required"] is True
+
+
+def test_settings_save_requires_csrf_and_authorized_origin(settings_client):
+    client, _, path = settings_client
+    before = path.read_bytes()
+    payload = {"provider": "mistral", "model": "mistral-small-2603",
+               "key": "fake-new-key-1234567890"}
+    assert client.post("/api/ai/settings", json=payload).status_code == 403
+    assert client.post("/api/ai/settings", headers={
+        "x-csrf-token": "config-csrf", "origin": "https://evil.example"
+    }, json=payload).status_code == 403
+    assert path.read_bytes() == before
+
+
+def test_settings_invalid_key_never_reflected(settings_client):
+    client, _, path = settings_client
+    before = path.read_bytes()
+    malicious = "not-secure\nNOTION_READONLY_TOKEN=stolen"
+    response = client.post("/api/ai/settings", headers=_settings_headers(), json={
+        "provider": "anthropic", "model": "claude-sonnet-5-5", "key": malicious})
+    assert response.status_code == 400
+    assert "NOTION_READONLY_TOKEN=stolen" not in response.text
+    assert path.read_bytes() == before
+
+
+def test_settings_erase_key_explicitly(settings_client):
+    client, _, path = settings_client
+    response = client.post("/api/ai/settings", headers=_settings_headers(), json={
+        "provider": "openai", "model": "gpt-6.1-terra", "clear_key": True})
+    assert response.status_code == 200
+    assert "OPENAI_API_KEY=\n" in path.read_text(encoding="utf-8")
+    assert "NOTION_READONLY_TOKEN=ntn_FAKE_NOT_A_SECRET_123456" in path.read_text(
+        encoding="utf-8")
+    assert response.json()["key_configured"] is False
+
+
+def test_settings_connection_probe_is_explicit_and_read_only(settings_client, monkeypatch):
+    client, _, path = settings_client
+    calls = []
+    def fake_check(location, provider, model, key):
+        calls.append((location, provider, model, key))
+        return {"key_accepted": True, "model": model, "model_listed": True,
+                "available_models": [model], "no_generation": True}
+    monkeypatch.setattr(ai_config, "check_connection", fake_check)
+
+    before = path.read_bytes()
+    client.get("/api/ai/settings")
+    assert calls == []
+    check = client.post("/api/ai/settings/check", headers=_settings_headers(), json={
+        "provider": "openai", "model": "gpt-6.1-terra",
+        "key": "sk-proj-FAKE-TEST-123456789"})
+    assert check.status_code == 200
+    assert check.json()["no_generation"] is True
+    assert calls == [(path, "openai", "gpt-6.1-terra",
+                     "sk-proj-FAKE-TEST-123456789")]
+    assert "sk-proj-FAKE-TEST-123456789" not in check.text
+    assert path.read_bytes() == before
+
+
+def test_settings_cannot_change_during_paid_llm(settings_client):
+    client, app, path = settings_client
+    app.state.ai_busy = True
+    before = path.read_bytes()
+    response = client.post("/api/ai/settings", headers=_settings_headers(), json={
+        "provider": "openai", "model": "gpt-6.2-sol"})
+    assert response.status_code == 409
+    assert path.read_bytes() == before
+    check = client.post("/api/ai/settings/check", headers=_settings_headers(),
+                        json={"provider": "openai", "model": "gpt-6.2-sol"})
+    assert check.status_code == 409
