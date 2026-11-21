@@ -442,7 +442,12 @@ function renderAIPreview(preview) {
     preview.provider.label + " · " + preview.provider.model + " · "
     + preview.repos.length + " dépôts · " + formatCount(preview.characters)
     + " caractères (messages système et utilisateur)";
-  byId("ai-preview-warning").textContent = preview.disclosure;
+  const constraints = (preview.required_constraints || []).map(
+    (id) => preview.constraint_labels?.[id] || id);
+  byId("ai-preview-warning").textContent = preview.disclosure
+    + (constraints.length ? " Contraintes essentielles détectées : "
+       + constraints.join(" ; ") + "."
+       : " Aucune contrainte essentielle explicite détectée automatiquement.");
   byId("ai-preview-text").textContent = preview.messages.map(
     (m) => "Message " + (m.role === "system" ? "système" : "utilisateur")
       + "\n\n" + m.content).join("\n\n--------------------\n\n");
@@ -481,9 +486,35 @@ async function prepareAI() {
 
 function reviewLevel(value) {
   if (value === 3) return "Adéquation élevée selon le modèle";
-  if (value === 2) return "Candidat plausible selon le modèle";
-  if (value === 1) return "Lien faible selon le modèle";
+  if (value === 2) return "Composant potentiellement réutilisable";
+  if (value === 1) return "Adéquation limitée ou contrainte non remplie";
   return "Hors sujet ou preuves insuffisantes";
+}
+
+function reviewVerdict(code) {
+  return ({
+    "repond_au_besoin": "Répond au besoin selon le modèle",
+    "composant_partiel": "Composant partiellement réutilisable",
+    "dependance_proprietaire": "Dépendance propriétaire ou moteur central privé",
+    "hors_sujet": "Hors sujet",
+    "preuves_insuffisantes": "Preuves insuffisantes",
+  })[code] || "À examiner";
+}
+
+function constraintStatus(status) {
+  return ({
+    "satisfait": "Satisfaite selon les éléments transmis",
+    "non_satisfait": "Non satisfaite",
+    "non_verifie": "Non vérifiée",
+  })[status] || "À vérifier";
+}
+
+function appendEvidence(parent, evidence) {
+  if (!evidence) return;
+  parent.appendChild(element("blockquote", "ai-quote", evidence));
+  parent.appendChild(element("small", "ai-evidence-limit",
+    "Extrait littéral retrouvé dans les données GitHub transmises ; "
+    + "sa présence ne garantit pas que l'affirmation soit correcte."));
 }
 
 function showAIResult(data) {
@@ -495,23 +526,60 @@ function showAIResult(data) {
     element("p", "ai-disclaimer", data.notice));
   if (!data.convincing) {
     parent.appendChild(element("p", "ai-none",
-      "Aucun des dépôts évalués n'est jugé convaincant (note au moins 2/3). "
-      + "Tu peux enrichir d'autres candidats et renouveler l'analyse."));
+      "Aucun dépôt évalué n'est actuellement convaincant (adéquation au moins 2/3). "
+      + "Une recherche plus ciblée ou l'enrichissement d'autres candidats est conseillé."));
+  } else if (!data.full_match) {
+    parent.appendChild(element("p", "ai-none",
+      "Au moins un composant est plausible, mais aucun candidat n'est démontré "
+      + "pleinement conforme à toutes les exigences."));
   }
   for (const item of data.results || []) {
     const row = element("article", "ai-result");
     const heading = element("div", "ai-result-heading");
     append(heading, element("strong", "", item.repo),
       element("span", "ai-rating", item.adequation + " / 3"));
-    append(row, heading, element("p", "", reviewLevel(item.adequation)),
-      element("p", "ai-reason", item.raison));
-    if (item.ancrage_verifie && item.preuve) {
-      append(row,
-        element("span", "ai-source-label", "Extrait retrouvé dans les données GitHub transmises"),
-        element("blockquote", "ai-quote", item.preuve));
-    } else {
+    row.appendChild(heading);
+    row.appendChild(element("p", "ai-verdict", reviewVerdict(item.verdict)));
+    row.appendChild(element("p", "", reviewLevel(item.adequation)));
+    row.appendChild(element("p", "ai-reason", item.raison));
+
+    if (item.ajustements?.length) {
+      const review = element("div", "ai-adjustment");
+      review.appendChild(element("strong", "", "Contrôle automatique de cohérence"));
+      for (const adj of item.ajustements) review.appendChild(element("p", "", adj));
+      row.appendChild(review);
+    }
+
+    if (item.contraintes?.length) {
+      const constraints = element("section", "ai-constraints");
+      constraints.appendChild(element("h5", "", "Contraintes obligatoires"));
+      for (const condition of item.contraintes) {
+        const block = element("div", "ai-constraint");
+        const head = element("div", "ai-constraint-header");
+        append(head, element("strong", "", condition.label),
+          element("span", "ai-condition-status " + condition.etat,
+            constraintStatus(condition.etat)));
+        block.appendChild(head);
+        block.appendChild(element("p", "", condition.raison));
+        appendEvidence(block, condition.preuve);
+        constraints.appendChild(block);
+      }
+      row.appendChild(constraints);
+    }
+
+    if (item.constats?.length) {
+      const facts = element("section", "ai-facts");
+      facts.appendChild(element("h5", "", "Constats et extraits cités"));
+      for (const claim of item.constats) {
+        const fact = element("div", "ai-fact");
+        fact.appendChild(element("p", "", claim.affirmation));
+        appendEvidence(fact, claim.preuve);
+        facts.appendChild(fact);
+      }
+      row.appendChild(facts);
+    } else if (!item.contraintes?.length) {
       row.appendChild(element("span", "ai-source-label",
-        "Aucun extrait justificatif vérifié pour cet avis"));
+        "Aucun constat vérifiable fourni pour cet avis."));
     }
     parent.appendChild(row);
   }
