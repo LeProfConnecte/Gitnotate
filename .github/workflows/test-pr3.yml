@@ -2,7 +2,7 @@ name: Validation Gitnotate (Python Windows/Linux)
 
 on:
   pull_request:
-    branches: [claude/amazing-dijkstra-w25nu2, feat/v3-catalogue-signets-20261120]
+    branches: [claude/amazing-dijkstra-w25nu2, feat/v3-catalogue-signets-20261120, feat/v3-web-local-20261120]
 
 permissions:
   contents: read
