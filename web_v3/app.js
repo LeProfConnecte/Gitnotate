@@ -67,9 +67,10 @@ function setBusy(enabled) {
   byId("enrich-visible").disabled = state.busy;
   byId("ai-prepare").disabled = state.busy;
   byId("ai-send").disabled = state.busy || !byId("ai-consent-check").checked;
-  for (const id of ["settings-save", "settings-test", "settings-clear", "settings-provider"]) {
+  for (const id of ["settings-save", "settings-test", "settings-provider"]) {
     byId(id).disabled = state.busy;
   }
+  byId("settings-clear").disabled = state.busy || !settingsSelected()?.key_configured;
   for (const b of document.querySelectorAll(".card-action")) b.disabled = state.busy;
   for (const input of document.querySelectorAll(".ai-card-check")) input.disabled = state.busy;
   if (!enabled) {
