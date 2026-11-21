@@ -25,7 +25,7 @@
       <span class="section-kicker">ESPACE DE TRAVAIL</span>
       <a href="#explorer" class="nav-item active"><span class="nav-icon" aria-hidden="true">⌕</span> Explorer <span class="nav-count" id="nav-count">—</span></a>
       <a href="#sources" class="nav-item"><span class="nav-icon" aria-hidden="true">▤</span> Sources Notion</a>
-      <a href="#settings-info" class="nav-item"><span class="nav-icon" aria-hidden="true">⚙</span> À propos</a>
+      <a href="#provider-settings" class="nav-item"><span class="nav-icon" aria-hidden="true">⚙</span> Réglages IA</a>
     </nav>
 
     <section id="sources" class="source-section" aria-labelledby="sources-heading">
@@ -134,6 +134,42 @@
           <div id="ai-output" class="ai-output hidden" aria-live="polite"></div>
         </section>
 
+        <details id="provider-settings" class="settings-panel">
+          <summary class="settings-heading">Réglages IA <span>Fournisseurs, modèles et clés API — configuration locale</span></summary>
+          <div class="settings-content">
+            <p class="settings-intro">Les clés API restent dans ton fichier .env privé. Une clé enregistrée n'est jamais réaffichée. Aucun appel au fournisseur n'est effectué sans utiliser « Tester la connexion » ou confirmer un avis IA.</p>
+            <div id="settings-restart" class="settings-restart hidden" role="status">Configuration enregistrée. Redémarre le serveur Gitnotate V3 pour appliquer les nouveaux réglages aux avis IA.</div>
+            <div class="settings-grid">
+              <label class="settings-field" for="settings-provider">
+                Fournisseur
+                <select id="settings-provider" autocomplete="off">
+                  <option value="mistral">Mistral</option>
+                  <option value="openrouter">OpenRouter</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="anthropic">Anthropic</option>
+                </select>
+              </label>
+              <label class="settings-field" for="settings-model">
+                Modèle API (identifiant exact)
+                <input id="settings-model" type="text" list="settings-model-options" maxlength="160" autocomplete="off" spellcheck="false" placeholder="Ex. gpt-6.1-terra" required>
+                <datalist id="settings-model-options"></datalist>
+              </label>
+            </div>
+            <label class="settings-field settings-secret" for="settings-key">
+              Nouvelle clé API
+              <input id="settings-key" type="password" autocomplete="new-password" placeholder="Laisser vide pour conserver la clé enregistrée" spellcheck="false" autocapitalize="off">
+            </label>
+            <p id="settings-key-status" class="settings-key-status">État de la clé : chargement…</p>
+            <div class="settings-actions">
+              <button id="settings-save" class="btn primary" type="button">Enregistrer ce fournisseur</button>
+              <button id="settings-test" class="btn outline" type="button">Tester la connexion et lister les modèles</button>
+              <button id="settings-clear" class="btn outline settings-danger" type="button">Effacer la clé</button>
+            </div>
+            <p id="settings-result" class="settings-result" role="status" aria-live="polite"></p>
+            <p class="settings-security">Le test utilise uniquement les endpoints GET officiels. Il ne génère pas de texte, mais nécessite Internet et peut rencontrer des limites API. L'enregistrement est local et atomique ; le fichier .env conserve les jetons Notion et les autres paramètres. Les clés restent en clair dans ton profil Windows : ne publie pas ce dossier.</p>
+          </div>
+        </details>
+
         <div id="notice" class="notice hidden" role="status" aria-live="polite"></div>
         <div id="results-list" class="results-list" aria-live="polite">
           <div class="empty-panel">Le catalogue se prépare…</div>
@@ -143,7 +179,7 @@
       <section id="settings-info" class="footer-note">
         <strong>Pourquoi deux niveaux de preuve ?</strong>
         <p><b>Signet seul</b> : le dépôt figure dans Notion, sans consultation de son README. <b>GitHub vérifié</b> : les métadonnées et un extrait du README ont été récupérés à la date indiquée. Dans les deux cas, le score lexical ne prouve pas l'adéquation à ton besoin.</p>
-        <p class="footer-note-last">L'avis IA facultatif n'est transmis qu'après aperçu et confirmation. Les clés restent côté Python. L'import et la modification des fiches Notion restent désactivés.</p>
+        <p class="footer-note-last">Les clés et modèles peuvent désormais être enregistrés dans les réglages IA de cette interface locale. Un redémarrage du serveur est requis après modification. L'import et la modification des fiches Notion restent désactivés.</p>
       </section>
     </main>
   </div>
