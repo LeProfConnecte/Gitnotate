@@ -13,6 +13,9 @@ const state = {
   selectedSources: new Set(),
   busy: false,
   lastQuery: "",
+  aiProviders: [],
+  aiSelected: new Set(),
+  aiPreview: null,
 };
 
 function element(tag, className, text) {
@@ -60,8 +63,14 @@ function setBusy(enabled) {
     byId(id).disabled = state.busy;
   }
   byId("enrich-visible").disabled = state.busy;
+  byId("ai-prepare").disabled = state.busy;
+  byId("ai-send").disabled = state.busy || !byId("ai-consent-check").checked;
   for (const b of document.querySelectorAll(".card-action")) b.disabled = state.busy;
-  if (!enabled) updateEnrichButton();
+  for (const input of document.querySelectorAll(".ai-card-check")) input.disabled = state.busy;
+  if (!enabled) {
+    updateEnrichButton();
+    updateAISelection();
+  }
 }
 
 async function api(url, options = {}) {
@@ -169,11 +178,10 @@ function createCard(repo, index) {
   const card = element("article", "result-card");
   const header = element("div", "card-top");
   const meta = element("div", "repo-meta");
-  const [owner, name] = String(repo.repo || "/").split("/");
-  meta.appendChild(element("span", "repo-owner", owner || "Dépôt GitHub"));
+  meta.appendChild(element("span", "repo-owner", "Dépôt GitHub"));
   const repoTitle = validGithubLink(repo.github)
-    ? element("a", "repo-title", name || "Dépôt sans nom")
-    : element("strong", "repo-title", name || "Dépôt sans nom");
+    ? element("a", "repo-title", repo.repo || "Dépôt sans nom")
+    : element("strong", "repo-title", repo.repo || "Dépôt sans nom");
   if (repoTitle.tagName === "A") {
     repoTitle.href = repo.github;
     repoTitle.target = "_blank";
@@ -184,7 +192,27 @@ function createCard(repo, index) {
   header.appendChild(meta);
 
   const actions = element("div", "card-top-actions");
-  if (repo.evidence !== "GitHub actuel") {
+  if (repo.evidence === "GitHub actuel") {
+    const choose = element("label", "ai-card-label");
+    const check = element("input", "ai-card-check");
+    check.type = "checkbox";
+    check.value = repo.repo;
+    check.checked = state.aiSelected.has(repo.repo);
+    check.disabled = state.busy;
+    check.addEventListener("change", () => {
+      if (check.checked && state.aiSelected.size >= 5) {
+        check.checked = false;
+        notify("Sélection limitée à cinq dépôts pour maîtriser les données envoyées.", true);
+        return;
+      }
+      if (check.checked) state.aiSelected.add(repo.repo);
+      else state.aiSelected.delete(repo.repo);
+      resetAIPreview();
+      updateAISelection();
+    });
+    append(choose, check, element("span", "", "Évaluer avec l'IA"));
+    actions.appendChild(choose);
+  } else {
     const action = element("button", "card-action", "Enrichir ce dépôt");
     action.type = "button";
     action.disabled = state.busy;
@@ -251,6 +279,7 @@ function renderResults() {
     matches.forEach((repo, i) => container.appendChild(createCard(repo, i)));
   }
   updateEnrichButton();
+  updateAISelection();
 }
 
 async function runSearch() {
@@ -261,6 +290,8 @@ async function runSearch() {
     return;
   }
   state.lastQuery = query;
+  state.aiSelected.clear();
+  resetAIPreview(true);
   clearNotice();
   setBusy(true);
   byId("results-list").replaceChildren(element("div", "empty-panel", "Recherche locale en cours…"));
@@ -383,6 +414,7 @@ function bindEvents() {
   byId("refresh-sources").addEventListener("click", () => {
     refreshSources().catch((err) => notify(err.message, true));
   });
+  bindAIEvents();
 }
 
 async function start() {
@@ -390,6 +422,7 @@ async function start() {
   try {
     state.csrf = (await api("/api/session")).csrf;
     await loadState();
+    await loadAIProviders();
     if (!state.catalogue.missing) await runSearch();
     else {
       state.allResults = [];
