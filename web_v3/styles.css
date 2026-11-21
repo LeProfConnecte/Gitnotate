@@ -249,3 +249,30 @@ h1 { font-size: clamp(31px,3.15vw,47px); letter-spacing: -.055em; font-weight: 7
 .ai-constraint p, .ai-fact p { margin: 8px 0 !important; font-size: 11px; color: #526c80; }
 .ai-fact p { font-weight: 640; }
 .ai-evidence-limit { color: #899cac; font-size: 10px; line-height: 1.6; display: block; margin-top: 5px; }
+
+/* V3 - configuration locale des quatre fournisseurs IA */
+.settings-panel { margin: 20px 0 22px; border: 1px solid #dbe8e5; border-radius: 13px; background: #fff; box-shadow: 0 3px 14px #12345604; }
+.settings-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 19px 23px; cursor: pointer; color: #274b55; font-size: 15px; font-weight: 760; }
+.settings-heading::marker { color: #148778; }
+.settings-heading span { font-size: 11px; font-weight: 510; color: #8a9baa; }
+.settings-content { border-top: 1px solid #e8eeef; padding: 21px 23px 22px; }
+.settings-intro, .settings-security { color: #7b8b9c; line-height: 1.75; font-size: 11px; margin: 0 0 19px; }
+.settings-grid { display: grid; grid-template-columns: minmax(160px, 1fr) minmax(220px, 2fr); gap: 16px; align-items: end; }
+.settings-field { display: grid; gap: 8px; font-weight: 700; font-size: 11px; color: #4d6775; min-width: 0; }
+.settings-field input, .settings-field select { width: 100%; padding: 12px; border-radius: 9px; border: 1px solid #d9e5e9; background: #fbfcfd; font-size: 12px; font-weight: 500; color: #264058; min-width: 0; }
+.settings-field input:focus-visible, .settings-field select:focus-visible { outline: 3px solid #91d7ca; outline-offset: 2px; }
+.settings-secret { margin-top: 16px; }
+.settings-secret input { font-family: Consolas, monospace; }
+.settings-key-status { font-size: 11px; color: #708995; margin: 8px 0 18px; }
+.settings-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.settings-danger { color: #a34b50 !important; border-color: #ecd4d6 !important; }
+.settings-danger:hover:not(:disabled) { background: #fff2f2 !important; }
+.settings-result { margin: 14px 0 0; color: #247e70; font-size: 11px; line-height: 1.7; min-height: 14px; overflow-wrap: anywhere; }
+.settings-result.error { color: #ac414a; }
+.settings-restart { background: #fff7e6; border: 1px solid #f0dfb6; padding: 11px 14px; margin: 0 0 15px; border-radius: 8px; color: #84602d; font-size: 11px; line-height: 1.6; }
+.settings-security { margin: 16px 0 0; color: #9aa7b5; }
+@media(max-width: 740px) {
+  .settings-heading { padding: 14px; }
+  .settings-content { padding: 16px 14px; }
+  .settings-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+}
