@@ -177,3 +177,57 @@ h1 { font-size: clamp(31px,3.15vw,47px); letter-spacing: -.055em; font-weight: 7
   html { scroll-behavior: auto; }
   * { transition: none !important; }
 }
+
+/* V3-D : avis IA distinct du classement lexical. Aucune source externe. */
+.ai-panel {
+  padding: 24px 26px;
+  margin: 22px 0 24px;
+  border: 1px solid #d9e7e6;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 3px 14px #12345604;
+}
+.ai-panel-header { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; }
+.ai-eyebrow { color: #198a7c; letter-spacing: .10em; font-size: 10px; font-weight: 780; }
+.ai-panel h3 { margin: 7px 0 5px; color: #223850; font-size: 18px; letter-spacing: -.03em; }
+.ai-panel-header p, .ai-help { margin: 6px 0; font-size: 11px; color: #8795a6; line-height: 1.7; max-width: 850px; }
+.ai-count { white-space: nowrap; color: #178c80; background: #e6f5f2; border-radius: 7px; padding: 7px 10px; font-size: 10px; font-weight: 760; }
+.ai-controls { margin-top: 20px; display: flex; align-items: end; gap: 14px; flex-wrap: wrap; }
+.ai-provider-wrap { display: grid; gap: 6px; flex: 1; min-width: 230px; }
+.ai-provider-wrap label { font-size: 11px; color: #53697c; font-weight: 720; }
+.ai-provider-wrap select { color: #253d52; padding: 11px 12px; border: 1px solid #dce6eb; background: #fcfefe; border-radius: 8px; width: 100%; font-size: 12px; }
+.ai-provider-wrap select:focus-visible { outline: 3px solid #7ed5ce; outline-offset: 2px; }
+.ai-model { font-size: 10px; color: #9da9b6; line-height: 1.5; }
+.ai-prepare { min-height: 42px; margin-bottom: 19px; }
+.ai-help { margin-top: 11px; }
+.ai-card-label { display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 11px; font-weight: 660; color: #217f74; border: 1px solid #d4e8e2; padding: 8px 10px; border-radius: 7px; background: #f9fefd; cursor: pointer; }
+.ai-card-label:has(input:checked) { background: #dcf5ec; border-color: #b6ddcf; }
+.ai-card-label input, .ai-consent input { accent-color: #148d79; width: 14px; height: 14px; margin: 0; }
+.ai-preview { margin-top: 22px; padding: 20px; border: 1px solid #d7e5e2; background: #f7fbfa; border-radius: 10px; }
+.ai-preview h4, .ai-output h4 { margin: 0 0 10px; font-size: 14px; color: #23475c; }
+.ai-preview p, .ai-output p { color: #667e8d; font-size: 11px; line-height: 1.7; }
+.ai-warning { border-left: 3px solid #d7ae62; padding: 9px 11px; background: #fff8e9; }
+.ai-preview details { margin: 13px 0; }
+.ai-preview summary { cursor: pointer; font-size: 11px; font-weight: 740; color: #217f74; }
+.ai-preview pre { max-height: 340px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: #fff; border: 1px solid #dfe9e7; padding: 14px; font: 11px/1.65 Consolas, monospace; color: #43546a; border-radius: 8px; }
+.ai-consent { display: flex; align-items: start; gap: 9px; color: #465d70; line-height: 1.6; font-size: 11px; margin: 15px 0; }
+.ai-consent input { flex: none; margin-top: 3px; }
+.ai-preview-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+.ai-output { margin-top: 22px; border-top: 1px solid #e8efec; padding-top: 21px; }
+.ai-disclaimer { margin-bottom: 16px; }
+.ai-none { padding: 12px; color: #8d5c2e !important; background: #fff9ef; border: 1px solid #f3e4cc; border-radius: 8px; }
+.ai-result { border: 1px solid #edf1f3; border-radius: 9px; padding: 15px 16px; margin: 9px 0; }
+.ai-result-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.ai-result-heading strong { color: #284558; font-size: 12px; overflow-wrap: anywhere; }
+.ai-rating { background: #e9f3f1; border-radius: 7px; padding: 5px 8px; color: #168479; font-size: 11px; white-space: nowrap; font-weight: 770; }
+.ai-result p { margin: 8px 0 4px; }
+.ai-reason { color: #3e566b !important; font-size: 12px !important; }
+.ai-source-label { display: block; margin-top: 10px; font-size: 10px; color: #92a1ae; }
+.ai-quote { margin: 6px 0 0; border-left: 3px solid #9ad6c7; padding: 8px 11px; background: #f7fbfa; font-size: 11px; line-height: 1.65; color: #435a6b; }
+@media(max-width: 740px) {
+  .ai-panel { padding: 17px 15px; margin: 18px 0; }
+  .ai-panel-header { flex-direction: column; gap: 8px; }
+  .ai-controls { align-items: stretch; }
+  .ai-prepare { margin: 0; }
+  .ai-preview { padding: 13px; }
+}
