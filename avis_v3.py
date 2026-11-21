@@ -249,7 +249,13 @@ def make_preview(path: Path, need: str, names: list[str], provider: str) -> dict
     }
 
 
-def parse_output(text: str, candidates: list[Candidate]) -> list[dict[str, Any]]:
+def parse_output(text: str, candidates: list[Candidate],
+                 required_constraints: list[str] | None = None) -> list[dict[str, Any]]:
+    """Validation stricte : la citation littérale n'est pas une preuve sémantique.
+
+    Un coeur explicitement privé interdit un verdict favorable à une demande
+    open source / autonome. Ce contrôle déterministe et sa portée sont exposés.
+    """
     if not isinstance(text, str) or not text or len(text) > MAX_RESPONSE_CHARS:
         raise AvisError("Réponse IA vide ou trop volumineuse.")
     start = text.find("{")
@@ -263,6 +269,9 @@ def parse_output(text: str, candidates: list[Candidate]) -> list[dict[str, Any]]
     if not isinstance(items, list) or len(items) != len(candidates):
         raise AvisError("La réponse IA ne contient pas un avis pour chaque candidat.")
     expected = {c.reference: c for c in candidates}
+    required = list(dict.fromkeys(required_constraints or []))
+    if any(key not in CONTRAINTES for key in required):
+        raise AvisError("Contrainte demandée inconnue.")
     seen: set[str] = set()
     result: list[dict[str, Any]] = []
     for value in items:
@@ -272,24 +281,132 @@ def parse_output(text: str, candidates: list[Candidate]) -> list[dict[str, Any]]
         if rid in seen:
             raise AvisError("Le même candidat est présent plusieurs fois.")
         seen.add(rid)
+        candidate = expected[rid]
         score = value.get("adequation")
         if type(score) is not int or not 0 <= score <= 3:
             raise AvisError("Échelle d'adéquation invalide : 0 à 3 requis.")
+        verdict = value.get("verdict")
+        if verdict not in VERDICTS:
+            raise AvisError("Verdict IA inconnu ou absent.")
         reason = safe_text(value.get("raison"), 400)
-        quote = safe_text(value.get("preuve"), 180)
         if len(reason) < 8:
             raise AvisError("Justification IA manquante.")
-        candidate = expected[rid]
-        reference_text = " ".join(candidate.excerpt.casefold().split())
-        grounded = len(quote) >= 12 and quote.casefold() in reference_text
-        if score >= 2 and not grounded:
-            raise AvisError("Une note IA forte manque de preuve textuelle exacte ; avis rejeté.")
-        if quote and not grounded:
-            raise AvisError("Citation IA absente des données du dépôt ; avis rejeté.")
+        claims = value.get("constats")
+        if not isinstance(claims, list) or len(claims) > 5:
+            raise AvisError("La liste des constats sourcés est invalide.")
+        grounded_claims = []
+        for claim in claims:
+            if not isinstance(claim, dict):
+                raise AvisError("Format de constat IA invalide.")
+            statement = safe_text(claim.get("affirmation"), 220)
+            if len(statement) < 8:
+                raise AvisError("Un constat n'est pas suffisamment expliqué.")
+            quote, grounded = _quote(claim.get("preuve"), candidate, required=True)
+            grounded_claims.append({
+                "affirmation": statement, "preuve": quote, "ancrage_verifie": grounded})
+        if score >= 2 and not grounded_claims:
+            raise AvisError("Une recommandation IA nécessite des constats avec citations.")
+
+        entries = value.get("contraintes")
+        if not isinstance(entries, list) or len(entries) != len(required):
+            raise AvisError("Les contraintes essentielles ne sont pas toutes évaluées.")
+        seen_constraints: set[str] = set()
+        assessed: list[dict[str, Any]] = []
+        for item in entries:
+            if not isinstance(item, dict) or item.get("id") not in required:
+                raise AvisError("Contrainte IA inattendue.")
+            key = item["id"]
+            if key in seen_constraints:
+                raise AvisError("Contrainte IA répétée.")
+            seen_constraints.add(key)
+            status = item.get("etat")
+            if status not in ETATS:
+                raise AvisError("État de contrainte invalide.")
+            explanation = safe_text(item.get("raison"), 260)
+            if len(explanation) < 8:
+                raise AvisError("Motif de contrainte absent.")
+            quote, grounded = _quote(item.get("preuve"), candidate,
+                                     required=status != "non_verifie")
+            if status == "non_verifie" and quote:
+                raise AvisError("Une contrainte non vérifiée ne peut présenter une preuve positive.")
+            assessed.append({
+                "id": key, "label": CONTRAINTES[key], "etat": status,
+                "raison": explanation, "preuve": quote,
+                "ancrage_verifie": grounded})
+        if seen_constraints != set(required):
+            raise AvisError("L'avis ne couvre pas les contraintes exigées.")
+
+        adjustments: list[str] = []
+        private_evidence = private_core_evidence(candidate)
+        if private_evidence and ("open_source" in required or "independant" in required):
+            # Fait explicite dans l'extrait de README, sans seconde requête IA.
+            # Ne jamais laisser un modèle surclasser un coeur signalé privé.
+            evidence, _ = _quote(private_evidence, candidate, required=True)
+            for requirement in assessed:
+                if requirement["id"] in ("open_source", "independant"):
+                    requirement["etat"] = "non_satisfait"
+                    requirement["raison"] = (
+                        "Le README indique un composant essentiel privé, incompatible "
+                        "avec cette exigence pour la fonction complète.")
+                    requirement["preuve"] = evidence
+                    requirement["ancrage_verifie"] = True
+            if not any(item["preuve"] == evidence for item in grounded_claims):
+                grounded_claims.append({
+                    "affirmation": "Le README signale un composant central privé.",
+                    "preuve": evidence, "ancrage_verifie": True})
+            score = min(score, 1)
+            verdict = "dependance_proprietaire"
+            reason = (
+                "Le dépôt fournit potentiellement des exemples ou intégrations, "
+                "mais un composant central est déclaré privé dans le README. "
+                "L'exigence d'ouverture ou d'autonomie n'est pas satisfaite.")
+            adjustments.append(
+                "Verdict plafonné : le README indique explicitement un composant essentiel privé.")
+
+        # Une licence SPDX seule ne prouve pas que le coeur fonctionnel soit publié.
+        for item in assessed:
+            if item["id"] == "open_source" and item["etat"] == "satisfait":
+                only_license = item["preuve"].casefold() in (
+                    "licence spdx : " + candidate.licence).casefold() and not any(
+                        phrase in item["preuve"].casefold()
+                        for phrase in ("source code", "implementation", "core", "code source"))
+                if only_license:
+                    item["etat"] = "non_verifie"
+                    item["raison"] = (
+                        "La licence SPDX ne suffit pas à démontrer que le composant "
+                        "essentiel est publié en code source.")
+                    item["preuve"] = ""
+                    item["ancrage_verifie"] = False
+                    adjustments.append("Ouverture du composant central non démontrée par la licence seule.")
+
+        statuses = [item["etat"] for item in assessed]
+        if "non_satisfait" in statuses and score > 1:
+            score = 1
+            if verdict == "repond_au_besoin":
+                verdict = "composant_partiel"
+            adjustments.append("Note plafonnée à 1/3 : contrainte obligatoire non satisfaite.")
+        elif "non_verifie" in statuses and score > 2:
+            score = 2
+            if verdict == "repond_au_besoin":
+                verdict = "composant_partiel"
+            adjustments.append("Note plafonnée à 2/3 : une contrainte essentielle reste à vérifier.")
+        if score == 3 and verdict != "repond_au_besoin":
+            score = 2
+            adjustments.append("Note plafonnée : le verdict ne conclut pas à une adéquation complète.")
+        if verdict == "repond_au_besoin" and score < 3:
+            verdict = "composant_partiel"
+            adjustments.append("Verdict ajusté : toutes les conditions d'adéquation complète ne sont pas établies.")
+        if verdict in ("hors_sujet", "preuves_insuffisantes") and score > 1:
+            score = 1
+            adjustments.append("Note plafonnée pour un dépôt non pertinent ou non documenté.")
+
+        first_quote = grounded_claims[0]["preuve"] if grounded_claims else ""
         result.append({
             "repo": candidate.key, "id": rid, "adequation": score,
-            "raison": reason, "preuve": quote if grounded else "",
-            "ancrage_verifie": grounded,
+            "verdict": verdict, "raison": reason,
+            "constats": grounded_claims, "contraintes": assessed,
+            "ajustements": adjustments, "preuve": first_quote,
+            "ancrage_verifie": bool(grounded_claims),
         })
     return sorted(result, key=lambda x: (-x["adequation"], int(x["id"][1:])))
 
@@ -303,11 +420,14 @@ def evaluate(preview: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(answer, tuple) or len(answer) != 2:
         raise AvisError("Le fournisseur IA n'a pas répondu ; classement local inchangé.")
     content, served = answer
-    items = parse_output(content, preview["candidates"])
+    items = parse_output(
+        content, preview["candidates"], preview.get("required_constraints", []))
     return {
         "provider": provider["label"], "model_requested": provider["model"],
         "model_served": served or provider["model"], "results": items,
         "convincing": any(x["adequation"] >= 2 for x in items),
+        "full_match": any(x["verdict"] == "repond_au_besoin" for x in items),
+        "required_constraints": preview.get("required_constraints", []),
         "characters_sent": preview["characters"],
         "notice": ("Avis indicatif sur les seuls éléments transmis. "
                    "Le classement local et les fiches Notion ne sont pas modifiés."),
