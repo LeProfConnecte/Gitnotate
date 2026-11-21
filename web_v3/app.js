@@ -381,6 +381,182 @@ async function refreshSources() {
   }
 }
 
+function resetAIPreview(clearOutput = false) {
+  state.aiPreview = null;
+  byId("ai-preview").classList.add("hidden");
+  byId("ai-consent-check").checked = false;
+  byId("ai-send").disabled = true;
+  if (clearOutput) {
+    byId("ai-output").replaceChildren();
+    byId("ai-output").classList.add("hidden");
+  }
+}
+
+function updateAISelection() {
+  const n = state.aiSelected.size;
+  byId("ai-selected-count").textContent =
+    n + (n > 1 ? " dépôts sélectionnés" : " dépôt sélectionné");
+  byId("ai-prepare").disabled = state.busy || n < 1 || n > 5
+    || !byId("ai-provider").value;
+}
+
+async function loadAIProviders() {
+  const response = await api("/api/ai/providers");
+  state.aiProviders = response.providers || [];
+  const control = byId("ai-provider");
+  control.replaceChildren();
+  for (const entry of state.aiProviders) {
+    const option = element("option", "", entry.label + " · " + entry.model
+      + (entry.configured ? "" : " — clé absente"));
+    option.value = entry.id;
+    option.disabled = !entry.configured;
+    control.appendChild(option);
+  }
+  const available = state.aiProviders.filter((p) => p.configured);
+  if (available.length) {
+    control.value = available[0].id;
+    byId("ai-help").textContent =
+      "Choisis ton fournisseur. Le modèle utilisé est celui enregistré côté Python. "
+      + "Pour changer le modèle ou la clé, utilise le lanceur V2 puis redémarre ce serveur.";
+  } else {
+    control.value = "";
+    byId("ai-help").textContent =
+      "Aucune clé API configurée. Renseigne une clé via le lanceur V2, "
+      + "puis redémarre Gitnotate V3. La recherche reste gratuite et locale.";
+  }
+  const updateModel = () => {
+    const provider = state.aiProviders.find((x) => x.id === control.value);
+    byId("ai-model-status").textContent = provider
+      ? "Modèle configuré : " + provider.model + " · aucune clé affichée"
+      : "Aucun modèle API actif";
+    resetAIPreview(true);
+    updateAISelection();
+  };
+  control.addEventListener("change", updateModel);
+  updateModel();
+}
+
+function renderAIPreview(preview) {
+  state.aiPreview = preview;
+  byId("ai-preview-meta").textContent =
+    preview.provider.label + " · " + preview.provider.model + " · "
+    + preview.repos.length + " dépôts · " + formatCount(preview.characters)
+    + " caractères (messages système et utilisateur)";
+  byId("ai-preview-warning").textContent = preview.disclosure;
+  byId("ai-preview-text").textContent = preview.messages.map(
+    (m) => "Message " + (m.role === "system" ? "système" : "utilisateur")
+      + "\n\n" + m.content).join("\n\n--------------------\n\n");
+  byId("ai-consent-check").checked = false;
+  byId("ai-send").disabled = true;
+  byId("ai-output").classList.add("hidden");
+  byId("ai-preview").classList.remove("hidden");
+  byId("ai-preview").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+async function prepareAI() {
+  if (state.busy || !state.aiSelected.size) return;
+  if (!byId("ai-provider").value) {
+    notify("Configure une clé API dans le lanceur V2, puis redémarre la V3.", true);
+    return;
+  }
+  resetAIPreview(true);
+  setBusy(true);
+  clearNotice();
+  try {
+    const preview = await api("/api/ai/preview", {
+      method: "POST",
+      body: {
+        need: state.lastQuery,
+        repos: [...state.aiSelected],
+        provider: byId("ai-provider").value,
+      },
+    });
+    renderAIPreview(preview);
+  } catch (err) {
+    notify("Aucun appel IA effectué : " + err.message, true);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function reviewLevel(value) {
+  if (value === 3) return "Adéquation élevée selon le modèle";
+  if (value === 2) return "Candidat plausible selon le modèle";
+  if (value === 1) return "Lien faible selon le modèle";
+  return "Hors sujet ou preuves insuffisantes";
+}
+
+function showAIResult(data) {
+  const parent = byId("ai-output");
+  parent.replaceChildren();
+  parent.classList.remove("hidden");
+  append(parent,
+    element("h4", "", "Avis indépendant : " + data.provider + " / " + data.model_served),
+    element("p", "ai-disclaimer", data.notice));
+  if (!data.convincing) {
+    parent.appendChild(element("p", "ai-none",
+      "Aucun des dépôts évalués n'est jugé convaincant (note au moins 2/3). "
+      + "Tu peux enrichir d'autres candidats et renouveler l'analyse."));
+  }
+  for (const item of data.results || []) {
+    const row = element("article", "ai-result");
+    const heading = element("div", "ai-result-heading");
+    append(heading, element("strong", "", item.repo),
+      element("span", "ai-rating", item.adequation + " / 3"));
+    append(row, heading, element("p", "", reviewLevel(item.adequation)),
+      element("p", "ai-reason", item.raison));
+    if (item.ancrage_verifie && item.preuve) {
+      append(row,
+        element("span", "ai-source-label", "Extrait retrouvé dans les données GitHub transmises"),
+        element("blockquote", "ai-quote", item.preuve));
+    } else {
+      row.appendChild(element("span", "ai-source-label",
+        "Aucun extrait justificatif vérifié pour cet avis"));
+    }
+    parent.appendChild(row);
+  }
+  parent.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+async function sendAI() {
+  const preview = state.aiPreview;
+  if (state.busy || !preview || !byId("ai-consent-check").checked) return;
+  // Le jeton d'aperçu est consommable une seule fois côté backend.
+  resetAIPreview();
+  setBusy(true);
+  notify("Évaluation IA en cours. Le classement local reste inchangé.");
+  try {
+    const result = await api("/api/ai/evaluate", {
+      method: "POST", body: { preview_id: preview.preview_id, consent: true },
+    });
+    showAIResult(result);
+    notify("Avis reçu de " + result.provider + " (" + result.model_served + "). "
+      + "Aucune donnée Notion modifiée.");
+  } catch (err) {
+    notify("Avis IA non exploitable : " + err.message
+      + " Le classement local est conservé.", true);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function bindAIEvents() {
+  byId("ai-prepare").addEventListener("click", () => {
+    prepareAI().catch((err) => notify(err.message, true));
+  });
+  byId("ai-consent-check").addEventListener("change", () => {
+    byId("ai-send").disabled = state.busy
+      || !byId("ai-consent-check").checked || !state.aiPreview;
+  });
+  byId("ai-send").addEventListener("click", () => {
+    sendAI().catch((err) => notify(err.message, true));
+  });
+  byId("ai-cancel").addEventListener("click", () => {
+    resetAIPreview();
+    notify("Envoi IA annulé : rien n'a été transmis.");
+  });
+}
+
 function bindEvents() {
   byId("search-form").addEventListener("submit", (ev) => {
     ev.preventDefault();
