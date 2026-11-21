@@ -657,8 +657,13 @@ function renderSettings() {
 
 async function loadSettings() {
   const result = await api("/api/ai/settings");
+  const initialLoad = state.settingsProviders.length === 0;
   state.settingsProviders = result.providers || [];
   state.settingsRestartNeeded = !!result.restart_required;
+  if (initialLoad) {
+    const firstConfigured = state.settingsProviders.find((p) => p.key_configured);
+    if (firstConfigured) byId("settings-provider").value = firstConfigured.id;
+  }
   renderSettings();
 }
 
@@ -749,6 +754,9 @@ async function testSettings() {
 }
 
 function bindSettingsEvents() {
+  document.querySelector('a[href="#provider-settings"]')?.addEventListener("click", () => {
+    byId("provider-settings").open = true;
+  });
   byId("settings-provider").addEventListener("change", renderSettings);
   byId("settings-save").addEventListener("click", () => {
     saveSettings().catch((err) => settingsMessage(err.message, true));
