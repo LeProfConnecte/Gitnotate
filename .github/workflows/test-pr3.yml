@@ -36,3 +36,16 @@ jobs:
         env:
           GITNOTATE_NO_DOTENV: '1'
         run: python -m pytest -q
+      # INSTRUMENTATION EXPÉRIMENTALE (branche exp/bench-min3-windows-20261122 uniquement, jamais destinée à la PR #9) :
+      # la suite ci-dessus reste inchangée et bloquante ; cette étape relance seulement le benchmark dans 5 processus
+      # indépendants pour relever la distribution des durées (lignes BENCH), sans décider du statut du job.
+      - name: Experimental benchmark distribution (5 separate processes, diagnostic only)
+        if: always()
+        shell: bash
+        env:
+          GITNOTATE_NO_DOTENV: '1'
+        run: |
+          for i in 1 2 3 4 5; do
+            echo "=== benchmark process $i ==="
+            python -m pytest -q -p no:cacheprovider tests/test_redecouverte_recherche.py::test_performance || echo "BENCH_FAIL process $i"
+          done

@@ -6,15 +6,19 @@ tests/fixtures/redecouverte/requetes.json (clés de dépôt de l'index du corpus
 """
 import ast
 import copy
+import hashlib  # INSTRUMENTATION EXPÉRIMENTALE
 import importlib.util
 import io
 import json
+import os  # INSTRUMENTATION EXPÉRIMENTALE
+import platform  # INSTRUMENTATION EXPÉRIMENTALE
 import random
 import re
 import shutil
 import sqlite3
 import sys
 import time
+import warnings  # INSTRUMENTATION EXPÉRIMENTALE
 from pathlib import Path
 
 import pytest
@@ -519,12 +523,19 @@ def test_performance(banc):
     index_du_corpus(banc.rd, pages_du_corpus() + pages_numerotees(5000))
     for texte in (PAR_ID['Q01']['requete'], 'convertir des fichiers de test en bibliothèque Python', Q03):
         durees = []
+        traces = []  # INSTRUMENTATION EXPÉRIMENTALE (branche exp/bench-min3-windows-20261122 uniquement)
         for _ in range(3):
             _vider_caches_du_moteur(banc.rd)
             debut = time.perf_counter()
             reponse = _chercher(banc.rd, texte)
-            banc.rd.en_texte(reponse)
+            sortie = banc.rd.en_texte(reponse)
             durees.append(time.perf_counter() - debut)
+            traces.append((len(reponse.resultats), hashlib.sha256(sortie.encode('utf-8')).hexdigest()[:12]))
+        warnings.warn("BENCH " + json.dumps({
+            'requete': texte[:40], 'durees_s': [round(d, 4) for d in durees], 'meilleure_s': round(min(durees), 4),
+            'resultats_et_empreinte_rendu': traces, 'python': sys.version.split()[0],
+            'plateforme': platform.platform(), 'processeur': platform.processor(), 'cpu': os.cpu_count()},
+            ensure_ascii=False))
         assert min(durees) < 2.0, f"{texte} : {' / '.join(f'{d:.3f}' for d in durees)} s"
 
 # =============================================================================
