@@ -422,13 +422,14 @@ async function loadAIProviders() {
   if (available.length) {
     control.value = available[0].id;
     byId("ai-help").textContent =
-      "Choisis ton fournisseur. Le modèle utilisé est celui enregistré côté Python. "
-      + "Pour changer le modèle ou la clé, utilise le lanceur V2 puis redémarre ce serveur.";
+      "Choisis le fournisseur pour cette comparaison ; ce choix ne modifie pas les « Réglages IA ». "
+      + "Le modèle utilisé est celui chargé au démarrage du serveur. Pour changer le modèle ou la clé, "
+      + "utilise « Réglages IA » dans Gitnotate V3, puis redémarre ce serveur.";
   } else {
     control.value = "";
     byId("ai-help").textContent =
-      "Aucune clé API configurée. Renseigne une clé via le lanceur V2, "
-      + "puis redémarre Gitnotate V3. La recherche reste gratuite et locale.";
+      "Aucune clé API configurée. Renseigne une clé dans « Réglages IA », "
+      + "puis redémarre le serveur Gitnotate V3. La recherche reste gratuite et locale.";
   }
   const updateModel = () => {
     const provider = state.aiProviders.find((x) => x.id === control.value);
@@ -467,7 +468,7 @@ function renderAIPreview(preview) {
 async function prepareAI() {
   if (state.busy || !state.aiSelected.size) return;
   if (!byId("ai-provider").value) {
-    notify("Configure une clé API dans le lanceur V2, puis redémarre la V3.", true);
+    notify("Configure une clé API dans « Réglages IA », puis redémarre le serveur Gitnotate V3.", true);
     return;
   }
   resetAIPreview(true);

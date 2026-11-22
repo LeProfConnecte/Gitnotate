@@ -34,6 +34,12 @@ sont ceux déjà définis dans le fichier privé du pilote :
 
 La configuration peut être modifiée avec le lanceur Windows V2 préexistant,
 puis le serveur V3 doit être **redémarré** pour la relire.
+
+> **Mise à jour (lot V3, PR #9) :** les fournisseurs, modèles et clés peuvent
+> désormais être configurés directement depuis « Réglages IA » dans Gitnotate V3
+> (voir `docs/V3_REGLAGES_IA.md`). Un redémarrage du serveur reste nécessaire
+> pour appliquer les nouveaux réglages aux avis IA. Le lanceur V2 demeure une
+> solution de retour arrière.
 Seuls les identifiants de fournisseurs et les noms de modèles sont renvoyés
 au navigateur. Les clés ne sont jamais affichées ou transmises.
 
@@ -121,4 +127,5 @@ Gitnotate-V3.cmd du worktree précédent.
 - Il n'existe aucune notation universelle de pertinence : les 0-3 sont
   des avis indicatifs, non des probabilités.
 - L'enregistrement des clés et l'édition du modèle directement dans le
-  navigateur restent hors du présent lot. Le lanceur V2 sert à cela.
+  navigateur restent hors du présent lot V3-D. Le lanceur V2 servait à cela ;
+  depuis le lot V3 de la PR #9, « Réglages IA » le permet (redémarrage requis).
