@@ -29,8 +29,23 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt -r requirements-dev.txt -r requirements-web.txt
       - name: Check Python syntax
-        run: python -m compileall -q gitnotate.py redecouverte.py scripts/check_llm.py catalogue_v3.py web_v3.py tests
+        run: python -m compileall -q gitnotate.py redecouverte.py scripts/check_llm.py catalogue_v3.py avis_v3.py ai_settings_v3.py web_v3.py tests
+      - name: Check local frontend JavaScript syntax
+        run: node --check web_v3/app.js
       - name: Run isolated test suite (no real keys or Notion changes)
         env:
           GITNOTATE_NO_DOTENV: '1'
         run: python -m pytest -q
+      # INSTRUMENTATION EXPÉRIMENTALE (branche exp/bench-min3-windows-20261122 uniquement, jamais destinée à la PR #9) :
+      # la suite ci-dessus reste inchangée et bloquante ; cette étape relance seulement le benchmark dans 5 processus
+      # indépendants pour relever la distribution des durées (lignes BENCH), sans décider du statut du job.
+      - name: Experimental benchmark distribution (5 separate processes, diagnostic only)
+        if: always()
+        shell: bash
+        env:
+          GITNOTATE_NO_DOTENV: '1'
+        run: |
+          for i in 1 2 3 4 5; do
+            echo "=== benchmark process $i ==="
+            python -m pytest -q -p no:cacheprovider tests/test_redecouverte_recherche.py::test_performance || echo "BENCH_FAIL process $i"
+          done

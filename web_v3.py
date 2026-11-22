@@ -33,6 +33,7 @@ if not os.environ.get("GITNOTATE_DATA_DIR"):
 
 import catalogue_v3 as catalogue  # noqa: E402 - variable d'environnement initialisee avant import
 import avis_v3 as avis  # noqa: E402 - secrets lus uniquement dans le backend local
+import ai_settings_v3 as ai_settings  # noqa: E402 - fichier privé, serveur seulement
 
 
 ASSETS = Path(__file__).resolve().parent / "web_v3"
@@ -63,7 +64,21 @@ class AIConsentRequest(BaseModel):
     consent: bool
 
 
-def create_app(path: Optional[Path] = None, csrf_token: Optional[str] = None) -> FastAPI:
+class AISettingsSaveRequest(BaseModel):
+    provider: Literal["mistral", "openrouter", "openai", "anthropic"]
+    model: str
+    key: Optional[str] = None
+    clear_key: bool = False
+
+
+class AISettingsTestRequest(BaseModel):
+    provider: Literal["mistral", "openrouter", "openai", "anthropic"]
+    model: str
+    key: Optional[str] = None
+
+
+def create_app(path: Optional[Path] = None, csrf_token: Optional[str] = None,
+               settings_file: Optional[Path] = None) -> FastAPI:
     """Fabrique testable : aucune requete reseau avant une action explicite."""
     app = FastAPI(
         title="Gitnotate V3 — local uniquement",
@@ -75,6 +90,8 @@ def create_app(path: Optional[Path] = None, csrf_token: Optional[str] = None) ->
     app.state.ai_previews = {}
     app.state.ai_lock = threading.Lock()
     app.state.ai_busy = False
+    app.state.settings_file = settings_file if settings_file is not None else catalogue.gn.ENV_FILE
+    app.state.settings_restart_required = False
     app.mount("/assets", StaticFiles(directory=ASSETS), name="assets")
 
     @app.middleware("http")
@@ -162,6 +179,49 @@ def create_app(path: Optional[Path] = None, csrf_token: Optional[str] = None) ->
                 path=app.state.catalogue_path)
         except catalogue.CatalogueError as exc:
             raise HTTPException(400, detail=str(exc)) from None
+
+    @app.get("/api/ai/settings")
+    def settings_status():
+        try:
+            with app.state.ai_lock:
+                entries = ai_settings.status(app.state.settings_file)
+                dirty = app.state.settings_restart_required
+            return {"providers": entries, "restart_required": dirty,
+                    "key_values_returned": False, "secret_storage_encrypted": False}
+        except ai_settings.SettingsError as exc:
+            raise HTTPException(400, detail=str(exc)) from None
+
+    @app.post("/api/ai/settings")
+    def settings_save(data: AISettingsSaveRequest):
+        # Aucun jeton Notion, réglage GitHub ou autre variable .env ne doit être touché.
+        # Éviter de modifier la config au milieu d'une évaluation facturable.
+        with app.state.ai_lock:
+            if app.state.ai_busy:
+                raise HTTPException(409, detail="Avis IA en cours : réessayez après sa fin.")
+            try:
+                saved = ai_settings.save(
+                    app.state.settings_file, data.provider, data.model,
+                    data.key, data.clear_key)
+            except ai_settings.SettingsError as exc:
+                raise HTTPException(400, detail=str(exc)) from None
+            app.state.settings_restart_required |= saved["restart_required"]
+        # Ne renvoie ni clé, ni longueur, ni préfixe ; le processus Python
+        # garde ses modèles déjà chargés jusqu'au redémarrage.
+        return {**saved, "restart_required": app.state.settings_restart_required,
+                "applied_to_running_ai": not app.state.settings_restart_required}
+
+    @app.post("/api/ai/settings/check")
+    def settings_check(data: AISettingsTestRequest):
+        # Effectue des GET fixes vers le fournisseur, sans génération ni
+        # enregistrement de clé. Une clé saisie ici peut être testée avant sauvegarde.
+        with app.state.ai_lock:
+            if app.state.ai_busy:
+                raise HTTPException(409, detail="Avis IA en cours : réessayez après sa fin.")
+            try:
+                return ai_settings.check_connection(
+                    app.state.settings_file, data.provider, data.model, data.key)
+            except ai_settings.SettingsError as exc:
+                raise HTTPException(400, detail=str(exc)) from None
 
     @app.get("/api/ai/providers")
     def ai_providers():
