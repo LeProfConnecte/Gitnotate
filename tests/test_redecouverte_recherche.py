@@ -6,15 +6,19 @@ tests/fixtures/redecouverte/requetes.json (clés de dépôt de l'index du corpus
 """
 import ast
 import copy
+import hashlib  # INSTRUMENTATION EXPÉRIMENTALE
 import importlib.util
 import io
 import json
+import os  # INSTRUMENTATION EXPÉRIMENTALE
+import platform  # INSTRUMENTATION EXPÉRIMENTALE
 import random
 import re
 import shutil
 import sqlite3
 import sys
 import time
+import warnings  # INSTRUMENTATION EXPÉRIMENTALE
 from pathlib import Path
 
 import pytest
@@ -516,8 +520,15 @@ def test_performance(banc):
     for texte in (PAR_ID['Q01']['requete'], 'convertir des fichiers de test en bibliothèque Python', Q03):
         debut = time.perf_counter()
         reponse = _chercher(banc.rd, texte)
-        banc.rd.en_texte(reponse)
+        sortie = banc.rd.en_texte(reponse)
         duree = time.perf_counter() - debut
+        # INSTRUMENTATION EXPÉRIMENTALE (branche exp/bench-budget-2p5-20261123 uniquement, jamais destinée à la PR #9)
+        warnings.warn("BENCH " + json.dumps({
+            'requete': texte[:40], 'duree_s': round(duree, 4), 'budget_s': BUDGET_RECHERCHE_S, 'plateforme_sys': sys.platform,
+            'resultats': len(reponse.resultats), 'affiches': len(reponse.affiches),
+            'empreinte_rendu': hashlib.sha256(sortie.encode('utf-8')).hexdigest()[:12], 'python': sys.version.split()[0],
+            'plateforme': platform.platform(), 'processeur': platform.processor(), 'cpu': os.cpu_count()},
+            ensure_ascii=False))
         assert duree < BUDGET_RECHERCHE_S, f"{texte} : {duree:.3f} s, budget {BUDGET_RECHERCHE_S} s ({sys.platform})"
 
 # =============================================================================
