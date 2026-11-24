@@ -503,13 +503,22 @@ def test_requetes_filtres_reference(corpus, capsys):
     assert 'Astuce : pour filtrer, utilisez --licence MIT ou --statut "En test"' in _sorties(capsys)
 
 
+# Budget par recherche (recherche, explication et rendu texte) sur 5 062 fiches. 2,0 s : calibrage du lot 4, sous
+# Linux, avant toute CI Windows ; aucune exigence documentée ne l'impose. Sous Windows, le même calcul mesure 1,75 à
+# 1,85 fois plus lent sur les runners CI (PR #10 : requête 2 à 1,89-2,00 s en processus seul, 2,21-2,24 s dans la
+# suite complète) : 2,5 s y gardent une marge d'au moins 10 % tout en restant plus serrés, en proportion, que 2,0 s
+# sous Linux (1,2 s mesurés).
+BUDGET_RECHERCHE_S = 2.5 if sys.platform == 'win32' else 2.0
+
+
 def test_performance(banc):
     index_du_corpus(banc.rd, pages_du_corpus() + pages_numerotees(5000))
     for texte in (PAR_ID['Q01']['requete'], 'convertir des fichiers de test en bibliothèque Python', Q03):
         debut = time.perf_counter()
         reponse = _chercher(banc.rd, texte)
         banc.rd.en_texte(reponse)
-        assert time.perf_counter() - debut < 2.0, texte
+        duree = time.perf_counter() - debut
+        assert duree < BUDGET_RECHERCHE_S, f"{texte} : {duree:.3f} s, budget {BUDGET_RECHERCHE_S} s ({sys.platform})"
 
 # =============================================================================
 # J. Explications et sorties

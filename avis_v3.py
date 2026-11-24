@@ -168,7 +168,8 @@ def providers() -> list[dict[str, Any]]:
 def selected_provider(name: str) -> dict[str, str]:
     if name not in KNOWN or not gn._provider_key(name):
         raise AvisError(
-            "Fournisseur non configuré : renseignez sa clé dans le lanceur V2, puis redémarrez la V3.")
+            "Fournisseur non configuré : renseignez sa clé dans « Réglages IA » de Gitnotate V3, "
+            "puis redémarrez le serveur.")
     model = gn._provider_model(name)
     if not model or len(model) > 120:
         raise AvisError("Modèle IA non configuré ou invalide.")

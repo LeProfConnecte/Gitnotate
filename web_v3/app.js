@@ -16,6 +16,8 @@ const state = {
   aiProviders: [],
   aiSelected: new Set(),
   aiPreview: null,
+  settingsProviders: [],
+  settingsRestartNeeded: false,
 };
 
 function element(tag, className, text) {
@@ -65,6 +67,10 @@ function setBusy(enabled) {
   byId("enrich-visible").disabled = state.busy;
   byId("ai-prepare").disabled = state.busy;
   byId("ai-send").disabled = state.busy || !byId("ai-consent-check").checked;
+  for (const id of ["settings-save", "settings-test", "settings-provider"]) {
+    byId(id).disabled = state.busy;
+  }
+  byId("settings-clear").disabled = state.busy || !settingsSelected()?.key_configured;
   for (const b of document.querySelectorAll(".card-action")) b.disabled = state.busy;
   for (const input of document.querySelectorAll(".ai-card-check")) input.disabled = state.busy;
   if (!enabled) {
@@ -416,13 +422,14 @@ async function loadAIProviders() {
   if (available.length) {
     control.value = available[0].id;
     byId("ai-help").textContent =
-      "Choisis ton fournisseur. Le modèle utilisé est celui enregistré côté Python. "
-      + "Pour changer le modèle ou la clé, utilise le lanceur V2 puis redémarre ce serveur.";
+      "Choisis le fournisseur pour cette comparaison ; ce choix ne modifie pas les « Réglages IA ». "
+      + "Le modèle utilisé est celui chargé au démarrage du serveur. Pour changer le modèle ou la clé, "
+      + "utilise « Réglages IA » dans Gitnotate V3, puis redémarre ce serveur.";
   } else {
     control.value = "";
     byId("ai-help").textContent =
-      "Aucune clé API configurée. Renseigne une clé via le lanceur V2, "
-      + "puis redémarre Gitnotate V3. La recherche reste gratuite et locale.";
+      "Aucune clé API configurée. Renseigne une clé dans « Réglages IA », "
+      + "puis redémarre le serveur Gitnotate V3. La recherche reste gratuite et locale.";
   }
   const updateModel = () => {
     const provider = state.aiProviders.find((x) => x.id === control.value);
@@ -461,7 +468,7 @@ function renderAIPreview(preview) {
 async function prepareAI() {
   if (state.busy || !state.aiSelected.size) return;
   if (!byId("ai-provider").value) {
-    notify("Configure une clé API dans le lanceur V2, puis redémarre la V3.", true);
+    notify("Configure une clé API dans « Réglages IA », puis redémarre le serveur Gitnotate V3.", true);
     return;
   }
   resetAIPreview(true);
@@ -625,6 +632,144 @@ function bindAIEvents() {
   });
 }
 
+function settingsSelected() {
+  return state.settingsProviders.find((p) => p.id === byId("settings-provider").value);
+}
+
+function settingsMessage(message, isError = false) {
+  const node = byId("settings-result");
+  node.textContent = message;
+  node.classList.toggle("error", !!isError);
+}
+
+function renderSettings() {
+  const selected = settingsSelected();
+  const model = byId("settings-model");
+  model.value = selected?.model || "";
+  byId("settings-key").value = "";
+  byId("settings-key-status").textContent = selected?.key_configured
+    ? "Clé enregistrée dans le fichier privé (valeur masquée)."
+    : "Aucune clé enregistrée pour ce fournisseur.";
+  byId("settings-clear").disabled = state.busy || !selected?.key_configured;
+  byId("settings-model-options").replaceChildren();
+  byId("settings-restart").classList.toggle("hidden", !state.settingsRestartNeeded);
+  settingsMessage("");
+}
+
+async function loadSettings() {
+  const result = await api("/api/ai/settings");
+  const initialLoad = state.settingsProviders.length === 0;
+  state.settingsProviders = result.providers || [];
+  state.settingsRestartNeeded = !!result.restart_required;
+  if (initialLoad) {
+    const firstConfigured = state.settingsProviders.find((p) => p.key_configured);
+    if (firstConfigured) byId("settings-provider").value = firstConfigured.id;
+  }
+  renderSettings();
+}
+
+async function saveSettings(clear = false) {
+  if (state.busy) return;
+  const provider = byId("settings-provider").value;
+  const model = byId("settings-model").value.trim();
+  const pendingKey = byId("settings-key").value.trim();
+  if (clear && !window.confirm(
+    "Effacer définitivement la clé de " + provider
+    + " dans le fichier .env privé ? L'ancienne clé ne pourra pas être récupérée "
+    + "depuis Gitnotate.")) return;
+  if (!clear && pendingKey && settingsSelected()?.key_configured
+      && !window.confirm(
+        "Une clé est déjà enregistrée pour " + provider
+        + ". La remplacer définitivement par la nouvelle clé ? "
+        + "L'ancienne valeur ne pourra pas être réaffichée.")) return;
+  if (!model) {
+    settingsMessage("Renseigne un identifiant de modèle.", true);
+    return;
+  }
+  setBusy(true);
+  settingsMessage("Enregistrement local en cours…");
+  try {
+    const response = await api("/api/ai/settings", {
+      method: "POST",
+      body: {
+        provider, model,
+        key: clear ? null : pendingKey || null,
+        clear_key: clear,
+      },
+    });
+    // Ne conserver aucune clé après l'enregistrement, même dans le champ masqué.
+    byId("settings-key").value = "";
+    await loadSettings();
+    state.settingsRestartNeeded = !!response.restart_required;
+    byId("settings-restart").classList.toggle("hidden", !state.settingsRestartNeeded);
+    settingsMessage(response.restart_required
+      ? "Configuration enregistrée. Redémarre le serveur pour appliquer ce changement."
+      : "Configuration déjà à jour : aucune modification.");
+  } catch (err) {
+    settingsMessage("Enregistrement refusé : " + err.message, true);
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function testSettings() {
+  if (state.busy) return;
+  const provider = byId("settings-provider").value;
+  const model = byId("settings-model").value.trim();
+  const pendingKey = byId("settings-key").value.trim();
+  if (!model) {
+    settingsMessage("Renseigne d'abord le modèle à tester.", true);
+    return;
+  }
+  if (!window.confirm(
+    "Contacter " + provider + " uniquement pour valider la clé et lister les modèles ? "
+    + "Ce test ne lance aucune génération IA.")) return;
+  setBusy(true);
+  settingsMessage("Connexion au fournisseur et lecture des modèles en cours…");
+  try {
+    const result = await api("/api/ai/settings/check", {
+      method: "POST",
+      body: { provider, model, key: pendingKey || null },
+    });
+    const options = byId("settings-model-options");
+    options.replaceChildren();
+    for (const id of result.available_models || []) {
+      const item = element("option");
+      item.value = id;
+      options.appendChild(item);
+    }
+    const verdict = result.model_check === "listed"
+      ? "Modèle trouvé dans la liste API."
+      : result.model_check === "alias"
+        ? "Routeur de modèles : alias configurable, modèle exact variable."
+        : "Clé acceptée, mais modèle non retrouvé dans la liste fournie ; "
+          + "vérifie l'identifiant et les éventuelles pages supplémentaires.";
+    settingsMessage("Connexion validée sans génération. " + verdict
+      + " " + formatCount((result.available_models || []).length)
+      + " modèles proposés dans le champ.");
+  } catch (err) {
+    settingsMessage("Test interrompu : " + err.message, true);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function bindSettingsEvents() {
+  document.querySelector('a[href="#provider-settings"]')?.addEventListener("click", () => {
+    byId("provider-settings").open = true;
+  });
+  byId("settings-provider").addEventListener("change", renderSettings);
+  byId("settings-save").addEventListener("click", () => {
+    saveSettings().catch((err) => settingsMessage(err.message, true));
+  });
+  byId("settings-test").addEventListener("click", () => {
+    testSettings().catch((err) => settingsMessage(err.message, true));
+  });
+  byId("settings-clear").addEventListener("click", () => {
+    saveSettings(true).catch((err) => settingsMessage(err.message, true));
+  });
+}
+
 function bindEvents() {
   byId("search-form").addEventListener("submit", (ev) => {
     ev.preventDefault();
@@ -659,6 +804,7 @@ function bindEvents() {
     refreshSources().catch((err) => notify(err.message, true));
   });
   bindAIEvents();
+  bindSettingsEvents();
 }
 
 async function start() {
@@ -667,6 +813,11 @@ async function start() {
     state.csrf = (await api("/api/session")).csrf;
     await loadState();
     await loadAIProviders();
+    try {
+      await loadSettings();
+    } catch (error) {
+      settingsMessage("Réglages IA indisponibles : " + error.message, true);
+    }
     if (!state.catalogue.missing) await runSearch();
     else {
       state.allResults = [];
